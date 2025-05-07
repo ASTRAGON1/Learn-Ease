@@ -10,6 +10,8 @@ app.use(express.json());
 // Connect to DB
 const connectDB = require('./config/db');
 connectDB();
+const quizRoutes = require('./routes/quiz');
+app.use('/api/quizzes', quizRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is working');
