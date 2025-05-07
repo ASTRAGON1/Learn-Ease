@@ -1,4 +1,4 @@
-const QuizResult = require('../models/QuizResult');
+const QuizResult = require('../models/QuizResultIni');
 
 exports.submitResult = async (req, res) => {
   try {
