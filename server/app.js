@@ -10,8 +10,6 @@ app.use(express.json());
 // Connect to DB
 const connectDB = require('./config/db');
 connectDB();
-const quizRoutes = require('./routes/quiz');
-app.use('/api/quizzes', quizRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is working');
@@ -21,5 +19,50 @@ app.listen(process.env.PORT || 5000, () => {
   console.log('Server running...');
 });
 
+app.use('/api/quiz-template', require('./routes/quizTemplateRoutes'));
+app.use('/api/quiz-result', require('./routes/quizResultRoutes'));
+app.use('/api/quiz-template', require('./routes/quizTemplateRoutes'));
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
