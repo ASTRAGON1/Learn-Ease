@@ -60,13 +60,24 @@ body {
 }
 
 .login-input {
-  padding: 18px 16px;
+  padding: 0 16px;
   border: none;
   border-radius: 6px;
   background: #f6f6f6;
   font-size: 1rem;
   color: #333;
   outline: none;
+  width: 100%;
+  text-align: left;
+  height: 52px;
+  line-height: 52px;
+  box-sizing: border-box;
+}
+
+.login-input::placeholder {
+  color: #bdbdbd;
+  opacity: 1;
+  line-height: 52px;
 }
 
 .login-options-row {
@@ -83,6 +94,41 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.remember-me input[type="checkbox"] {
+  accent-color: #fff;
+  background: #fff;
+  border: 1.5px solid #a084e8;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.remember-me input[type="checkbox"]:checked {
+  background: #a084e8;
+  border: 1.5px solid #a084e8;
+}
+
+.remember-me input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  display: block;
 }
 
 .forgot-password {
