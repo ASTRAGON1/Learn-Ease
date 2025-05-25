@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './login.css';
-import illustration from '../assets/image.png';
+import illustration from '../assets/loginIMG.png';
 
 const Login = () => {
   const [formData, setFormData] = useState({
