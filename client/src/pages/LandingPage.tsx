@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -15,7 +16,7 @@ import {
 } from "../components/ui/accordion";
 import { XIcon } from "lucide-react";
 
-export const LandingPage = (): JSX.Element => {
+export const LandingPage = (): React.ReactElement => {
   // Navigation links data
   const navLinks = [
     { text: "Home", href: "#" },
