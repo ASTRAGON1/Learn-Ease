@@ -2,15 +2,14 @@
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-navigation-menu": "^1.2.13",
-    "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
-    "postcss": "^8.5.3",
-    "react-router-dom": "^7.5.3",
-    "tailwindcss": "^4.1.7"
+    "react-router-dom": "^7.5.3"
   },
   "devDependencies": {
     "@types/react": "^19.1.5",
-    "typescript": "^5.8.3"
+    "@vitejs/plugin-react": "^4.5.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   },
   "scripts": {
     "dev": "vite",
