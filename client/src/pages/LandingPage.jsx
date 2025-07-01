@@ -1,7 +1,12 @@
 import React from "react";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "../components/navigation-menu";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/accordion";
+import {Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "../components/card";
+import { Button } from "../components/button";
+import { Input } from "../components/input";
 import './LandingPage.css';
 
-export const LandingPage = () => {
+function LandingPage() {
   const navLinks = [
     { text: "Home", href: "#" },
     { text: "FAQ", href: "#" },
@@ -73,7 +78,6 @@ export const LandingPage = () => {
           <button className="get-started">Get started</button>
         </div>
         <div className="hero-images">
-          {/* Replace with your actual images */}
           <img src="./public/yellowShape.png" alt="Yellow Shape" className="yellow-shape" />
           <img src="./public/childPhoto.png" alt="Child" className="child-photo" />
           <img src="./public/heart.png" alt="Heart" className="heart-icon" />
@@ -160,4 +164,6 @@ export const LandingPage = () => {
       </footer>
     </div>
   );
-}; 
+}
+
+export default LandingPage;
