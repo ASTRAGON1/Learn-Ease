@@ -78,10 +78,10 @@ function LandingPage() {
           <button className="get-started">Get started</button>
         </div>
         <div className="hero-images">
-          <img src="./public/yellowShape.png" alt="Yellow Shape" className="yellow-shape" />
-          <img src="./public/childPhoto.png" alt="Child" className="child-photo" />
-          <img src="./public/heart.png" alt="Heart" className="heart-icon" />
-          <img src="./public/leftSign.png" alt="Left Sign" className="left-sign" />
+          <img src="/yellowShape.png" alt="Yellow Shape" className="yellow-shape" />
+          <img src="/childPhoto.png" alt="Child" className="child-photo" />
+          <img src="/heart.png" alt="Heart" className="heart-icon" />
+          <img src="/leftSign.png" alt="Left Sign" className="left-sign" />
         </div>
       </section>
 
@@ -91,10 +91,12 @@ function LandingPage() {
         <p className="section-desc">Empowering students with special needs through personalized, compassionate, and effective online learning.</p>
         <div className="card-list">
           {cards.map((card, i) => (
-            <div className="card" key={i}>
+            <div className={`card${i === 1 ? " card-highlighted" : ""}`} key={i}>
+              <div className="card-line top"></div>
               <div className="card-icon">{card.icon}</div>
               <div className="card-title">{card.title}</div>
               <div className="card-desc">{card.description}</div>
+              <div className="card-line bottom"></div>
             </div>
           ))}
         </div>
@@ -102,7 +104,7 @@ function LandingPage() {
 
       {/* FAQ SECTION */}
       <section className="faq-section">
-        <h2 className="section-title">FAQ</h2>
+        <h2 className="section-title.faq-gradient">FAQ</h2>
         <ul className="faq-list">
           {faqItems.map((q, i) => (
             <li className="faq-item" key={i}>
@@ -126,7 +128,7 @@ function LandingPage() {
       {/* NEWSLETTER SECTION */}
       <section className="newsletter-section">
         <div className="newsletter-card">
-          <img src="/newsletter-illustration.png" alt="Newsletter" className="newsletter-img" />
+          <img src="/newsletter-illustration.png" alt="Newsletter" className="../assets/regSection.png" />
           <div className="newsletter-content">
             <div className="newsletter-title">STAY CONNECTED WITH US</div>
             <div className="newsletter-desc">Be the first to receive updates about new features, class schedules, personalized learning tips, and platform improvements – straight to your inbox. <b>Subscribe today and stay ahead!</b></div>

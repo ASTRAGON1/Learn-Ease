@@ -1,3 +1,6 @@
+body, html {
+  background: #fff !important;
+}
 .page-wrapper {
     width: 100%;
 }
@@ -28,7 +31,7 @@
   font-size: 1rem;
 }
 
-.button-login {
+/* .button-login {
   width: 78px;
   height: 30px;
   border-radius: 5px;
@@ -45,6 +48,36 @@
   border-radius: 5px;
   color: white;
   font-size: 0.75rem;
+} */
+
+.button-login, .button-signup {
+min-width: 90px;
+height: 40px;
+padding: 0 18px;
+border-radius: 6px;
+font-size: 1rem;
+font-family: 'Poppins', Helvetica, Arial, sans-serif;
+font-weight: 500;
+display: flex;
+align-items: center;
+justify-content: center;
+box-sizing: border-box;
+border: none;
+outline: none;
+margin-left: 16px;
+cursor: pointer;
+}
+
+.button-login {
+background: #fff;
+color: #4b0eac;
+border: 1.5px solid #9c6fe4;
+}
+
+.button-signup {
+background: #4b0eac;
+color: #fff;
+border: none;
 }
 
 .hero-section {
@@ -96,7 +129,8 @@
 }
 
 .card-highlighted {
-  box-shadow: 1px 5px 20px 10px #00000033;
+  box-shadow: 0 6px 24px 0 rgba(30,30,30,0.16);
+  z-index: 2;
 }
 
 .card-title {
@@ -167,6 +201,9 @@
   margin: 0;
   padding: 0;
   height: 100px;
+  flex: 1;
+  justify-content: flex-end;
+  margin-right: 32px;
 }
 .nav-list a {
   color: #222;
@@ -203,12 +240,16 @@
 .hero-section-bg {
   background: #f6f1fd;
   position: relative;
-  padding: 48px 0 0 0;
-  min-height: 420px;
+  padding: 48px 40px 0 40px;
+  min-height: 500px;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
+  max-width: 100%;  /* wider */
+  margin: 0 auto;
+  gap: 40px;
+  border-radius: 0 0 30px 30px;
 }
 .hero-content {
   flex: 1 1 420px;
@@ -225,7 +266,7 @@
 .hero-features {
   list-style: none;
   padding: 0;
-  margin: 0 0 32px 0;
+  margin-left: 30px;
 }
 .hero-features li {
   font-size: 1.25rem;
@@ -244,14 +285,17 @@
   color: #fff;
   border: none;
   border-radius: 30px;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
   font-weight: 600;
-  padding: 16px 40px;
-  margin-top: 16px;
+  padding: 18px 36px;
+  margin-top: 24px;
   box-shadow: 0 4px 16px 0 rgba(106, 70, 163, 0.18);
   cursor: pointer;
   transition: background 0.2s;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
 }
 .get-started:hover {
   background: #6c2ed4;
@@ -291,8 +335,8 @@
 
 /* WHO WE ARE */
 .card-section {
-  padding: 64px 0 32px 0;
   background: #fff;
+  padding: 64px 0 32px 0;
   text-align: center;
 }
 .section-title {
@@ -301,6 +345,20 @@
   font-weight: bold;
   margin-bottom: 16px;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
+}
+
+.section-title.faq-gradient {
+  font-size: 3.5rem;
+  font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  font-weight: 900;
+  background: linear-gradient(90deg, #a084ee 30%, #6c2ed4 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  margin-bottom: 48px;
+  margin-top: 32px;
+  text-align: center;
 }
 .section-desc {
   color: #222;
@@ -311,33 +369,61 @@
 .card-list {
   display: flex;
   justify-content: center;
+  align-items: stretch;
   gap: 32px;
-  flex-wrap: wrap;
+  margin-top: 32px;
+  flex-wrap: nowrap;     /* Prevent cards from wrapping to next line */
+  max-width: 1100px;     /* You can adjust this value */
+  margin-left: auto;
+  margin-right: auto;
+}
+.card-line {
+  width: 90%;
+  height: 8px;
+  background: #bfaaf6;
+  border-radius: 8px;
+  position: absolute;
+  left: 5%;
+}
+
+.card-line.top {
+  top: 12px;
+}
+
+.card-line.bottom {
+  bottom: 12px;
 }
 .card {
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px 0 rgba(160, 132, 232, 0.10);
-  padding: 32px 24px;
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 32px 16px 32px 16px;
   width: 320px;
-  min-height: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  transition: box-shadow 0.2s;
+  border: none;
 }
 .card-icon {
-  font-size: 2.5rem;
-  margin-bottom: 16px;
+  font-size: 2.6rem;
+  margin-top: 32px;
+  margin-bottom: 10px;
 }
 .card-title {
   color: #4b0eac;
   font-size: 1.25rem;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  margin-top: 14px;
 }
 .card-desc {
-  color: #222;
-  font-size: 1rem;
+  color: #111;
+  font-size: 1.12rem;
+  text-align: center;
+  font-weight: 700;
+  margin-top: 10px;
 }
 
 /* FAQ */
@@ -347,28 +433,50 @@
   text-align: center;
 }
 .faq-list {
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
-  text-align: left;
   padding: 0;
+  text-align: left;
 }
 .faq-item {
-  margin-bottom: 16px;
+  margin-bottom: 32px;
+  border-bottom: 1.5px solid #f2ebfd;
+  padding-bottom: 10px;
 }
 .faq-item summary {
-  font-weight: bold;
-  color: #4b0eac;
+  list-style: none;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1.45rem;
+  font-weight: bold;
+  color: #5c19c7;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  outline: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.18s;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary:after {
+  content: '▼';
+  color: #6c2ed4;
+  font-size: 1.3rem;
+  margin-left: 10px;
+  transition: transform 0.2s;
+}
+.faq-item[open] summary:after {
+  transform: rotate(180deg);
 }
 .faq-answer {
-  color: #222;
-  font-size: 1rem;
-  margin-top: 8px;
+  color: #333;
+  font-size: 1.14rem;
+  margin-top: 12px;
+  font-weight: 400;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  padding-left: 2px;
 }
-
 /* TEACHER SECTION */
 .teacher-section {
   background: #f6f1fd;
