@@ -104,16 +104,64 @@ function LandingPage() {
 
       {/* FAQ SECTION */}
       <section className="faq-section">
-        <h2 className="section-title.faq-gradient">FAQ</h2>
+        <h2 className="faq-gradient">FAQ</h2>
         <ul className="faq-list">
-          {faqItems.map((q, i) => (
-            <li className="faq-item" key={i}>
-              <details>
-                <summary>{q}</summary>
-                <div className="faq-answer">Answer coming soon.</div>
-              </details>
-            </li>
-          ))}
+          <li className="faq-item">
+            <details>
+              <summary>Who are the classes for?</summary>
+              <div className="faq-answer">
+                Our classes are specially designed for kids and teens with Down Syndrome or similar learning needs.
+              </div>
+            </details>
+          </li>
+          <li className="faq-item">
+            <details>
+              <summary>Are the teachers qualified?</summary>
+              <div className="faq-answer">
+                Yes, all our teachers are trained in special education and have experience working with children with special needs.
+              </div>
+            </details>
+          </li>
+          <li className="faq-item">
+            <details>
+              <summary>How do I become a teacher on this platform?</summary>
+              <div className="faq-answer">
+                Click "Teach on Edu" and fill out your information. We'll review and get back to you quickly.
+              </div>
+            </details>
+          </li>
+          <li className="faq-item">
+            <details>
+              <summary>How do I sign up my child?</summary>
+              <div className="faq-answer">
+                Click on the "Sign Up" button at the top right, then fill in your child's details. It’s easy and takes only a few minutes.
+              </div>
+            </details>
+          </li>
+          <li className="faq-item">
+            <details>
+              <summary>What devices can I use?</summary>
+              <div className="faq-answer">
+                You can use any device with a browser—phone, tablet, or computer.
+              </div>
+            </details>
+          </li>
+          <li className="faq-item">
+            <details>
+              <summary>Can I see my child's progress?</summary>
+              <div className="faq-answer">
+                Yes, parents get regular updates and reports about their child’s learning and engagement.
+              </div>
+            </details>
+          </li>
+          <li className="faq-item">
+            <details>
+              <summary>Are the classes live or recorded?</summary>
+              <div className="faq-answer">
+                Currently, all our classes are pre-recorded to give students the flexibility to learn at their own pace. However, we’re working on introducing live video classes in future updates to enhance interactivity and engagement.
+              </div>
+            </details>
+          </li>
         </ul>
       </section>
 
@@ -128,7 +176,7 @@ function LandingPage() {
       {/* NEWSLETTER SECTION */}
       <section className="newsletter-section">
         <div className="newsletter-card">
-          <img src="/newsletter-illustration.png" alt="Newsletter" className="../assets/regSection.png" />
+          <img src="../assets/regSection.png" alt="Newsletter" className="newsletter-img" />
           <div className="newsletter-content">
             <div className="newsletter-title">STAY CONNECTED WITH US</div>
             <div className="newsletter-desc">Be the first to receive updates about new features, class schedules, personalized learning tips, and platform improvements – straight to your inbox. <b>Subscribe today and stay ahead!</b></div>
