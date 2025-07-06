@@ -5,6 +5,7 @@ import {Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } 
 import { Button } from "../components/button";
 import { Input } from "../components/input";
 import './LandingPage.css';
+import regSection from '../assets/regSection.png';
 
 function LandingPage() {
   const navLinks = [
@@ -134,7 +135,7 @@ function LandingPage() {
             <details>
               <summary>How do I sign up my child?</summary>
               <div className="faq-answer">
-                Click on the "Sign Up" button at the top right, then fill in your child's details. It’s easy and takes only a few minutes.
+                Click on the "Sign Up" button at the top right, then fill in your child's details. It's easy and takes only a few minutes.
               </div>
             </details>
           </li>
@@ -150,7 +151,7 @@ function LandingPage() {
             <details>
               <summary>Can I see my child's progress?</summary>
               <div className="faq-answer">
-                Yes, parents get regular updates and reports about their child’s learning and engagement.
+                Yes, parents get regular updates and reports about their child's learning and engagement.
               </div>
             </details>
           </li>
@@ -158,7 +159,7 @@ function LandingPage() {
             <details>
               <summary>Are the classes live or recorded?</summary>
               <div className="faq-answer">
-                Currently, all our classes are pre-recorded to give students the flexibility to learn at their own pace. However, we’re working on introducing live video classes in future updates to enhance interactivity and engagement.
+                Currently, all our classes are pre-recorded to give students the flexibility to learn at their own pace. However, we're working on introducing live video classes in future updates to enhance interactivity and engagement.
               </div>
             </details>
           </li>
@@ -176,10 +177,15 @@ function LandingPage() {
       {/* NEWSLETTER SECTION */}
       <section className="newsletter-section">
         <div className="newsletter-card">
-          <img src="../assets/regSection.png" alt="Newsletter" className="newsletter-img" />
+          {/* <img src={regSection} alt="Newsletter" className="newsletter-illustration" /> */}
           <div className="newsletter-content">
             <div className="newsletter-title">STAY CONNECTED WITH US</div>
-            <div className="newsletter-desc">Be the first to receive updates about new features, class schedules, personalized learning tips, and platform improvements – straight to your inbox. <b>Subscribe today and stay ahead!</b></div>
+            <div className="newsletter-headline">
+              <span className="newsletter-get">GET</span>
+              <span className="newsletter-highlight">LearnEase</span>
+              <span className="newsletter-updates">UPDATES</span>
+            </div>
+            <div className="newsletter-desc">Be the first to receive updates about new features, class schedules, personalized learning tips, and platform improvements – straight to your inbox.<br/><b>Subscribe today and stay ahead!</b></div>
             <form className="newsletter-form">
               <input type="email" placeholder="Enter your email address" className="newsletter-input" />
               <button className="newsletter-btn">NOTIFY ME</button>
