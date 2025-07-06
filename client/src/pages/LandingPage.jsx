@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "../components/navigation-menu";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/accordion";
 import {Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "../components/card";
@@ -9,9 +9,11 @@ import regSection from '../assets/regSection.png';
 
 function LandingPage() {
   const navLinks = [
-    { text: "Home", href: "#" },
-    { text: "FAQ", href: "#" },
-    { text: "About Us", href: "#" },
+    { text: "Home", href: "#home" },
+    { text: "Who We Are", href: "#who-we-are" },
+    { text: "FAQ", href: "#faq" },
+    { text: "Become a Teacher", href: "#become-a-teacher" },
+    { text: "Newsletter", href: "#newsletter" },
   ];
   const features = [
     { icon: "📚", text: "Interactive personalized learning experience" },
@@ -50,6 +52,21 @@ function LandingPage() {
   const mainLinks = ["Home", "About Us", "FAQ", "Teach on Edu", "Contact"];
   const legalLinks = ["Help Center", "Privacy Policy", "Terms & Conditions"];
 
+  // Scroll to top button logic
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 120); // Show after scrolling 120px
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="page-wrapper">
       {/* NAVIGATION */}
@@ -59,7 +76,6 @@ function LandingPage() {
           {navLinks.map((link, i) => (
             <li key={i}><a href={link.href}>{link.text}</a></li>
           ))}
-          <li><a href="#">Become a teacher</a></li>
         </ul>
         <div className="nav-actions">
           <button className="button-login">Login</button>
@@ -68,7 +84,7 @@ function LandingPage() {
       </nav>
 
       {/* HERO SECTION */}
-      <section className="hero-section-bg">
+      <section id="home" className="hero-section-bg">
         <div className="hero-content">
           <h1 className="hero-title">Online Classes for Kids & Teens with Down Syndrome</h1>
           <ul className="hero-features">
@@ -87,7 +103,7 @@ function LandingPage() {
       </section>
 
       {/* WHO WE ARE */}
-      <section className="card-section">
+      <section id="who-we-are" className="card-section">
         <h2 className="section-title">WHO WE ARE</h2>
         <p className="section-desc">Empowering students with special needs through personalized, compassionate, and effective online learning.</p>
         <div className="card-list">
@@ -104,7 +120,7 @@ function LandingPage() {
       </section>
 
       {/* FAQ SECTION */}
-      <section className="faq-section">
+      <section id="faq" className="faq-section">
         <h2 className="faq-gradient">FAQ</h2>
         <ul className="faq-list">
           <li className="faq-item">
@@ -167,7 +183,7 @@ function LandingPage() {
       </section>
 
       {/* TEACHER SECTION */}
-      <section className="teacher-section">
+      <section id="become-a-teacher" className="teacher-section">
         <h2 className="section-title">BECOME A TEACHER IN <span className="brand">LearnEase</span></h2>
         <p className="section-desc">Make a difference in the lives of children with special needs. Join our community of dedicated educators.</p>
         <p className="section-desc">Are you passionate about inclusive education? We're always looking for qualified and caring teachers to help kids with Down syndrome and autism thrive. Share your knowledge, inspire growth, and be part of an impactful journey.</p>
@@ -175,7 +191,7 @@ function LandingPage() {
       </section>
 
       {/* NEWSLETTER SECTION */}
-      <section className="newsletter-section">
+      <section id="newsletter" className="newsletter-section">
         <div className="newsletter-card">
           {/* <img src={regSection} alt="Newsletter" className="newsletter-illustration" /> */}
           <div className="newsletter-content">
@@ -218,6 +234,15 @@ function LandingPage() {
         </div>
         <div className="footer-bottom">© 2025 LearnEase™. All rights reserved.</div>
       </footer>
+
+      {/* Scroll to Top Button */}
+      <button
+        className={`scroll-to-top-btn${showScrollTop ? " visible" : ""}`}
+        onClick={scrollToTop}
+        aria-label="Scroll to top"
+      >
+        ↑
+      </button>
     </div>
   );
 }
