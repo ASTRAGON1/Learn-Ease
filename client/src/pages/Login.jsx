@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './login.css';
-import illustration from '../assets/loginIMG.png';
+import icon from "../assets/icon.png";
+import LoginStudent from "../assets/LoginStudent.png";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -103,66 +104,32 @@ const Login = () => {
   };
 
   return (
-    <div className="login-bg">
-      <div className="login-card">
-        <div className="login-card-left">
-          <div className="login-logo">Logo</div>
-          <h1 className="login-title">Login</h1>
-          <p className="login-subtitle">Enter your account details</p>
-          <form className="login-form" onSubmit={handleSubmit}>
-            <div className="input-group">
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Enter your username or Email"
-                className={`login-input ${errors.username ? 'error' : ''}`}
-              />
-              {errors.username && <span className="error-message">{errors.username}</span>}
-            </div>
-            <div className="input-group">
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter Your Password"
-                className={`login-input ${errors.password ? 'error' : ''}`}
-              />
-              {errors.password && <span className="error-message">{errors.password}</span>}
-            </div>
-            <div className="login-options-row">
-              <label className="remember-me">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                /> Remember me
-              </label>
-              <a href="#" className="forgot-password">Forget password ?</a>
-            </div>
-            {errors.submit && <div className="error-message">{errors.submit}</div>}
-            <button 
-              type="submit" 
-              className="login-btn"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-          <p className="register-link">
-            Don't you have an account? <a href="#">Click here</a>
-          </p>
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-title">Login</div>
+        <div className="login-input-frame">
+          <p className="login-label">Enter your username or Email</p>
         </div>
-        <div className="login-card-right">
-          <div className="welcome-text-block">
-            <h1><span className="bold">Welcome to</span><br /><span className="portal">student portal</span></h1>
-            <p className="access-text">Login to access your account</p>
-          </div>
-          <img src={illustration} alt="Student portal illustration" className="login-illustration" />
+        <div className="login-input-frame">
+          <div className="login-label">Enter Your Password</div>
         </div>
+        <div className="login-btn-frame">
+          <div className="login-btn-text">Login</div>
+        </div>
+        <img className="login-icon" alt="Icon" src={icon} />
+        <div className="login-remember">Remember me</div>
+        <div className="login-forgot">Forget password ?</div>
+        <p className="login-no-account">
+          <span className="login-no-account-span">Don't you have an account?</span>
+          <span className="login-no-account-space">&nbsp;</span>
+        </p>
+        <p className="login-click-here">
+          <span className="login-click-here-span">Click here</span>
+          <span className="login-no-account-space">&nbsp;</span>
+        </p>
+        <div className="login-logo">Logo</div>
+        <div className="login-subtitle">Enter your account details</div>
+        <img className="login-image" alt="Login visual" src={loginStudent} />
       </div>
     </div>
   );
