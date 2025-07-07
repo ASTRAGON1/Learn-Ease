@@ -6,6 +6,7 @@ import { Button } from "../components/button";
 import { Input } from "../components/input";
 import './LandingPage.css';
 import regSection from '../assets/regSection.png';
+import { useNavigate } from 'react-router-dom';
 
 function LandingPage() {
   const navLinks = [
@@ -55,6 +56,8 @@ function LandingPage() {
   // Scroll to top button logic
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 120); // Show after scrolling 120px
@@ -78,7 +81,7 @@ function LandingPage() {
           ))}
         </ul>
         <div className="nav-actions">
-          <button className="button-login">Login</button>
+          <button className="button-login" onClick={() => navigate('/login')}>Login</button>
           <button className="button-signup">Sign Up</button>
         </div>
       </nav>
