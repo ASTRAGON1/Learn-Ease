@@ -1,10 +1,287 @@
+const SignupStudent = () => {
+  return (
+    <div className="signup-card">
+      {/* Left Side: Image */}
+      <div className="signup-card-left">
+        <img src={signUpStudent} alt="Sign Up Visual" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      </div>
+      {/* Right Side: Form */}
+      <div className="signup-card-right">
+        <div className="signup-logo">Logo</div>
+        <div className="signup-title">Create Account</div>
+        <form className="signup-form">
+          <div className="signup-input-group">
+            <input className="signup-input" type="text" placeholder="Full Name*" />
+          </div>
+          <div className="signup-input-group">
+            <input className="signup-input" type="email" placeholder="Email*" />
+          </div>
+          <div className="signup-input-group">
+            <input className="signup-input" type="password" placeholder="Password*" />
+          </div>
+          <div className="signup-input-group">
+            <input className="signup-input" type="password" placeholder="Confirm Password*" />
+          </div>
+          <div className="signup-input-group">
+            <select className="signup-select" defaultValue="">
+              <option value="" disabled>Type of the special need*</option>
+              <option value="down-syndrome">Down Syndrome</option>
+              <option value="autism">Autism</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="signup-checkbox-row">
+            <input className="signup-checkbox" type="checkbox" id="terms" />
+            <label className="signup-checkbox-label" htmlFor="terms">
+              I agree to the <a href="#">Terms Of Services</a> and <a href="#">privacy policy</a>
+            </label>
+          </div>
+          <button className="signup-btn" type="submit">Create</button>
+          <div className="signup-divider" />
+          <button className="signup-google-btn" type="button">
+            <img className="signup-google-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" />
+            Sign up with Google
+          </button>
+          <div className="signup-bottom-link">
+            Already a member? <Link to="/login">Login</Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default SignupStudent;
 
 
 
 
 
+/* SIGNUP CARD LAYOUT */
+.signup-card {
+  display: flex;
+  width: 1280px;
+  height: 832px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px 0 rgba(160, 132, 232, 0.10);
+  overflow: hidden;
+}
 
+.signup-card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  background: transparent;
+}
 
+.signup-form {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
+.signup-logo {
+  color: #a084e8;
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 32px;
+  text-align: left;
+  width: 100%;
+}
 
+.signup-title {
+  color: #a084e8;
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.1;
+  text-align: left;
+  width: 100%;
+}
 
+.signup-input-group {
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.signup-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #f6f6f6;
+  font-size: 1.15rem;
+  color: #333;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 0;
+}
+
+.signup-input::placeholder {
+  color: #bdbdbd;
+  opacity: 1;
+  font-size: 1.15rem;
+}
+
+.signup-select {
+  width: 100%;
+  height: 54px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #f6f6f6;
+  font-size: 1.15rem;
+  color: #bdbdbd;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 0;
+  appearance: none;
+}
+
+.signup-checkbox-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  margin-top: 2px;
+}
+
+.signup-checkbox {
+  accent-color: #a084e8;
+  background: #fff;
+  border: 1.2px solid #a084e8;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+  box-shadow: 0 1px 4px rgba(160, 132, 232, 0.10);
+}
+.signup-checkbox:checked {
+  background: #a084e8;
+  border: 1.2px solid #a084e8;
+  box-shadow: 0 2px 8px rgba(160, 132, 232, 0.18);
+}
+.signup-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  display: block;
+}
+.signup-checkbox-label {
+  color: #a084e8;
+  font-size: 1rem;
+  font-weight: 400;
+  user-select: none;
+}
+.signup-checkbox-label span {
+  color: #a084e8;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.signup-checkbox-label a {
+  color: #a084e8;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+.signup-btn {
+  width: 100%;
+  height: 54px;
+  background: #a084e8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 8px;
+  margin-bottom: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: none;
+}
+.signup-btn:hover {
+  background: #8b6ee8;
+}
+
+.signup-divider {
+  width: 100%;
+  border: none;
+  border-top: 1.5px solid #e0d7f7;
+  margin: 18px 0 18px 0;
+  position: relative;
+}
+.signup-divider-text {
+  position: absolute;
+  left: 50%;
+  top: -13px;
+  background: #fff;
+  color: #bdbdbd;
+  font-size: 1rem;
+  padding: 0 16px;
+  transform: translateX(-50%);
+}
+
+.signup-google-btn {
+  width: 100%;
+  height: 54px;
+  background: #fff;
+  color: #6a6a6a;
+  border: 1.5px solid #a084e8;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+.signup-google-btn:hover {
+  background: #f6f6f6;
+  border: 1.5px solid #8b6ee8;
+}
+.signup-google-icon {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+}
+
+.signup-bottom-link {
+  color: #bdbdbd;
+  font-size: 1rem;
+  margin-top: 10px;
+  text-align: center;
+  width: 100%;
+}
+.signup-bottom-link a {
+  color: #a084e8;
+  text-decoration: underline;
+  margin-left: 4px;
+  font-weight: 400;
+  font-size: 1rem;
+}

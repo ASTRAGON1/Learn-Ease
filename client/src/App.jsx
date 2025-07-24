@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import StudentSignUp from './pages/StudentSignUp';
+import SignupStudent from './pages/signupStudent';
 import LandingPage from "./pages/LandingPage";
 import './App.css';
 // Importing necessary modules and components

@@ -82,7 +82,7 @@ function LandingPage() {
         </ul>
         <div className="nav-actions">
           <button className="button-login" onClick={() => navigate('/login')}>Login</button>
-          <button className="button-signup">Sign Up</button>
+          <button className="button-signup" onClick={() => navigate('/signup')}>Sign Up</button>
         </div>
       </nav>
 
