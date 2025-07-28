@@ -73,6 +73,17 @@ function LandingPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // state + fetch (put near other state/hooks)
+  const [reviews, setReviews] = useState([]);
+  useEffect(() => {
+    const base = import.meta?.env?.VITE_API_URL || "";
+    fetch(`${base}/api/reviews?published=1`)
+      .then(r => r.json())
+      .then(d => setReviews(Array.isArray(d) ? d : []))
+      .catch(() => setReviews([]));
+  }, []);
+
+
   return (
     <div className="page-wrapper">
       {/* NAVIGATION */}
@@ -213,30 +224,57 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* REVIEWS (auto from admin-published) */}
+      <section id="reviews" className="reviews-section">
+        <h2 className="reviews-title">WHAT PARENTS SAY</h2>
+        <div className="review-grid">
+          {reviews.map((r) => (
+            <div className="review-card" key={r.id || `${r.name}-${r.createdAt || Math.random()}`}>
+              <div className="review-header">
+                <div className="review-avatar">{(r.name || "?").charAt(0)}</div>
+                <div className="review-meta">
+                  <div className="review-name">{r.name}</div>
+                  <div className="review-relation">{r.relation}</div>
+                </div>
+              </div>
+              <div className="review-stars">
+                {"★".repeat(r.rating || 0)}{"☆".repeat(5 - (r.rating || 0))}
+              </div>
+              <p className="review-text">{r.text}</p>
+            </div>
+          ))}
+          {reviews.length === 0 && <div className="review-empty">No reviews yet.</div>}
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="footer">
         <div className="footer-main">
-          <div className="footer-brand">
-            <h2>LearnEase</h2>
-            <p>Empowering personalized education for every learner.</p>
-            <div>Email: support@Learnease.com<br />Phone: +123 456 7890</div>
-          </div>
-          <div className="footer-links">
-            <ul>
-              {mainLinks.map((link, i) => (
-                <li key={i}><a href="#">{link}</a></li>
-              ))}
-            </ul>
-            <ul>
-              {legalLinks.map((link, i) => (
-                <li key={i}><a href="#">{link}</a></li>
-              ))}
-            </ul>
+          <ul className="footer-col">
+            {mainLinks.map((link, i) => (
+              <li key={i}><a href="#">{link}</a></li>
+            ))}
+          </ul>
+
+          <ul className="footer-col">
+            {legalLinks.map((link, i) => (
+              <li key={i}><a href="#">{link}</a></li>
+            ))}
+          </ul>
+
+          <div className="footer-contact">
+            <div>Email: support@learnease.com</div>
+            <div>Phone: 05979797979</div>
+            <div>Address: Blbala, Magusa, North Cyprus</div>
           </div>
         </div>
-        <div className="footer-bottom">© 2025 LearnEase™. All rights reserved.</div>
-      </footer>
 
+        <div className="footer-bottom">
+          <img src={Logo} alt="LearnEase" className="footer-logo" />
+          <span>LearnEase © 2025 — All rights reserved.</span>
+        </div>
+      </footer>
+      
       {/* Scroll to Top Button */}
       <button
         className={`scroll-to-top-btn${showScrollTop ? " visible" : ""}`}

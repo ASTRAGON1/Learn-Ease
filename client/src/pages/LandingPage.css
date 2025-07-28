@@ -1,12 +1,20 @@
+/* =========================
+   Global
+========================= */
 body, html {
   background: #fff !important;
   scroll-behavior: smooth;
 }
+
 .page-wrapper {
-    width: 100%;
-    padding-top: 0;
+  width: 100%;
+  padding-top: 0;
 }
-  
+
+
+/* =========================
+   Header
+========================= */
 .header {
   width: 100%;
   height: 107px;
@@ -32,6 +40,11 @@ body, html {
   color: black;
   font-size: 1rem;
 }
+
+
+/* =========================
+   Buttons (first set)
+========================= */
 .button-login{
   width: 90px;
   height: 35px;
@@ -47,6 +60,7 @@ body, html {
   box-sizing: border-box;
 }
 
+/* duplicated definition (kept) */
 .button-login{
   width: 100px;
   height: 35px;
@@ -62,7 +76,6 @@ body, html {
   box-sizing: border-box;
 }
 
-
 .button-login {
   background: #fff;
   color: #4b0eac;
@@ -74,32 +87,21 @@ body, html {
   color: #fff;
   border: none;
 }
-
-.hero-section {
-  display: flex;
-  justify-content: space-between;
-  padding: 4rem 3rem;
-  position: relative;
-}
-
-.hero-title {
-  font-size: 2.5rem;
-  font-family: 'Gill Sans Ultra Bold Condensed', Helvetica;
-  color: black;
-  line-height: normal;
-}
-
-.hero-feature {
-  padding-left: 3rem;
-  font-family: 'Poppins', Helvetica;
-  font-size: 1.5rem;
-  color: black;
-  line-height: normal;
+.landing-picture {
+  width: 450px;
+  height: 450px;
+  object-fit: contain;
+  margin-bottom: 10px;   /* left orange value */
+  margin-right: 133px;  /* right orange value */
+  align-self: center;
 }
 
 .get-started {
-  padding-left: 4rem;
-  margin-top: 1rem;
+  transition: background 0.2s;
+  display: inline-block;
+  text-align: center;
+  margin-left: 756px;
+  margin-top: 30px;
   width: 183px;
   height: 60px;
   background-color: #4b0eac;
@@ -109,11 +111,13 @@ body, html {
   font-family: 'Poppins', Helvetica;
   box-shadow: 0px 4px 14.8px rgba(106, 70, 163, 0.6);
 }
-
+/* =========================
+   Cards Section (container)
+========================= */
 .card-section {
   max-width: 1133px;
   margin: 0 auto;
-  padding: 4rem 0;
+  padding-top: 100px;
   text-align: center;
 }
 
@@ -127,7 +131,6 @@ body, html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* This is the strong, soft shadow! */
   box-shadow: 0 8px 36px 0 rgba(50,30,90,0.16);
   margin: 0;
   transition: box-shadow 0.18s;
@@ -158,6 +161,10 @@ body, html {
   letter-spacing: -0.01em;
 }
 
+
+/* =========================
+   Footer (legacy block)
+========================= */
 .footer {
   background-color: #9c6fe4;
   padding: 4rem 1rem;
@@ -183,8 +190,11 @@ body, html {
 .footer a:hover {
   text-decoration: underline;
 }
-  
-/* NAVBAR */
+
+
+/* =========================
+   Navbar
+========================= */
 .navbar {
   height: 92px;
   display: flex;
@@ -193,6 +203,7 @@ body, html {
   background: #fff;
   box-shadow: 0 4px 24px 0 rgba(30,30,30,0.10);
 }
+
 .logo {
   margin-top: 21px;
   margin-bottom: 25px;
@@ -202,6 +213,7 @@ body, html {
   width: 250px;
   object-fit: contain;
 }
+
 .nav-list {
   display: flex;
   align-items: center;
@@ -214,8 +226,8 @@ body, html {
   flex: 1;
   justify-content: center;
   text-decoration: none;
-
 }
+
 .nav-list a {
   color: #222;
   font-weight: 500;
@@ -223,10 +235,12 @@ body, html {
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
   transition: color 0.2s; 
   line-height: 100px;
-} */
+}
+
 .nav-list a:hover {
   color: #4b0eac;
 }
+
 .nav-actions {
   display: flex;
   gap: 2rem;
@@ -234,6 +248,7 @@ body, html {
   padding-top: 31px;
   padding-bottom: 23px;
 }
+
 .button-login, .button-signup {
   height: 44px;
   min-width: 110px;
@@ -246,39 +261,55 @@ body, html {
   box-sizing: border-box;
 }
 
-/* HERO SECTION */
+
+/* =========================
+   Hero (current block)
+========================= */
 .hero-section-bg {
-  background: #f6f1fd;
+  background: #DACCF0;
   position: relative;
-  padding: 48px 40px 0 40px;
-  min-height: 500px;
+  max-height: 450px;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  max-width: 100%;  /* wider */
+  max-width: 100%;
   margin: 0 auto;
   gap: 40px;
   border-radius: 0 0 30px 30px;
 }
+
 .hero-content {
   flex: 1 1 420px;
-  padding: 48px 64px 48px 64px;
+  padding: 0;
   z-index: 2;
 }
+
 .hero-title {
+  margin: 84px 0 0 205px;
   font-family: 'Luckiest Guy', 'Fredoka One', 'Poppins', Helvetica, Arial, sans-serif;
-  font-size: 2.5rem;
+  font-size: 40px;
   font-weight: bold;
+  line-height: 48px;
   color: #111;
-  margin-bottom: 32px;
+  max-width: 845px;
+  text-align: left;
 }
+
 .hero-features {
+  margin: 34px 0 0 369px;
   list-style: none;
   padding: 0;
-  margin-left: 30px;
 }
+
 .hero-features li {
+  max-width: 543px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 22px;
   font-size: 1.25rem;
   margin-bottom: 8px;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
@@ -286,41 +317,33 @@ body, html {
   display: flex;
   align-items: center;
 }
+
 .feature-icon {
-  font-size: 1.5rem;
-  margin-right: 10px;
-}
-.get-started {
-  background: #4b0eac;
-  color: #fff;
-  border: none;
-  border-radius: 30px;
-  font-size: 1.2rem;
-  font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  font-weight: 600;
-  padding: 18px 36px;
-  margin-top: 24px;
-  box-shadow: 0 4px 16px 0 rgba(106, 70, 163, 0.18);
-  cursor: pointer;
-  transition: background 0.2s;
-  display: inline-block;
-  text-align: center;
-  vertical-align: middle;
+  flex: 0 0 24px;       /* icon box */
+  font-size: 20px;      /* emoji size */
+  margin-right: 12px;   /* icon–text gap */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .get-started:hover {
   background: #6c2ed4;
 }
-/* WHO WE ARE */
+
+
+/* =========================
+   WHO WE ARE
+========================= */
 .card-section {
   background: #fff;
-  padding: 64px 0 32px 0;
   text-align: center;
 }
+
 .faq-gradient {
   font-size: 3.5rem;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  font-weight: 900;
-  background: linear-gradient(90deg, #a084ee 0%, #4c0fad 100%);
+  font-weight: 800;
+  background:#4c0fad;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -330,44 +353,37 @@ body, html {
   text-align: center;
 }
 
-.faq-gradient {
-  font-size: 3.5rem;
-  font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  font-weight: 900;
-  color: #4c0fad;
-  margin-bottom: 48px;
-  margin-top: 32px;
-  text-align: center;
-}
-
 .section-desc {
+  width: 803px;
   font-size: 1.23rem;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
   color: #111;
   font-weight: 500;
   margin-bottom: 18px;
+  margin-top: 45px;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
+  padding: 0;
 }
+
 .section-desc:first-of-type {
+  width: 1000px;
   font-size: 1.38rem;
   font-weight: 700;
-  margin-bottom: 32px;
 }
+
 .section-title {
   color: #4c0fad;
+  padding-top: 83px;
   font-size: 2.1rem;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
   font-weight: 800;
   letter-spacing: 0.02em;
-  margin-bottom: 38px;
   text-transform: uppercase;
 }
-.section-desc:last-of-type {
-  margin-bottom: 48px;    /* More space before the button */
-}
+
 .card-list {
   display: flex;
   justify-content: center;
@@ -376,9 +392,9 @@ body, html {
   margin-top: 32px;
   flex-wrap: nowrap;     /* Prevent cards from wrapping to next line */
   max-width: 1100px;     /* You can adjust this value */
-  margin-left: auto;
-  margin-right: auto;
+  height: 490px;
 }
+
 .card-line {
   width: 87%;
   height: 8px;
@@ -388,24 +404,38 @@ body, html {
   left: 50%;
   transform: translateX(-50%);
 }
+
 .card-line.top {
   top: 16px;
 }
+
 .card-line.bottom {
   bottom: 16px;
 }
+
 .card-icon {
   font-size: 2.6rem;
   margin-top: 32px;
   margin-bottom: 10px;
 }
+.instructor {
+  height: 436px;
+  position: absolute;
+  right: 0;              /* distance from right edge */
+  bottom: 0;                 /* sit on the baseline */
+  width: 455px;              /* or your figma width */
+  height: auto;
+  object-fit: contain;
+}
+
 .card-title {
   color: #4b0eac;
   font-size: 1.25rem;
   font-weight: bold;
-  margin-bottom: 12px;
-  margin-top: 14px;
+  margin-bottom: 30px;
+  margin-top: 30px;
 }
+
 .card-desc {
   color: #111;
   font-size: 1.12rem;
@@ -414,23 +444,29 @@ body, html {
   margin-top: 10px;
 }
 
-/* FAQ */
+
+/* =========================
+   FAQ
+========================= */
 .faq-section {
   background: #fff;
-  padding: 48px 0;
+  padding: 100px 0;
   text-align: center;
 }
+
 .faq-list {
   max-width: 720px;
   margin: 0 auto;
   padding: 0;
   text-align: left;
 }
+
 .faq-item {
   margin-bottom: 36px;   /* Increase for more space */
   padding-bottom: 0;     /* No extra padding needed since no border */
   border-bottom: none;   /* Make sure border is removed */
 }
+
 .faq-item summary {
   position: relative;
   padding-right: 38px;
@@ -446,9 +482,11 @@ body, html {
   align-items: center;
   transition: color 0.18s;
 }
+
 .faq-item summary::-webkit-details-marker {
   display: none;
 }
+
 .faq-item summary::after {
   content: "";
   position: absolute;
@@ -462,9 +500,11 @@ body, html {
   transition: transform 0.2s;
   border-radius: 2px;
 }
+
 .faq-item details[open] summary::after {
   transform: translateY(-60%) rotate(135deg);
 }
+
 .faq-answer {
   background: #e5d6fa;
   color: #2e1459;
@@ -476,30 +516,36 @@ body, html {
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
   box-shadow: 0 2px 12px 0 rgba(100,80,180,0.06);
   line-height: 1.6;
-  /* Optional: Remove border if you have any */
   border: none;
 }
-/* TEACHER SECTION */
+
+
+/* =========================
+   Teacher
+========================= */
 .teacher-section {
   background: #f6f1fd;
-  padding: 64px 0 56px 0;
   text-align: center;
+  position: relative;
+  min-height: 520px;         /* adjust after Figma */
+  padding-right: auto;
 }
+
 .brand {
   color: #6215b6;
   font-weight: 900;
   letter-spacing: 0.01em;
 }
+
 .start-teaching {
   background: #6215b6;
   color: #fff;
   border: none;
   border-radius: 32px;
+  margin-top: 28px;
   font-size: 1.4rem;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
   font-weight: 500;
-  padding: 18px 48px;
-  margin-top: 14px;
   box-shadow: 0 4px 20px 0 rgba(98, 21, 182, 0.12);
   cursor: pointer;
   transition: background 0.18s;
@@ -509,14 +555,20 @@ body, html {
   background: #4c0fad;
 }
 
-/* NEWSLETTER SECTION */
+
+/* =========================
+   Newsletter
+========================= */
 .newsletter-section {
   background: #fff;
-  min-height: 100vh;
+  height: 600;
+  margin-top: 120px;
+  margin-bottom: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .newsletter-card {
   width: 993px;
   min-height: 598px;
@@ -529,6 +581,7 @@ body, html {
   padding: 0 56px;
   position: relative;
 }
+
 .newsletter-illustration {
   width: 388px;
   height: 291px;
@@ -538,6 +591,7 @@ body, html {
   flex-shrink: 0;
   margin: 0;
 }
+
 .newsletter-content {
   flex: 1;
   display: flex;
@@ -550,9 +604,11 @@ body, html {
   padding-bottom: 40px;
   position: relative;
 }
+
 .newsletter-content-inner {
   width: 100%;
 }
+
 .newsletter-form-section {
   margin-top: auto;
   width: 100%;
@@ -562,6 +618,7 @@ body, html {
   padding: 0 24px; /* 24px padding on both sides */
   box-sizing: border-box;
 }
+
 .newsletter-title {
   color: #000;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
@@ -572,6 +629,7 @@ body, html {
   text-align: left;
   margin-top: -20px;
 }
+
 .newsletter-headline {
   display: flex;
   align-items: baseline;
@@ -579,6 +637,7 @@ body, html {
   margin-bottom: 18px;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
 }
+
 .newsletter-get,
 .newsletter-updates {
   font-size: 1.5rem;
@@ -587,6 +646,7 @@ body, html {
   letter-spacing: 0.12em;
   color: #111;
 }
+
 .newsletter-highlight {
   color: #A084EE;
   font-weight: 900;
@@ -598,6 +658,7 @@ body, html {
   display: inline-block;
   vertical-align: baseline;
 }
+
 .newsletter-desc {
   color: #000;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
@@ -609,12 +670,14 @@ body, html {
   text-align: left;
   max-width: 382px;
 }
+
 .newsletter-desc b {
   font-weight: 700;
   color: #111;
   display: block;
   margin-top: 18px;
 }
+
 .newsletter-form {
   display: flex;
   width: 100%;
@@ -627,6 +690,7 @@ body, html {
   border: 0.5px solid #b6b6b6;
   height: 49px;
 }
+
 .newsletter-input {
   flex: 1;
   padding: 0 22px;
@@ -638,6 +702,7 @@ body, html {
   height: 49px;
   color: #b6b6b6;
 }
+
 .newsletter-btn {
   background: linear-gradient(90deg, #A084EE 0%, #7D36C4 100%);
   color: #fff;
@@ -654,9 +719,11 @@ body, html {
   opacity: 1;
   text-align: center;
 }
+
 .newsletter-btn:hover {
   opacity: 0.92;
 }
+
 .newsletter-disclaimer {
   color: #000;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
@@ -670,6 +737,11 @@ body, html {
   margin-left: auto;
   margin-right: auto;
 }
+
+
+/* =========================
+   Newsletter: Responsive
+========================= */
 @media (max-width: 900px) {
   .newsletter-card {
     flex-direction: column;
@@ -704,59 +776,62 @@ body, html {
     font-size: 10px;
   }
 }
-/* FOOTER */
+
+
+/* =========================
+   Footer (current block)
+========================= */
 .footer {
   background: #9c6fe4;
   color: #fff;
-  padding: 48px 0 16px 0;
+  padding:28px 0 12px;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
 }
+
+
 .footer-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  max-width: 1200px;
-  margin: 0 auto 24px auto;
-  gap: 48px;
+  display:grid;
+  max-width:1200px;
+  margin:0 auto;
+  gap: 55px;
   flex-wrap: wrap;
+  padding:12px 24px 28px;
+  justify-content:center;  
+  text-align:center; 
+  grid-template-columns:repeat(3, 280px); 
 }
-.footer-brand h2 {
-  color: #fff;
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-.footer-brand p {
-  color: #fff;
-  font-size: 1rem;
-  margin-bottom: 8px;
-}
-.footer-links {
-  display: flex;
-  gap: 32px;
-}
-.footer-links ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.footer-links a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: text-decoration 0.2s;
-}
-.footer-links a:hover {
-  text-decoration: underline;
-}
+.footer-col{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.footer-col a{ color:#fff; text-decoration:none; font-size:14px; }
+.footer-col a:hover{ text-decoration:underline; }
+
+.footer-contact div{ font-size:14px; margin-bottom:10px; }
+
 .footer-bottom {
-  text-align: center;
   color: #fff;
-  font-size: 0.95rem;
-  margin-top: 16px;
+  max-width:1200px;
+  margin:0 auto;
+  display:flex; 
+  align-items:center; 
+  gap:10px;
+  margin-left: 600px;
+  justify-content:flex-start;
+  padding:12px 24px; 
+  border-top:none;
 }
 
+.footer-bottom span {
+  padding-top: 10px;
+}
+
+.footer-logo{ 
+  width:100px; 
+  height:auto; 
+  display:inline-block; }
+
+
+/* =========================
+   Scroll To Top Button
+========================= */
 .scroll-to-top-btn {
   position: fixed;
   bottom: 32px;
@@ -778,8 +853,34 @@ body, html {
   transition: opacity 0.3s;
   z-index: 2000;
 }
+
 .scroll-to-top-btn.visible {
   opacity: 1;
   pointer-events: auto;
 }
-  
+
+/* ===== Reviews ===== */
+.reviews-section{background:#fff; padding-bottom: 50px; text-align:center;}
+.reviews-title{
+  font-size:2rem; font-family:'Poppins',Helvetica,Arial,sans-serif; font-weight:800; letter-spacing:.02em;
+  background:#4c0fad; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; color:transparent;
+  margin:0 0 26px;
+}
+.review-grid{
+  max-width:1100px; margin:0 auto; padding:0 20px;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:24px;
+}
+.review-card{
+  background:#fff; border-radius:14px; text-align:left; padding:18px 20px;
+  box-shadow:0 8px 36px rgba(50,30,90,.10); border:1px solid rgba(76,15,173,.08);
+}
+.review-header{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.review-avatar{
+  width:40px; height:40px; border-radius:50%;
+  background:#e9ddff; color:#4b0eac; display:flex; align-items:center; justify-content:center; font-weight:800;
+}
+.review-name{ font-weight:700; color:#111; }
+.review-relation{ font-size:.9rem; color:#6b6b6b; }
+.review-stars{ color:#f6c34a; letter-spacing:2px; margin:6px 0 8px; }
+.review-text{ font:400 1rem 'Poppins',Helvetica,Arial,sans-serif; color:#222; line-height:1.55; margin:0; }
+.review-empty{ grid-column:1/-1; color:#777; font-size:.95rem; padding:12px 0; }
