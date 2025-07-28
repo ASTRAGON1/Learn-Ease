@@ -32,54 +32,47 @@ body, html {
   color: black;
   font-size: 1rem;
 }
-
-/* .button-login {
-  width: 78px;
-  height: 30px;
-  border-radius: 5px;
-  border: 1px solid #9c6fe4;
-  background: transparent;
-  margin-left: 2rem;
-  font-size: 0.75rem;
+.button-login{
+  width: 90px;
+  height: 35px;
+  font-size: 13px;
+  font-weight: 400; /* Regular */
+  font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.button-signup {
-  width: 78px;
-  height: 30px;
-  background-color: #4b0eac;
-  border-radius: 5px;
-  color: white;
-  font-size: 0.75rem;
-} */
-
-.button-login, .button-signup {
-min-width: 90px;
-height: 40px;
-padding: 0 18px;
-border-radius: 6px;
-font-size: 1rem;
-font-family: 'Poppins', Helvetica, Arial, sans-serif;
-font-weight: 500;
-display: flex;
-align-items: center;
-justify-content: center;
-box-sizing: border-box;
-border: none;
-outline: none;
-margin-left: 16px;
-cursor: pointer;
+.button-login{
+  width: 100px;
+  height: 35px;
+  font-size: 13px;
+  font-weight: 400; /* Regular */
+  font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-sizing: border-box;
 }
+
 
 .button-login {
-background: #fff;
-color: #4b0eac;
-border: 1.5px solid #9c6fe4;
+  background: #fff;
+  color: #4b0eac;
+  border: 2px solid #a084ee;
 }
 
 .button-signup {
-background: #4b0eac;
-color: #fff;
-border: none;
+  background: #4b0eac;
+  color: #fff;
+  border: none;
 }
 
 .hero-section {
@@ -193,54 +186,53 @@ border: none;
   
 /* NAVBAR */
 .navbar {
+  height: 92px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100px;
-  padding: 0 48px;
   background: #fff;
   box-shadow: 0 4px 24px 0 rgba(30,30,30,0.10);
 }
 .logo {
-  font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  font-size: 2.2rem;
-  color: #9c6fe4;
-  font-weight: 600;
-  line-height: 100px;
-  display: flex;
-  align-items: center;
-  height: 100px;
+  margin-top: 21px;
+  margin-bottom: 25px;
+  margin-left: 40px;
+  padding: 0;
+  height: 90px;
+  width: 250px;
+  object-fit: contain;
 }
 .nav-list {
   display: flex;
   align-items: center;
+  font-size: 16px;
   gap: 2rem;
   list-style: none;
-  margin: 0;
+  margin-top: 37px;
+  margin-bottom: 31px;
   padding: 0;
-  height: 100px;
   flex: 1;
-  justify-content: flex-end;
-  margin-right: 32px;
+  justify-content: center;
+  text-decoration: none;
+
 }
 .nav-list a {
   color: #222;
+  font-weight: 500;
   text-decoration: none;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
-  font-size: 1.1rem;
-  font-weight: 500;
-  transition: color 0.2s;
+  transition: color 0.2s; 
   line-height: 100px;
-}
+} */
 .nav-list a:hover {
   color: #4b0eac;
 }
 .nav-actions {
   display: flex;
-  gap: 0.5rem;
-  height: 100px;
-  align-items: center;
-  margin-left: auto;
+  gap: 2rem;
+  padding-right: 50px;
+  padding-top: 31px;
+  padding-bottom: 23px;
 }
 .button-login, .button-signup {
   height: 44px;
@@ -318,39 +310,6 @@ border: none;
 .get-started:hover {
   background: #6c2ed4;
 }
-.hero-images {
-  flex: 1 1 400px;
-  position: relative;
-  min-width: 350px;
-  min-height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.yellow-shape {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 340px;
-  z-index: 1;
-}
-.child-photo {
-  position: absolute;
-  top: 40px;
-  left: 80px;
-  width: 220px;
-  border-radius: 18px;
-  z-index: 2;
-  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
-}
-.heart-icon {
-  position: absolute;
-  left: 40px;
-  top: 210px;
-  width: 48px;
-  z-index: 3;
-}
-
 /* WHO WE ARE */
 .card-section {
   background: #fff;
@@ -796,33 +755,6 @@ border: none;
   color: #fff;
   font-size: 0.95rem;
   margin-top: 16px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 900px) {
-  .navbar, .hero-content {
-    padding: 16px 16px;
-  }
-  .footer-main {
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-  }
-  .newsletter-card {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 24px 16px;
-    gap: 16px;
-  }
-  .hero-section-bg {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 32px 0 0 0;
-  }
-  .hero-images {
-    min-width: 220px;
-    min-height: 180px;
-  }
 }
 
 .scroll-to-top-btn {

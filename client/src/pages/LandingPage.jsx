@@ -5,8 +5,11 @@ import {Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } 
 import { Button } from "../components/button";
 import { Input } from "../components/input";
 import './LandingPage.css';
-import regSection from '../assets/regSection.png';
+import Newsletter from '../assets/newsletter.png';
 import { useNavigate } from 'react-router-dom';
+import Landingpicture from "../assets/landingpicture.png";
+import Instructor from "../assets/instructor.png";
+import Logo from "../assets/logo.png";
 
 function LandingPage() {
   const navLinks = [
@@ -74,7 +77,7 @@ function LandingPage() {
     <div className="page-wrapper">
       {/* NAVIGATION */}
       <nav className="navbar">
-        <div className="logo">Logo</div>
+        <img src={Logo} alt="logo image" className="logo"/>
         <ul className="nav-list">
           {navLinks.map((link, i) => (
             <li key={i}><a href={link.href}>{link.text}</a></li>
@@ -97,12 +100,7 @@ function LandingPage() {
           </ul>
           <button className="get-started">Get started</button>
         </div>
-        <div className="hero-images">
-          <img src="/yellowShape.png" alt="Yellow Shape" className="yellow-shape" />
-          <img src="/childPhoto.png" alt="Child" className="child-photo" />
-          <img src="/heart.png" alt="Heart" className="heart-icon" />
-          <img src="/leftSign.png" alt="Left Sign" className="left-sign" />
-        </div>
+        <img src={Landingpicture} alt="landing picture" className="landing-picture" />
       </section>
 
       {/* WHO WE ARE */}
@@ -190,13 +188,14 @@ function LandingPage() {
         <h2 className="section-title">BECOME A TEACHER IN <span className="brand">LearnEase</span></h2>
         <p className="section-desc">Make a difference in the lives of children with special needs. Join our community of dedicated educators.</p>
         <p className="section-desc">Are you passionate about inclusive education? We're always looking for qualified and caring teachers to help kids with Down syndrome and autism thrive. Share your knowledge, inspire growth, and be part of an impactful journey.</p>
+        <img src={Instructor} alt="instructor" className="instructor"/>
         <button className="start-teaching">Start Teaching</button>
       </section>
 
       {/* NEWSLETTER SECTION */}
       <section id="newsletter" className="newsletter-section">
         <div className="newsletter-card">
-          {/* <img src={regSection} alt="Newsletter" className="newsletter-illustration" /> */}
+          <img src={Newsletter} alt="Newsletter" className="newsletter-illustration" />
           <div className="newsletter-content">
             <div className="newsletter-title">STAY CONNECTED WITH US</div>
             <div className="newsletter-headline">
