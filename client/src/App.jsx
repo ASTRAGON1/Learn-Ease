@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import SignupStudent from './pages/signupStudent';
 import LandingPage from "./pages/LandingPage";
 import StudentSignUp from './pages/StudentSignUp';
+import InstructorDashboard from './pages/InstructorDash';
 import './App.css';
 // Importing necessary modules and components
 
@@ -12,6 +13,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/InstructorDash" element={<InstructorDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<StudentSignUp />} />
       </Routes>
