@@ -96,13 +96,97 @@ display:grid; grid-template-columns:702px 702px; column-gap:50px;
 margin-top:50px;
 }
 .mini-card{
-height:264px !important; background:#fff; border:1px solid #E5E5EE; border-radius:6px;
+height:234px !important; background:#fff; border:1px solid #E5E5EE; border-radius:6px;
 box-shadow:0 6px 24px rgba(0,0,0,.06);
 text-align:center; padding:28px 40px;
 }
 
-.mini-card h4{ margin:0 0 14px; color:#5b22d1; }
-.mini-card p{  margin:0 0 14px; color:#1f1f22; line-height:1.6; }
+.mini-card h4{ margin:12px 0 14px; color:#5b22d1; }
+.mini-card p{  margin:36px 0 14px; color:#1f1f22; line-height:1.6; }
+.dash-grid .mini-card:nth-child(2) p{
+    margin:36px 0 36px;   /* bottom gap pushes the button down */
+  }
+
 .dash-title + .dash-row { margin-top: 56px; }  /* title → Jump card */
 .hint + .dash-row       { margin-top: 50px; }  /* helper line → AI card */
 .ai-card + .dash-grid   { margin-top: 50px; }  /* AI card → two mini cards */
+
+/* === Resources heading === */
+.resources-heading{
+width: 770px;
+max-width: 100%;
+margin: 100px auto;  
+margin-left: 350px;       /* 100px top & bottom */
+text-align: center;
+font-size: 22px;
+font-weight: 400;           /* regular */
+line-height: 36px;          /* 770 × 36 spec */
+}
+
+/* === Resources grid === */
+.res-grid{
+width: 1454px;
+max-width: 100%;
+margin: 0;
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+column-gap: 80px;           /* gap between containers */
+justify-items: center;
+align-items: start;
+}
+
+/* Icons 85×85 */
+.res-icon{
+width: 85px;
+height: 85px;
+object-fit: contain;
+display: block;
+margin: 0 auto 16px;
+}
+
+/* Titles & descriptions (unchanged colors) */
+.res-title{ margin: 0 0 12px; color: #5b22d1; font-weight: 700; text-align: center; }
+.res-desc { margin: 0; line-height: 1.5; color: #333; text-align: center; }
+
+.res-item{
+text-decoration: none;
+color: inherit;
+cursor: pointer;
+display: block;
+text-align: center;
+}
+.res-item:hover .res-title{ text-decoration: underline; }
+
+
+/* === Final CTA (Are you ready + button) === */
+
+/* block sits 100px below the resources grid and is centered */
+.final-cta{
+margin-top: 100px;
+text-align: center;
+}
+
+/* "Are You Ready to Begin?" — 250×30, 22px, regular */
+.ready-text{
+width: 250px;
+height: 30px;
+margin-left: 600px;
+margin-bottom: 20px;
+font-size: 20px;
+font-weight: 400;
+line-height: 30px;        /* match the 30px height */
+color: #1b1b1f;
+}
+
+.final-cta .btn4{
+width: 366px;
+background-color: #4a17b8;
+height: auto;            /* keep your size */
+display: inline-block;   /* center via text-align, then offset */
+margin: 10px 0 120px;
+margin-right: 180px;    /* top | sides | bottom */
+border-radius: 12px;
+font-size: 18px;
+position: relative;
+left: 20px;              /* nudge right (adjust value) */
+}

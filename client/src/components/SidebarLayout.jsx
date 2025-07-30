@@ -2,18 +2,23 @@ import React from "react";
 import "./SidebarLayout.css";
 import fullLogo from "../assets/fullLogo.png";
 import smallLogo from "../assets/simpleLogo.png";
+/* PNG icons from /assets */
+import icCourse from "../assets/course.png";
+import icPerformance from "../assets/performance2.png";
+import icCurriculum from "../assets/curriculum.png";
+import icResources from "../assets/resources.png";
 
 export default function SidebarLayout({
   collapsed = true,
-  onToggleCollapsed,          // should toggle boolean in parent
+  onToggleCollapsed,
   activeKey = "course",
   onNavigate = () => {},
 }) {
   const items = [
-    { key: "course",      icon: "bx bx-laptop",      label: "Course" },
-    { key: "performance", icon: "bx bx-line-chart",  label: "Performance" },
-    { key: "curriculum",  icon: "bx bx-menu",        label: "Curriculum" },
-    { key: "resources",   icon: "bx bx-help-circle", label: "Resources" },
+    { key: "course",      icon: icCourse,      label: "Course" },
+    { key: "performance", icon: icPerformance, label: "Performance" },
+    { key: "curriculum",  icon: icCurriculum,  label: "Curriculum" },
+    { key: "resources",   icon: icResources,   label: "Resources" },
   ];
 
   const handleEnter = () => { if (collapsed) onToggleCollapsed?.(); };
@@ -38,7 +43,7 @@ export default function SidebarLayout({
           {items.map((it) => (
             <li key={it.key} className={activeKey === it.key ? "active" : ""}>
               <button onClick={() => onNavigate(it.key)}>
-                <i className={it.icon}></i>
+                <img className="nav-icon" src={it.icon} alt="" />
                 <span className="label">{it.label}</span>
               </button>
             </li>
