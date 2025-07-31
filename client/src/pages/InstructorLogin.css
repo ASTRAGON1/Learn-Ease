@@ -1,0 +1,112 @@
+/* full-page background and centering */
+.login-page {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+background: #D9CAF3;
+}
+
+/* entire card: two 640px panels = 1280px total */
+.login-container {
+width: 1280px;
+display: flex;
+border-radius: 12px;
+overflow: hidden;
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+background: #fff;
+}
+
+/* ── LEFT PANEL ── */
+.login-left {
+width: 640px;
+padding: 60px 92px;
+display: flex;
+flex-direction: column;
+align-items: center;
+box-sizing: border-box;
+background: #fff;
+}
+
+.login-logo {
+width: 120px;
+margin-bottom: 90px;
+}
+
+.login-title {
+font-size: 28px;
+font-weight: 500;
+color: #6C46FF;
+margin-bottom: 24px;
+}
+
+.login-label {
+width: 100%;
+font-size: 14px;
+color: #4A2145;
+text-align: left;
+margin: 0 0 8px;
+}
+
+.login-input {
+width: 100%;
+height: 56px;
+margin-bottom: 16px;
+padding: 0 16px;
+border: 1px solid #E5E7EB;
+border-radius: 8px;
+font-size: 16px;
+box-sizing: border-box;
+}
+
+.login-input::placeholder {
+color: #999;
+font-style: italic;
+font-size: 14px;
+}
+
+.login-button {
+width: 100%;
+height: 56px;
+background: #6C46FF;
+color: #fff;
+border: none;
+border-radius: 8px;
+font-size: 18px;
+cursor: pointer;
+margin-top: 16px;
+}
+
+.login-footer {
+font-size: 14px;
+color: #4A2145;
+margin-top: 16px;
+}
+
+.login-footer a {
+color: #6C46FF;
+text-decoration: none;
+}
+
+/* ── RIGHT PANEL ── */
+.login-right {
+width: 640px;
+background: #E4DBFD;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.login-illustration {
+max-width: 100%;
+max-height: 100%;
+}
+
+/* red error text */
+.error-text {
+width: 100%;
+color: #e03e3e;
+font-size: 14px;
+margin-bottom: 8px;
+text-align: left;
+}

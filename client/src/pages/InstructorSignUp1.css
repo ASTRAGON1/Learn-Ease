@@ -1,0 +1,174 @@
+/* full-page background + centering */
+.signup-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #D9CAF3;
+  }
+  
+  /* the 1280×770 card */
+  .signup-container {
+    width: 1280px;
+    height: 770px;
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background: #fff;
+  }
+  
+  /* ← LEFT PANEL */
+  .signup-left {
+    width: 640px;
+    padding: 60px 92px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;    /* stack everything at left */
+    box-sizing: border-box;
+  }
+  
+  /* Logo */
+  .signup-logo {
+    width: 120px;
+    margin-bottom: 40px;
+    align-self: center;         /* center logo only */
+  }
+  
+  /* Title */
+  .signup-title {
+    font-size: 28px;
+    font-weight: 500;
+    color: #D9CAF3;
+    margin-bottom: 17px;
+    align-self: center;         /* center title only */
+  }
+  
+  /* Error text */
+  .signup-error-text {
+    width: 456px;
+    color: #E03E3E;
+    font-size: 14px;
+    margin: 0 0 8px;
+    text-align: left;
+  }
+  
+  /* Inputs */
+  .signup-input {
+    width: 456px;
+    height: 53px;
+    margin: 0 0 8px;           /* no extra gap */
+    padding: 0 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+    text-align: left !important;/* enforce left alignment */
+  }
+  
+  /* Placeholder */
+  .signup-input::placeholder {
+    color: #999;
+    font-size: 14px;
+    text-align: left !important;
+  }
+  .signup-input:focus {
+    text-align: left;
+    letter-spacing: normal;
+    }
+
+  
+  /* Checkbox */
+  .signup-checkbox {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #4A2145;
+    margin: 0 0 17px;
+  }
+  
+  .signup-checkbox input {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+  
+  /* Create button */
+  .signup-button {
+    width: 456px;
+    height: 56px;
+    background: #6C46FF;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-bottom: 17px;
+  }
+  
+  /* Or separator */
+  .signup-or {
+    width: 456px;
+    text-align: center;
+    font-size: 14px;
+    color: #9CA3AF;
+    border-bottom: 1px solid #E5E7EB;
+    line-height: 0.1em;
+    margin: 17px 0;
+    position: relative;
+  }
+  
+  .signup-or span {
+    background: #fff;
+    padding: 0 16px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Google button */
+  .signup-google {
+    width: 456px;
+    height: 56px;
+    background: #F9FAFB;
+    border: 1px solid #6C46FF;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #4A2145;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 17px;
+  }
+  
+  .signup-google-icon {
+    width: 20px;
+    margin-right: 12px;
+  }
+  
+  /* Footer */
+  .signup-footer {
+    font-size: 14px;
+    color: #4A2145;
+    margin-bottom: 0;
+  }
+  
+  .signup-footer a {
+    color: #6C46FF;
+    text-decoration: none;
+  }
+  
+  /* → RIGHT PANEL */
+  .signup-right {
+    width: 640px;
+    background: #E4DBFD;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .signup-illustration {
+    max-width: 100%;
+    max-height: 100%;
+  }
+  

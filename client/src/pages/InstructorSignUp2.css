@@ -1,0 +1,16 @@
+/* reuse all the base signup styles */
+@import "./InstructorSignUp1.css";
+
+/* override the title for this step */
+.signup-title {
+  font-size: 32px;
+  color: #000;
+  margin-bottom: 16px;
+}
+
+/* make the code input look like 6 slots */
+.signup-input {
+  letter-spacing: 8px;
+  text-align: center;
+  font-size: 18px;
+}
