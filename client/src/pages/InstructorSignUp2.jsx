@@ -64,7 +64,7 @@ export default function InstructorSignUp2() {
 
           <p className="signup-resend-2">
             Didn’t receive it yet?{' '}
-            <Link to="#" className="resend-link-2">
+            <Link to="/InstructorSignUp2" className="resend-link-2">
               Send again
             </Link>
           </p>

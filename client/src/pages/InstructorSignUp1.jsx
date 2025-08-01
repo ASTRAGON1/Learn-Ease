@@ -12,7 +12,7 @@ export default function InstructorSignUp1() {
   const [confirm, setConfirm]   = useState("");
   const [errors, setErrors]     = useState({});
 
-  const handleNext = () => {
+  const SignUp = () => {
     const errs = {};
     if (!fullName.trim()) errs.fullName = "Please enter your full name";
     if (!email.trim())    errs.email    = "Please enter your email";
@@ -23,7 +23,7 @@ export default function InstructorSignUp1() {
 
     if (Object.keys(errs).length === 0) {
       // TODO: send verification code
-      navigate("/instructor-signup2");
+      navigate("/instructorSignUp2");
     }
   };
 
@@ -87,7 +87,7 @@ export default function InstructorSignUp1() {
             I agree to the Terms Of Services and privacy policy
           </label>
 
-          <button className="signup-button" onClick={handleNext}>
+          <button className="signup-button" onClick={SignUp}>
             Create
           </button>
 

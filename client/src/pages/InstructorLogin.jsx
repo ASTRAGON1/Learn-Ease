@@ -1,6 +1,6 @@
 // InstructorLogin.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import illustration from "../assets/InstructorLogin.png";
 import "./InstructorLogin.css";
@@ -39,6 +39,7 @@ export default function InstructorLogin() {
   return (
     <div className="login-page">
       <div className="login-container">
+        <Link to="/" className="login-back">‹ Back</Link>
         <div className="login-left">
           <img src={logo} alt="LearnEase" className="login-logo" />
           <h2 className="login-title">Instructor Login</h2>
@@ -71,7 +72,7 @@ export default function InstructorLogin() {
 
           <p className="login-footer">
             Don’t you have an account?{" "}
-            <a href="/InstructorSignUp">Click here</a>
+            <a href="/InstructorSignUp1">Click here</a>
           </p>
         </div>
 

@@ -6,12 +6,16 @@ import { Button } from "../components/button";
 import { Input } from "../components/input";
 import './LandingPage.css';
 import Newsletter from '../assets/newsletter.png';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 import Landingpicture from "../assets/landingpicture.png";
 import Instructor from "../assets/instructor.png";
 import Logo from "../assets/logo.png";
 
 function LandingPage() {
+  const goToLogin = () => {
+    navigate('/InstructorLogin');
+  };
+  
   const navLinks = [
     { text: "Home", href: "#home" },
     { text: "Who We Are", href: "#who-we-are" },
@@ -200,7 +204,7 @@ function LandingPage() {
         <p className="section-desc">Make a difference in the lives of children with special needs. Join our community of dedicated educators.</p>
         <p className="section-desc">Are you passionate about inclusive education? We're always looking for qualified and caring teachers to help kids with Down syndrome and autism thrive. Share your knowledge, inspire growth, and be part of an impactful journey.</p>
         <img src={Instructor} alt="instructor" className="instructor"/>
-        <button className="start-teaching">Start Teaching</button>
+        <button className="start-teaching" onClick={goToLogin}>Start Teaching</button>
       </section>
 
       {/* NEWSLETTER SECTION */}

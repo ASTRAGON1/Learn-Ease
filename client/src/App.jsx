@@ -7,6 +7,9 @@ import InstructorDashboard from './pages/InstructorDash';
 import InstructorLogin from './pages/InstructorLogin';
 import InstructorSignUp1 from './pages/InstructorSignUp1';
 import InstructorSignUp2 from './pages/InstructorSignUp2';
+import InformationGathering1 from './pages/InformationGathering1';
+import InformationGathering2 from './pages/InformationGathering2';
+import InformationGathering3 from './pages/InformationGathering3';
 import './App.css';
 // Importing necessary modules and components
 
@@ -22,6 +25,9 @@ function App() {
         <Route path="/signup" element={<StudentSignUp />} />
         <Route path="/InstructorSignUp1" element={<InstructorSignUp1 />} />
         <Route path="/InstructorSignUp2" element={<InstructorSignUp2 />} />
+        <Route path="/InformationGathering1" element={<InformationGathering1 />} />
+        <Route path="/InformationGathering2" element={<InformationGathering2 />} />
+        <Route path="/InformationGathering3" element={<InformationGathering3 />} />
       </Routes>
     </Router>
     </>

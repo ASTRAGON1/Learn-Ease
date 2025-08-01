@@ -1,0 +1,140 @@
+/* full‐screen centering */
+html, body, #root {
+    height: 100%;
+    margin: 0;
+  }
+  .info2-page {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1280px;
+    padding: 60px 0;
+    background: #fff;
+    box-sizing: border-box;
+  }
+  
+  /* inner wrapper */
+  .info2-content {
+    width: 1126px;
+    margin: 0 auto;
+  }
+  
+  /* title */
+  .info2-title {
+    font-size: 30px;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #4C0FAD;
+  }
+  
+  /* each form section */
+  .info2-section {
+    text-align: center;
+    margin-bottom: 40px;
+    color: black;
+  }
+  .info2-label {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  
+  /* file input */
+  .info2-file-input {
+    position: relative;
+    width: 600px;
+    height: 48px;
+    margin: 0 auto;
+    background: #E5E7EB;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+  .info2-file-input input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .info2-file-placeholder {
+    flex: 1;
+    color: #999;
+    font-size: 16px;
+  }
+  .info2-file-icon {
+    font-size: 20px;
+    color: #999;
+  }
+  
+  /* notes textarea */
+  .info2-textarea {
+    width: 600px;
+    height: 200px;
+    margin: 0 auto;
+    display: block;
+    padding: 16px;
+    font-size: 16px;
+    background: #E5E7EB;
+    border: none;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #666;
+  }
+  
+  /* progress bars */
+  .info2-progress {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .info2-bar {
+    flex: 1;
+    height: 4px;
+    background: #EBD9FF;
+    border-radius: 2px;
+  }
+  .info2-bar-active {
+    background: #4C0FAD;
+  }
+  
+  /* action buttons */
+  .info2-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .info2-back {
+    font-size: 20px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: black;
+  }
+  .info2-next {
+    width: 202px;
+    height: 51px;
+    background: #4C0FAD;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    padding-top: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  
+  .info2-next:link,
+.info2-next:visited,
+.info2-next:hover,
+.info2-next:active {
+  color: #fff;
+  text-decoration: none;
+}

@@ -1,0 +1,100 @@
+/* full‐screen centering */
+html, body, #root {
+    height: 100%;
+    margin: 0;
+  }
+  
+  .info3-page {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1280px;
+    padding: 60px 0;
+    background: #fff;
+    box-sizing: border-box;
+  }
+  
+  /* inner wrapper */
+  .info3-content {
+    width: 1126px;
+    margin: 0 auto;
+    color: black;
+  }
+  
+  /* title */
+  .info3-title {
+    font-size: 30px;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #4C0FAD;
+  }
+  
+  /* note box */
+  .info3-note {
+    background: #E4DBFD;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .info3-note strong {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+  
+  /* progress bars */
+  .info3-progress {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .info3-bar {
+    flex: 1;
+    height: 4px;
+    background: #EBD9FF;
+    border-radius: 2px;
+  }
+  .info3-bar-active {
+    background: #4C0FAD;
+  }
+  
+  /* actions */
+  .info3-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .info3-back {
+    font-size: 20px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .info3-submit {
+    width: 202px;
+    height: 51px;
+    background: #4C0FAD;
+    color: #fff;
+    font-size: 20px;
+    padding: 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  
+  .info3-submit:link,
+  .info3-submit:visited,
+  .info3-submit:hover,
+  .info3-submit:active {
+    color: #fff;
+    text-decoration: none;
+  }
