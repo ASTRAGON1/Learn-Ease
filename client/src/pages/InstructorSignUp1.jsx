@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate }    from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo                from "../assets/logo.png";
 import illustration        from "../assets/InstructorLogin.png";
 import "./InstructorSignUp1.css";
@@ -31,8 +31,11 @@ export default function InstructorSignUp1() {
     <div className="signup-page">
       <div className="signup-container">
         <div className="signup-left">
+          <Link to="/" className="go-back">
+            ‹ Go Back
+          </Link>
           <img src={logo} alt="LearnEase" className="signup-logo" />
-
+          
           <h2 className="signup-title">Create Account</h2>
 
           {errors.fullName && (

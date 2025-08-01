@@ -1,58 +1,73 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import illustration from "../assets/InstructorLogin.png";
-import "./InstructorSignUp2.css";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import illustration from '../assets/InstructorLogin.png';
+import './InstructorSignUp2.css';
 
 export default function InstructorSignUp2() {
   const navigate = useNavigate();
-  const [code, setCode]   = useState("");
-  const [error, setError] = useState("");
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
 
   const handleConfirm = () => {
     if (!code.trim()) {
-      setError("Please enter the verification code");
+      setError('Please enter the verification code');
       return;
     }
-    // TODO: verify code via your API
-    navigate("/InstructorLogin");
+    navigate('/InstructorDash');
   };
 
   return (
-    <div className="signup-page">
-      <div className="signup-container">
-        <div className="signup-left">
-          <h2 className="signup-title">Confirm Your Email</h2>
+    <div className="signup-page-2">
+      <div className="signup-container-2">
 
-          {error && (
-            <div className="signup-error-text">
-              {error}
-            </div>
-          )}
-          <input
-            type="text"
-            placeholder="Enter 6-digit code"
-            className="signup-input"
-            value={code}
-            onChange={e => {
-              setError("");
-              setCode(e.target.value);
-            }}
-          />
-
-          <button
-            className="signup-button"
-            onClick={handleConfirm}
-          >
-            Confirm
-          </button>
-        </div>
-
-        <div className="signup-right">
+        {/* ← LEFT PANEL: image */}
+        <div className="signup-left-2">
           <img
             src={illustration}
             alt="Illustration"
-            className="signup-illustration"
+            className="signup-illustration-2"
           />
+        </div>
+
+        {/* → RIGHT PANEL: form */}
+        <div className="signup-right-2">
+          <Link to="/InstructorSignUp1" className="go-back-2">
+            Back
+          </Link>
+
+          <h2 className="signup-title-2">Confirm Your Email</h2>
+          <p className="signup-subtitle-2">
+            A 6-digit code is sent to your email
+          </p>
+
+          {error && <div className="signup-error-text-2">{error}</div>}
+
+          <input
+            type="text"
+            placeholder="__ __ __ __ __ __"
+            className="signup-input-2"
+            value={code}
+            maxLength={6}
+            onChange={e => {
+              const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+              setError('');
+              setCode(val);
+              if (val.length === 6) {
+                handleConfirm();
+              }
+            }}
+          />
+
+          <button className="signup-button-2" onClick={handleConfirm}>
+            Confirm
+          </button>
+
+          <p className="signup-resend-2">
+            Didn’t receive it yet?{' '}
+            <Link to="#" className="resend-link-2">
+              Send again
+            </Link>
+          </p>
         </div>
       </div>
     </div>
