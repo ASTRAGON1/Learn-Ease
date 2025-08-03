@@ -1,0 +1,31 @@
+.perf-metrics-row {
+    display: flex;
+    gap: 28px; /* between each metric */
+  }
+  
+  .metric-card {
+    width: 202px;
+    height: 112px;
+    background: #8c72e6;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #1a1a1f;
+  }
+  
+  .metric-label {
+    font-size: 14px;
+  }
+  
+  .metric-value {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  
+  .metric-change {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  

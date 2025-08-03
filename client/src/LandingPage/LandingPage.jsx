@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "../components/navigation-menu";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/accordion";
-import {Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "../components/card";
-import { Button } from "../components/button";
-import { Input } from "../components/input";
 import './LandingPage.css';
 import Newsletter from '../assets/newsletter.png';
 import { Link, useNavigate } from "react-router-dom";
