@@ -28,4 +28,11 @@
     font-size: 12px;
     opacity: 0.8;
   }
-  
+
+  .perf-metrics-row .metric-card:nth-child(odd) {
+    background: #9C6FE4;
+  }
+
+  .perf-metrics-row .metric-card:nth-child(even) {
+    background-color: rgba(156, 111, 228, 0.58);
+  }

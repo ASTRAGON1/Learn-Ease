@@ -1,13 +1,14 @@
 .notifications-section {
     width: 295px;
-    height: 560px;
-    background: #f7f7fa;
+    height: 392px;
+    background: #F5F5F5;
     border-radius: 6px;
     padding: 16px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.06);
   }
   
   .notifications-section h3 {
+    color: black;
     margin-bottom: 16px;
     font-size: 18px;
     text-align: center;
@@ -18,12 +19,14 @@
     flex-direction: column;
     gap: 12px;
     max-height: calc(100% - 40px);
+    color: black;
     overflow-y: auto;
   }
   
   .notification-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    width: 100%;
     gap: 12px;
   }
   
@@ -36,10 +39,12 @@
     align-items: center;
     justify-content: center;
     color: #fff;
+    transform: translateY(5px);
   }
   
   .notif-text {
     font-size: 14px;
+    
   }
   
   .notif-time {
@@ -47,3 +52,7 @@
     color: #666;
   }
   
+  .notif-text,
+.notif-time {
+  text-align: left;
+}

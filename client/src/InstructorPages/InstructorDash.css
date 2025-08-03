@@ -190,3 +190,122 @@ font-size: 18px;
 position: relative;
 left: 20px;              /* nudge right (adjust value) */
 }
+
+/* === PERFORMANCE HEADER === */
+.perf-container {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+.perf-header {
+  width: 1454px;
+  margin-top: 0;
+  margin-left: 240px;
+  display: flex;
+  align-items: center;
+  gap: 880px;
+}
+.perf-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.icon-btn.notifications {
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+}
+.profile-circle {
+  width: 40px;
+  height: 40px;
+  background: #ccc;         /* replace with avatar image or variable */
+  border-radius: 50%;
+  cursor: pointer;
+}
+.dashboard-back{
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1f;
+  text-decoration: none;
+}
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+.perf-title {
+  margin: 0 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.dahsboard-back {
+  color: black;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+/* === METRICS ROW === */
+/* MetricsRow.css handles the cards themselves */
+/* Here we just give vertical spacing */
+.perf-metrics-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === MAIN LAYOUT: GRAPH + NOTIFICATIONS === */
+.perf-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 45px;
+  margin-bottom: 60px;
+}
+
+/* GRAPH CARD */
+.graph-card {
+  background: #F7F7FA;
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  height: 392px;
+  width: 892px;
+}
+.graph-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.graph-title-row h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.graph-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.range-selector {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+.range-selector .chevron {
+  margin-left: 4px;
+  font-size: 12px;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* NOTIFICATIONS PANEL */
+/* Notifications.css handles the panel itself; ensure your import is intact */

@@ -1,0 +1,117 @@
+.quiz-results {
+display: flex;
+flex-direction: column;
+width: 1232px;
+height: 412px;
+max-width: 100%;
+background: #F5F5F5;
+border-radius: 12px;
+padding: 24px;
+box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+box-sizing: border-box;
+margin:  0 auto 0;
+}
+.quiz-title {
+color: black;
+margin: 0 0 16px;
+font-size: 20px;
+font-weight: 700;
+text-align: center;
+}
+
+.quiz-header, .quiz-row {
+display: flex;
+align-items: center;
+height: 52px;
+}
+
+.quiz-header {
+font-weight: 600;
+color: #666;
+border-bottom: 1px solid #E5E5EE;
+display: flex;
+align-items: center;
+}
+/* Slim custom scrollbar for WebKit browsers */
+.quiz-list::-webkit-scrollbar {
+width: 8px;
+}
+
+.quiz-list::-webkit-scrollbar-track {
+background: transparent;
+}
+
+.quiz-list::-webkit-scrollbar-thumb {
+background-color: rgba(156, 111, 228, 0.5);
+border-radius: 4px;
+}
+
+.quiz-list::-webkit-scrollbar-thumb:hover {
+background-color: rgba(156, 111, 228, 0.8);
+}
+.quiz-list {
+flex: 1 1 auto;
+overflow-y: auto;
+scrollbar-width: thin;
+margin-top: 8px; /* gap below header */
+scrollbar-color: #FFFFFF80 transparent;
+}
+
+/* qui settings */
+.quiz-row {
+display: flex;
+align-items: center;
+height: 52px;
+border-radius: 10px;
+margin-bottom: 4px;
+}
+
+.quiz-row:nth-child(odd) {
+background: rgba(156, 111, 228, 0.27);  /* purple */
+color: #1a1a1f;
+}
+
+.quiz-row:nth-child(even) {
+background-color: rgba(76, 15, 173, 0.33);  /* light blue */
+color: #1a1a1f;
+}
+
+.col {
+padding: 0 12px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.student-col { flex: 3; display: flex; align-items: center; }
+.date-col    { flex: 2; }
+.grade-col   { flex: 1; text-align: center; }
+.status-col  { flex: 1; display: flex; justify-content: center; }
+
+.avatar-circle {
+width: 24px;
+height: 24px;
+background: #ccc;
+border-radius: 50%;
+margin-right: 8px;
+}
+
+.status-btn {
+background: #FFFFFF80; /* semi-transparent white */
+border: none;
+border-radius: 12px;
+padding: 4px 12px;
+font-size: 14px;
+cursor: default;
+}
+
+/* even rows get blue */
+.quiz-row:nth-of-type(even) .status-btn {
+background-color: #9C6FE4;
+color: #4C0FAD;
+}
+/* odd rows get purple */
+.quiz-row:nth-of-type(odd) .status-btn {
+background-color: #FFFFFF80;
+color: #4C0FAD;
+}
