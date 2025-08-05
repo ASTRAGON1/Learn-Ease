@@ -309,3 +309,34 @@ left: 20px;              /* nudge right (adjust value) */
 
 /* NOTIFICATIONS PANEL */
 /* Notifications.css handles the panel itself; ensure your import is intact */
+.improve-section {
+  text-align: center;
+  padding: 80px 0; /* adjust top/bottom spacing as needed */
+}
+
+.title-improvement {
+  color: black;
+  margin: 0 auto;
+  font-size: 28px;            /* tweak to match your typographic scale */
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.improve-btn {
+  margin-top: 32px;        /* space between title and button */
+  width: 366px;
+  height: 64px;
+  background-color: #9C6FE4; /* your primary purple */
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  transition: background-color .2s;
+}
+
+.improve-btn:hover {
+  background-color: #4a17b8;
+}

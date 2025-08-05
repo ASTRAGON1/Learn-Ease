@@ -56,3 +56,22 @@
 .notif-time {
   text-align: left;
 }
+/* Add at bottom of Notifications.css */
+
+/* WebKit-based browsers */
+.notifications-list::-webkit-scrollbar {
+  width: 6px;
+}
+.notifications-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.notifications-list::-webkit-scrollbar-thumb {
+  background-color: #9C6FE4; /* your purple */
+  border-radius: 3px;
+}
+
+/* Firefox */
+.notifications-list {
+  scrollbar-width: thin;
+  scrollbar-color: #9C6FE4 transparent;
+}

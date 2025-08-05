@@ -1,0 +1,160 @@
+/* container: two panels, 45px gap, centered */
+.rtp-container {
+    display: flex;
+    gap: 45px;
+    margin: 60px auto 0;
+    max-width: calc(885px + 45px + 295px);
+  }
+  
+  /* ——— RANKING PANEL (885 × 540) ——— */
+  .rtp-ranking {
+    width: 885px;
+    height: 540px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .rtp-title {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+  }
+  
+  /* column headers */
+  .rtp-header {
+    display: flex;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  .rtp-col-name  { flex: 3; }
+  .rtp-col-likes { flex: 1; text-align: center; }
+  .rtp-col-rank  { flex: 1; text-align: center; }
+  
+  /* scrollable list */
+  .rtp-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  
+    /* exactly fitting the remaining height */
+    max-height: calc(
+      540px    /* panel height */
+      - 24px   /* top padding */
+      - 24px   /* bottom padding */
+      - 18px   /* title line-height */
+      - 16px   /* title bottom margin */
+      - 20px   /* header height */
+    );
+  }
+  
+  /* quiz-style scrollbar */
+  .rtp-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.2) transparent;
+  }
+  .rtp-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  .rtp-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .rtp-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 4px;
+  }
+  
+  /* each instructor row */
+  .rtp-item {
+    height: 45px;
+    background: #bda9dd;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+  
+  .rtp-student {
+    flex: 3;
+    display: flex;
+    align-items: center;
+    color: #1a1a1f;
+  }
+  .rtp-avatar {
+    width: 24px;
+    height: 24px;
+    background: #ccc;
+    border-radius: 50%;
+    margin-right: 12px;
+  }
+  
+  .rtp-likes {
+    flex: 1;
+    text-align: center;
+    color: #1a1a1f;
+  }
+  
+  .rtp-rank {
+    flex: 1;
+    text-align: center;
+    color: #1a1a1f;
+  }
+  .rtp-medal {
+    margin-left: 4px;
+  }
+  
+  /* ——— TAGS PANEL (295 × 535) ——— */
+  .rtp-tags {
+    width: 295px;
+    height: 535px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .rtp-tags-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  
+  .rtp-tag {
+    display: flex;
+    align-items: center;
+  }
+  
+  .rtp-tag-label {
+    flex: 1;
+    font-size: 14px;
+    color: #000;
+  }
+  
+  .rtp-bar-outer {
+    flex: 2;
+    margin-left: 12px;
+    height: 4px;
+    background: #e5e5ee;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  
+  .rtp-bar-fill {
+    height: 100%;
+    background: #5b22d1;
+    border-radius: 2px 0 0 2px;
+  }
+  

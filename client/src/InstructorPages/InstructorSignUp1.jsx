@@ -1,29 +1,57 @@
+// src/pages/InstructorSignUp1.jsx
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo                from "../assets/logo.png";
-import illustration        from "../assets/InstructorLogin.png";
+import logo         from "../assets/logo.png";
+import illustration from "../assets/InstructorLogin.png";
 import "./InstructorSignUp1.css";
+
+// Stubbed API call – replace with your real endpoint
+async function performSignUp({ fullName, email, password }) {
+  const res = await fetch("/api/instructor/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fullName, email, password }),
+  });
+  return res;
+}
 
 export default function InstructorSignUp1() {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm]   = useState("");
-  const [errors, setErrors]     = useState({});
 
-  const SignUp = () => {
+  const [fullName, setFullName]   = useState("");
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [confirm, setConfirm]     = useState("");
+  const [errors, setErrors]       = useState({});
+  const [generalError, setGeneralError] = useState("");
+  const [loading, setLoading]     = useState(false);
+
+  const handleSignUp = async () => {
     const errs = {};
-    if (!fullName.trim()) errs.fullName = "Please enter your full name";
-    if (!email.trim())    errs.email    = "Please enter your email";
-    if (!password)        errs.password = "Please enter a password";
-    if (password !== confirm)
-                          errs.confirm  = "Passwords must match";
-    setErrors(errs);
+    if (!fullName.trim())       errs.fullName = "Please enter your full name";
+    if (!email.trim())          errs.email    = "Please enter your email";
+    if (!password)              errs.password = "Please enter a password";
+    if (password !== confirm)   errs.confirm  = "Passwords must match";
 
-    if (Object.keys(errs).length === 0) {
-      // TODO: send verification code
-      navigate("/instructorSignUp2");
+    setErrors(errs);
+    if (Object.keys(errs).length !== 0) return;
+
+    setGeneralError("");
+    setLoading(true);
+    try {
+      const res = await performSignUp({ fullName, email, password });
+      if (res.ok) {
+        navigate("/instructorSignUp2");
+      } else if (res.status === 409) {
+        setGeneralError("An account with that email already exists.");
+      } else {
+        setGeneralError("Sign up failed. Please try again.");
+      }
+    } catch {
+      setGeneralError("Network error. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,8 +63,11 @@ export default function InstructorSignUp1() {
             ‹ Go Back
           </Link>
           <img src={logo} alt="LearnEase" className="signup-logo" />
-          
           <h2 className="signup-title">Create Account</h2>
+
+          {generalError && (
+            <div className="signup-error-text">{generalError}</div>
+          )}
 
           {errors.fullName && (
             <div className="signup-error-text">{errors.fullName}</div>
@@ -87,11 +118,17 @@ export default function InstructorSignUp1() {
             I agree to the Terms Of Services and privacy policy
           </label>
 
-          <button className="signup-button" onClick={SignUp}>
-            Create
+          <button
+            className="signup-button"
+            onClick={handleSignUp}
+            disabled={loading}
+          >
+            {loading ? "Creating…" : "Create"}
           </button>
 
-          <div className="signup-or"><span>Or</span></div>
+          <div className="signup-or">
+            <span>Or</span>
+          </div>
 
           <button className="signup-google">
             <img

@@ -6,6 +6,8 @@ import Notifications from "../components/Notifications";
 import RainfallChart from "../components/RainfallChart";
 import Footer from "../components/Footer";
 import QuizResults from "../components/QuizResults";
+import RankingAndTags from "../components/RankingAndTags";
+
 
 import testPath from "../assets/testPath.png";
 import community from "../assets/community.png";
@@ -28,11 +30,37 @@ export default function InstructorDashboard() {
     { label: "Engagement",     value: "600",   change: "-12.01%" },
   ];
   const sampleNotifs = [
-    { icon: "👤", text: "New student followed you",      time: "59 minutes ago" },
-    { icon: "🐞", text: "Bug fixed",                     time: "59 minutes ago" },
-    { icon: "👍", text: "New student liked your video", time: "59 minutes ago" },
-    { icon: "✅", text: "Admin approved your content",  time: "59 minutes ago" },
-    { icon: "👁️", text: "1,000 students visited your page", time: "59 minutes ago" },
+    { type: "follow",   text: "New student followed you",        time: "59 minutes ago" },
+    { type: "bug",      text: "Bug fixed",                       time: "59 minutes ago" },
+    { type: "like",     text: "New student liked your video",    time: "59 minutes ago" },
+    { type: "approve",  text: "Admin approved your content",     time: "59 minutes ago" },
+    { type: "visit",    text: "1,000 students visited your page", time: "59 minutes ago" },
+    { type: "follow",   text: "New student followed you",        time: "59 minutes ago" },
+    { type: "bug",      text: "Bug fixed",                       time: "59 minutes ago" },
+    { type: "like",     text: "New student liked your video",    time: "59 minutes ago" },
+    { type: "approve",  text: "Admin approved your content",     time: "59 minutes ago" },
+    { type: "visit",    text: "1,000 students visited your page", time: "59 minutes ago" },
+  ];
+
+  const instructors = [
+    { id:1, name:"Alice", likes:2500 },
+    { id:2, name:"Bob",   likes:2400 },
+    { id:3, name:"Carol", likes:2300 },
+    { id:4, name:"Dave",  likes:2200 },
+    { id:5, name:"Eve",   likes:2100 },
+    { id:6, name:"Frank", likes:2000 },
+    { id:25,name:"You",   likes: 123 },
+    { id:25,name:"You",   likes: 123 },
+    { id:25,name:"You",   likes: 123 },
+    { id:25,name:"You",   likes: 123 },
+    { id:25,name:"You",   likes: 123 },
+  ];
+  const categories = [
+    { tag:"Listening", pct:100 },
+    { tag:"Reading",   pct:60  },
+    { tag:"Writing",   pct:80  },
+    { tag:"Recognizing",pct:0 },
+    { tag:"Memorizing", pct:50 },
   ];
 
   // PERFORMANCE VIEW
@@ -41,8 +69,8 @@ export default function InstructorDashboard() {
       <div
         className="perf-container"
         style={{
-          marginLeft: collapsed ? 95 : 370,
-          paddingTop: 90,
+          marginLeft: collapsed ? 0 : 0,
+          paddingTop: 60,
         }}
       >
          <div className="perf-header">
@@ -85,6 +113,17 @@ export default function InstructorDashboard() {
           <Notifications items={sampleNotifs} />
         </div>
         <QuizResults />
+        <RankingAndTags instructors={instructors} categories={categories} />
+
+        {/* ——— IMPROVEMENT CTA ——— */}
+        <div className="improve-section">
+          <h2 className="title-improvement">
+            Improve yourself to get better results!
+          </h2>
+          <button className="improve-btn">
+            Teaching center
+          </button>
+        </div>
       </div>
       
     );
@@ -102,7 +141,7 @@ export default function InstructorDashboard() {
       <main
         className="home-section"
         style={{
-          marginLeft: collapsed ? 95 : 370,
+          marginLeft: collapsed ? 94 : 370,
           transition: "margin-left .25s",
           minHeight: "100vh",
           background: "#E4E9F7",

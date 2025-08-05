@@ -1,6 +1,20 @@
 import React from "react";
 import "./Notifications.css";
 
+
+// map notification types → icons
+const iconMap = {
+  follow:   "👤",
+  bug:      "🐞",
+  like:     "👍",
+  approve:  "✅",
+  visit:    "👁️",
+};
+
+function getIcon(type) {
+  return iconMap[type] || "🔔";
+}
+
 export default function Notifications({ items }) {
   return (
     <div className="notifications-section">
@@ -8,7 +22,9 @@ export default function Notifications({ items }) {
       <div className="notifications-list">
         {items.map((n, i) => (
           <div key={i} className="notification-item">
-            <div className="notif-icon">{n.icon}</div>
+            <div className="notif-icon">
+              {getIcon(n.type)}
+            </div>
             <div>
               <div className="notif-text">{n.text}</div>
               <div className="notif-time">{n.time}</div>
@@ -19,3 +35,4 @@ export default function Notifications({ items }) {
     </div>
   );
 }
+
