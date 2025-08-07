@@ -7,6 +7,7 @@ import RainfallChart from "../components/RainfallChart";
 import Footer from "../components/Footer";
 import QuizResults from "../components/QuizResults";
 import RankingAndTags from "../components/RankingAndTags";
+import CurriculumSection from "../components/CurriculumSection";
 
 
 import testPath from "../assets/testPath.png";
@@ -78,13 +79,6 @@ export default function InstructorDashboard() {
           <Link to="/InstructorDash" className="dahsboard-back">
             ‹ Dashboard
           </Link>
-          {/* 3) icons on the right */}
-          <div className="perf-header-icons">
-            <button className="icon-btn notifications">
-              🔔
-            </button>
-            <div className="profile-circle" />
-          </div>
         </div>
 
 
@@ -128,6 +122,49 @@ export default function InstructorDashboard() {
       
     );
   }
+
+   // CURRICULUM VIEW
+   function CurriculumWrapper() {
+    return (
+      <div
+        className="perf-container"       /* same container so it’s not hidden off-screen */
+        style={{ marginLeft: collapsed ? 94 : 370, paddingTop: 60 }}
+      >
+        {/* back link */}
+        <Link to="/InstructorDash" className="dahsboard-back">
+          ‹ Dashboard
+        </Link>
+
+        {/* Here’s your actual curriculum tree */}
+        <CurriculumSection />
+      </div>
+    );
+  }
+
+
+  function ResourcesSection() {
+    const items = [
+      { title: "Teaching Center",       img: teachPic,  link: "/resources/teaching-center", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
+      { title: "Instructor Community",  img: community,  link: "/resources/instructor-community", paragraph: "Share your progress and ask other instructors questions in our community."},
+      { title: "Help and support",      img: feedbackSupport,    link: "/resources/help-support", paragraph: "Can’t find what you need? Our support team is happy to help." },
+    ];
+
+    return (
+      <div className="res-section">
+        <h2 className="res-section-title">Resources</h2>
+        <div className="res-cards">
+          {items.map((it) => (
+            <Link key={it.title} to={it.link} className="res-card">
+              <img src={it.img} alt={it.title} className="res-card-img" />
+              <h4 className="res-card-title">{it.title}</h4>
+              <p className="res-card-paragraph">{it.paragraph}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <>
@@ -311,9 +348,8 @@ export default function InstructorDashboard() {
         {/* PERFORMANCE DASHBOARD */}
         {active === "performance" && <PerformanceSection />}
 
-        {/* OTHER PLACEHOLDERS */}
-        {active === "curriculum" && <section style={{ height: 1 }} />}
-        {active === "resources"  && <section style={{ height: 1 }} />}
+        {active === "curriculum" && <CurriculumSection />}
+        {active === "resources"  && <ResourcesSection />}
       </main>
 
       <Footer />

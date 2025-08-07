@@ -205,24 +205,13 @@ left: 20px;              /* nudge right (adjust value) */
   align-items: center;
   gap: 880px;
 }
-.perf-header-icons {
-  display: flex;
-  align-items: center;
-  gap: 0;
-}
 .icon-btn.notifications {
   background: none;
   border: none;
   font-size: 30px;
   cursor: pointer;
 }
-.profile-circle {
-  width: 40px;
-  height: 40px;
-  background: #ccc;         /* replace with avatar image or variable */
-  border-radius: 50%;
-  cursor: pointer;
-}
+
 .dashboard-back{
   font-size: 18px;
   font-weight: 600;
@@ -339,4 +328,57 @@ left: 20px;              /* nudge right (adjust value) */
 
 .improve-btn:hover {
   background-color: #4a17b8;
+}
+
+
+/* === RESOURCES GRID === */
+.res-section {
+  padding: 60px 188px;  /* match the other sections’ horizontal offset */
+}
+.res-section-title {
+  text-align: start;
+  margin: 0 0 24px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #000;
+}
+.res-cards {
+  display: flex;
+  gap: 22px;
+}
+.res-card {
+  width: 508px;
+  height: 258px;
+  background: #fff;
+  border: 1px solid #E5E5EE;
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: inherit;
+}
+.res-card-img {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+.res-card-title {
+  color: black;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+.res-card-title:hover {
+  color: #4C0FAD;
+}
+
+.res-card-paragraph {
+  color: black;
+  font-size: small;
+  margin-top: 10px;
 }
