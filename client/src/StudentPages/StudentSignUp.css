@@ -1,78 +1,122 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', Arial, sans-serif;
-  background: #fff;
-}
-
-.signup-bg {
-  min-height: 100vh;
+.student-signup-container {
   width: 100vw;
-  background: #e5d6fa;
+  height: 100vh;
+  background-color: #d0c2f2;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.signup-card {
-  width: 400px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 24px 0 rgba(160, 132, 232, 0.10);
-  padding: 40px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.signup-title {
-  color: #a084e8;
-  font-size: 2rem;
-  font-weight: 500;
-  margin-bottom: 24px;
-}
-
-.signup-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.signup-input {
-  padding: 0 16px;
-  border: none;
-  border-radius: 6px;
-  background: #f6f6f6;
-  font-size: 1rem;
-  color: #333;
-  outline: none;
-  width: 100%;
-  text-align: left;
-  height: 52px;
-  line-height: 52px;
+  padding: 20px;
   box-sizing: border-box;
 }
 
-.signup-input::placeholder {
-  color: #bdbdbd;
-  opacity: 1;
-  line-height: 52px;
+.student-signup-box {
+  width: 85vw;          /* was 90vw */
+  max-width: 1100px;    /* was 1200px */
+  height: 90vh;
+  background: white;
+  display: flex;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(160, 132, 232, 0.25);
 }
 
-.signup-btn {
-  background: #a084e8;
-  color: #fff;
+
+
+.student-left-panel {
+  width: 50%;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.student-logo {
+  width: 100px;
+  margin-bottom: 20px;
+}
+
+.student-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #5b22d1;
+}
+
+.student-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.student-input {
+  padding: 12px 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.student-checkbox {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-checkbox input {
+  transform: scale(1.1);
+}
+
+.student-create-btn {
+  background-color: #7d4cff;
+  color: white;
+  padding: 12px;
   border: none;
   border-radius: 6px;
-  padding: 16px 0;
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 16px;
   cursor: pointer;
-  margin-top: 10px;
-  transition: background 0.2s;
 }
 
-.signup-btn:hover {
-  background: #8b6ee8;
+.student-divider {
+  text-align: center;
+  margin: 10px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.student-google-btn {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.student-login-link {
+  margin-top: 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.student-login-link a {
+  color: #5b22d1;
+  text-decoration: none;
+}
+
+.student-right-panel {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.student-illustration {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
