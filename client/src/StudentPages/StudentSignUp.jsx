@@ -26,8 +26,17 @@ export default function StudentSignUp() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Student Data:", formData);
-    // Add validation + API logic
+
+    // (Optional) minimal checks
+    if (!formData.fullName || !formData.email || !formData.password) return;
+    if (formData.password !== formData.confirmPassword) return;
+
+    // DEV fake auth -> go to dashboard
+    localStorage.setItem("token", "dev");
+    localStorage.setItem("role", "student");
+    localStorage.setItem("userId", "123");
+
+    navigate("/student-dashboard"); // <-- adjust if your route differs
   };
 
   return (
@@ -96,7 +105,10 @@ export default function StudentSignUp() {
             </button>
             <div className="student-divider">Or</div>
             <button type="button" className="student-google-btn">
-              <img src="https://img.icons8.com/color/16/000000/google-logo.png" />
+              <img
+                src="https://img.icons8.com/color/16/000000/google-logo.png"
+                alt="Google"
+              />
               Sign up with Google
             </button>
             <p className="student-login-link">
@@ -105,7 +117,11 @@ export default function StudentSignUp() {
           </form>
         </div>
         <div className="student-right-panel">
-          <img src={illustration} alt="Student visual" className="student-illustration" />
+          <img
+            src={illustration}
+            alt="Student visual"
+            className="student-illustration"
+          />
         </div>
       </div>
     </div>
