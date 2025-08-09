@@ -1,4 +1,7 @@
-body, .home-section { background: #fff !important; }
+body, .home-section { padding-left: var(--sidebar-w, 44px);
+  padding-right: 0;
+    background: #fff !important; }
+:root { --container-max: 1200px; --gutter: 24px; }
 .dash{
 padding-top: 90px;
 padding-left: 190px;   /* all sections offset from sidebar by 190px */
@@ -15,6 +18,7 @@ font-size: 36px;
 font-weight: 800;
 line-height: 1.15;
 }
+
 
 /* Working width rows */
 .dash-row{
@@ -334,6 +338,7 @@ left: 20px;              /* nudge right (adjust value) */
 /* === RESOURCES GRID === */
 .res-section {
   padding: 60px 188px;  /* match the other sections’ horizontal offset */
+  margin-bottom: 200px;
 }
 .res-section-title {
   text-align: start;
@@ -382,3 +387,35 @@ left: 20px;              /* nudge right (adjust value) */
   font-size: small;
   margin-top: 10px;
 }
+
+/* — Metrics cards (used in PerformanceSection) — */
+.perf-metrics-row { gap: 22px; flex-wrap: wrap; }
+
+.metric-card{
+  width: 330px;
+  background:#fff;
+  border:1px solid #E5E5EE;
+  border-radius:6px;
+  box-shadow:0 6px 24px rgba(0,0,0,.06);
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.metric-label{ font-size:12px; color:#6b6b76; }
+.metric-value{ font-size:22px; font-weight:800; color:#1a1a1f; }
+.metric-change{ font-size:12px; font-weight:700; color:#1a7f37; }
+.metric-change.down{ color:#b91c1c; }
+
+/* prettier scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #b0afb4 transparent; } /* Firefox */
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #c7bdf3;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #a996f0; background-clip: content-box; }

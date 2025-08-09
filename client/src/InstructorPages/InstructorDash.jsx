@@ -177,12 +177,12 @@ export default function InstructorDashboard() {
 
       <main
         className="home-section"
-        style={{
-          marginLeft: collapsed ? 94 : 370,
-          transition: "margin-left .25s",
-          minHeight: "100vh",
-          background: "#E4E9F7",
-        }}
+        // style={{
+        //   marginLeft: collapsed ? 94 : 370,
+        //   transition: "margin-left .25s",
+        //   minHeight: "100vh",
+        //   background: "#E4E9F7",
+        // }}
       >
         {/* COURSE DASHBOARD */}
         {active === "course" && (
