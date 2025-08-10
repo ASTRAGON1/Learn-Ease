@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import SidebarLayout from "../components/SidebarLayout";
 import MetricsRow from "../components/MetricsRow";
@@ -8,7 +8,6 @@ import Footer from "../components/Footer";
 import QuizResults from "../components/QuizResults";
 import RankingAndTags from "../components/RankingAndTags";
 import CurriculumSection from "../components/CurriculumSection";
-
 
 import testPath from "../assets/testPath.png";
 import community from "../assets/community.png";
@@ -23,7 +22,6 @@ export default function InstructorDashboard() {
   const [active, setActive]     = useState("course");
   const name                    = "Adolf"; // placeholder
 
-  // sample data; swap with real backend data
   const sampleMetrics = [
     { label: "Content views",  value: "2,315", change: "+11.01%" },
     { label: "Profile visits", value: "1,032", change: "+1.01%" },
@@ -64,25 +62,16 @@ export default function InstructorDashboard() {
     { tag:"Memorizing", pct:50 },
   ];
 
-  // PERFORMANCE VIEW
   function PerformanceSection() {
     return (
       <div
         className="perf-container"
-        style={{
-          marginLeft: collapsed ? 0 : 0,
-          paddingTop: 60,
-        }}
+        style={{ marginLeft: collapsed ? 0 : 0, paddingTop: 60 }}
       >
-         <div className="perf-header">
-          {/* 1) back link */}
-          <Link to="/InstructorDash" className="dahsboard-back">
-            ‹ Dashboard
-          </Link>
+        <div className="perf-header">
+          <Link to="/InstructorDash" className="dahsboard-back">‹ Dashboard</Link>
         </div>
 
-
-        {/* Metrics Row */}
         <div className="perf-metrics-row">
           {sampleMetrics.map((m, i) => (
             <div key={i} className="metric-card">
@@ -93,54 +82,34 @@ export default function InstructorDashboard() {
           ))}
         </div>
 
-        {/* Graph + Notifications */}
         <div className="perf-main-row">
           <div className="perf-graph-section">
             <div className="graph-card">
-              {/* MUI BarChart */}
-              <RainfallChart
-                tickPlacement="middle"
-                tickLabelPlacement="middle"
-              />
+              <RainfallChart tickPlacement="middle" tickLabelPlacement="middle" />
             </div>
           </div>
           <Notifications items={sampleNotifs} />
         </div>
+
         <QuizResults />
         <RankingAndTags instructors={instructors} categories={categories} />
 
-        {/* ——— IMPROVEMENT CTA ——— */}
         <div className="improve-section">
-          <h2 className="title-improvement">
-            Improve yourself to get better results!
-          </h2>
-          <button className="improve-btn">
-            Teaching center
-          </button>
+          <h2 className="title-improvement">Improve yourself to get better results!</h2>
+          <button className="improve-btn">Teaching center</button>
         </div>
       </div>
-      
     );
   }
 
-   // CURRICULUM VIEW
-   function CurriculumWrapper() {
+  function CurriculumWrapper() {
     return (
-      <div
-        className="perf-container"       /* same container so it’s not hidden off-screen */
-        style={{ marginLeft: collapsed ? 94 : 370, paddingTop: 60 }}
-      >
-        {/* back link */}
-        <Link to="/InstructorDash" className="dahsboard-back">
-          ‹ Dashboard
-        </Link>
-
-        {/* Here’s your actual curriculum tree */}
+      <div className="perf-container" style={{ marginLeft: collapsed ? 94 : 370, paddingTop: 60 }}>
+        <Link to="/InstructorDash" className="dahsboard-back">‹ Dashboard</Link>
         <CurriculumSection />
       </div>
     );
   }
-
 
   function ResourcesSection() {
     const items = [
@@ -165,9 +134,8 @@ export default function InstructorDashboard() {
     );
   }
 
-
   return (
-    <>
+    <div className="dash-root">
       <SidebarLayout
         collapsed={collapsed}
         onToggleCollapsed={() => setCollapsed((v) => !v)}
@@ -175,35 +143,18 @@ export default function InstructorDashboard() {
         onNavigate={setActive}
       />
 
-      <main
-        className="home-section"
-        // style={{
-        //   marginLeft: collapsed ? 94 : 370,
-        //   transition: "margin-left .25s",
-        //   minHeight: "100vh",
-        //   background: "#E4E9F7",
-        // }}
-      >
-        {/* COURSE DASHBOARD */}
+      <main className="dash-home">
         {active === "course" && (
           <div className="dash">
-            <h1 className="dash-title">
-              Welcome {name}, ready to teach?
-            </h1>
+            <h1 className="dash-title">Welcome {name}, ready to teach?</h1>
 
-            {/* Jump into course */}
             <div className="dash-row">
               <div className="jump-card">
-                <span className="jump-text">
-                  Jump Into Course Creation
-                </span>
-                <button className="btn-primary">
-                  Create Your Course
-                </button>
+                <span className="jump-text">Jump Into Course Creation</span>
+                <button className="btn-primary">Create Your Course</button>
               </div>
             </div>
 
-            {/* Helper sentence */}
             <div className="dash-row">
               <p className="hint">
                 Based on the data gathered, we think those resources
@@ -211,25 +162,19 @@ export default function InstructorDashboard() {
               </p>
             </div>
 
-            {/* AI card */}
             <div className="dash-row mt-50">
               <div className="ai-card">
-                <h3 className="ai-title">
-                  Generate quizzes using AI
-                </h3>
+                <h3 className="ai-title">Generate quizzes using AI</h3>
                 <p className="ai-desc">
                   Our AI-powered quiz tool helps you generate
                   personalized quizzes based on the curriculum you
                   follow on our platform — perfect for assessing
                   student progress quickly and effectively.
                 </p>
-                <button className="btn-primary sm">
-                  Generate
-                </button>
+                <button className="btn-primary sm">Generate</button>
               </div>
             </div>
 
-            {/* Two mini cards */}
             <div className="dash-grid">
               <div className="mini-card">
                 <h4>Tip of the day</h4>
@@ -241,118 +186,68 @@ export default function InstructorDashboard() {
               </div>
               <div className="mini-card">
                 <h4>Community & Support</h4>
-                <p>
-                  Ask questions, share tips, and connect with other
-                  instructors.
-                </p>
-                <button className="btn-primary sm">
-                  Join Now
-                </button>
+                <p>Ask questions, share tips, and connect with other instructors.</p>
+                <button className="btn-primary sm">Join Now</button>
               </div>
             </div>
 
-            {/* Resources grid */}
             <div className="resources">
               <h3 className="resources-heading">
-                Have questions? Here are our most popular
-                instructor resources.
+                Have questions? Here are our most popular instructor resources.
               </h3>
+
               <div className="res-grid">
                 <Link to="/resources/test-video" className="res-item">
-                  <img
-                    src={testPath}
-                    alt="Test Video"
-                    className="res-icon"
-                  />
+                  <img src={testPath} alt="Test Video" className="res-icon" />
                   <h5 className="res-title">Test Video</h5>
-                  <p className="res-desc">
-                    See how your videos gets treated
-                  </p>
+                  <p className="res-desc">See how your videos gets treated</p>
                 </Link>
 
                 <Link to="/resources/community" className="res-item">
-                  <img
-                    src={community}
-                    alt="Community"
-                    className="res-icon"
-                  />
+                  <img src={community} alt="Community" className="res-icon" />
                   <h5 className="res-title">Community</h5>
                   <p className="res-desc">
-                    Communicate with other instructors. Ask
-                    questions, have discussions, and more.
+                    Communicate with other instructors. Ask questions, have discussions, and more.
                   </p>
                 </Link>
 
                 <Link to="/resources/how-to-teach" className="res-item">
-                  <img
-                    src={teachPic}
-                    alt="How to teach"
-                    className="res-icon"
-                  />
-                  <h5 className="res-title">
-                    How to teach in LearnEase
-                  </h5>
+                  <img src={teachPic} alt="How to teach" className="res-icon" />
+                  <h5 className="res-title">How to teach in LearnEase</h5>
                   <p className="res-desc">
-                    Learn how to use our platform to get the best
-                    results and satisfy the students.
+                    Learn how to use our platform to get the best results and satisfy the students.
                   </p>
                 </Link>
 
-                <Link
-                  to="/resources/performance"
-                  className="res-item"
-                >
-                  <img
-                    src={performanceIcon}
-                    alt="Performance"
-                    className="res-icon"
-                  />
+                <Link to="/resources/performance" className="res-item">
+                  <img src={performanceIcon} alt="Performance" className="res-icon" />
                   <h5 className="res-title">Performance</h5>
                   <p className="res-desc">
-                    See how students like your contents, quiz
-                    results analysis, and more.
+                    See how students like your contents, quiz results analysis, and more.
                   </p>
                 </Link>
 
-                <Link
-                  to="/resources/feedback-support"
-                  className="res-item"
-                >
-                  <img
-                    src={feedbackSupport}
-                    alt="Feedback & Support"
-                    className="res-icon"
-                  />
-                  <h5 className="res-title">
-                    Feedback & Support
-                  </h5>
-                  <p className="res-desc">
-                    Get feedback and support from students.
-                  </p>
+                <Link to="/resources/feedback-support" className="res-item">
+                  <img src={feedbackSupport} alt="Feedback & Support" className="res-icon" />
+                  <h5 className="res-title">Feedback & Support</h5>
+                  <p className="res-desc">Get feedback and support from students.</p>
                 </Link>
               </div>
             </div>
 
-            {/* Final CTA */}
             <div className="final-cta">
-              <p className="ready-text">
-                Are You Ready to Begin?
-              </p>
-              <button className="btn4">
-                Create Your Course
-              </button>
+              <p className="ready-text">Are You Ready to Begin?</p>
+              <button className="btn4">Create Your Course</button>
             </div>
           </div>
         )}
 
-        {/* PERFORMANCE DASHBOARD */}
         {active === "performance" && <PerformanceSection />}
-
         {active === "curriculum" && <CurriculumSection />}
         {active === "resources"  && <ResourcesSection />}
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }
