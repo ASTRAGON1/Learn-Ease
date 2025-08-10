@@ -1,0 +1,222 @@
+/* ===== NAVBAR ===== */
+.sd-nav-wrap {
+  background: #fff;
+   border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* light black */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* subtle shadow */
+}
+.sd-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 72px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sd-nav-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 8px;
+}
+
+.sd-nav-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, #5b22d1, #7d4cff);
+}
+.sd-nav-logo-img {
+ margin-top: 21px; 
+ margin-bottom: 25px;
+margin-left: 40px; 
+padding: 0; 
+height: 90px;
+width: 150px; 
+object-fit: contain;
+}
+
+
+.sd-nav-links {
+  margin-left: auto; /* push items to far right */
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* spacing between menu items */
+}
+.sd-profile-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #ddd;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+.sd-profile-btn:hover {
+  background-color: #bbb;
+}
+.sd-nav-link {
+  color: #16151f;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0.9;
+}
+.sd-nav-link.active {
+  color: #5b22d1;
+}
+
+.sd-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sd-nav-bell {
+  background: #fff;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+.sd-nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #ddd;
+}
+.sd-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2rem; /* move slightly to the right */
+}
+
+@media (max-width: 900px) {
+  .sd-nav-links {
+    display: none;
+  }
+}
+
+/* ===== TOP SECTION ===== */
+.sd-hero {
+  background: #ede4ff;
+  padding: 40px 20px;
+}
+
+.sd-welcome {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #1f1f1f;
+}
+
+.sd-course-card {
+  background: #e6def7;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sd-course-info {
+  max-width: 70%;
+}
+
+.sd-course-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.sd-course-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #8c5bdb;
+  margin: 8px 0;
+}
+
+.sd-progress {
+  background: #dcd6eb;
+  border-radius: 6px;
+  height: 4px;
+  margin: 6px 0;
+  overflow: hidden;
+}
+.sd-progress-fill {
+  background: #8c5bdb;
+  height: 100%;
+}
+
+.sd-progress-text {
+  font-size: 12px;
+  color: #333;
+}
+
+.sd-course-action {
+  display: flex;
+  align-items: center;
+}
+
+.sd-join-btn {
+  background: #8c5bdb;
+  color: #fff;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sd-join-btn span {
+  font-weight: bold;
+}
+.sd-join-btn:hover {
+  background: #7b4dca;
+}
+.sd-hero-container {
+  border-top: none; /* removes the top border if it's set */
+  margin-top: 0;
+  min-height: 800px;
+  padding-top: 40px; /* optional space */
+}
+
+/* Make hero section bigger */
+.sd-hero {
+  background: #f1eaff;
+  padding: 60px;
+  border-radius: 8px;
+  max-width: 1200px; /* wider */
+  width:100% ;
+  margin: 30px auto 0 auto;
+  
+}
+
+.sd-course-card {
+  background: #f9f9f9;
+  padding: 40px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem; /* bigger text */
+}
+.sd-welcome {
+  margin-bottom: 20px;
+  text-align: left; /* Top-left align */
+}
+
+.sd-gray-box {
+  background-color: #f3f3f3; /* Gray sub-container */
+  padding: 20px;
+  border-radius: 8px;
+}
