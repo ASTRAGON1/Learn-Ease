@@ -11,6 +11,7 @@ import InstructorSignUp2 from './InstructorPages/InstructorSignUp2';
 import InformationGathering1 from './InstructorPages/InformationGathering1';
 import InformationGathering2 from './InstructorPages/InformationGathering2';
 import InformationGathering3 from './InstructorPages/InformationGathering3';
+import TeachingCenter from './InstructorPages/TeachingCenter';
 import './App.css';
 import StudentDashboard from "./StudentPages/StudentDashboard";
 <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -48,6 +49,7 @@ function App() {
           <Route path="/InformationGathering1" element={<InformationGathering1 />} />
           <Route path="/InformationGathering2" element={<InformationGathering2 />} />
           <Route path="/InformationGathering3" element={<InformationGathering3 />} />
+          <Route path="/teachingCenter" element={<TeachingCenter />} />
         </Routes>
       </Router>
     </>
