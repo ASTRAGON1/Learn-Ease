@@ -1,0 +1,132 @@
+/* src/pages/InstructorUpload.css */
+:root{
+    --card-w:1233px;
+    --upload-w:1188px;
+    --purple:#5b22d1;
+    --ink:#111;
+    --muted:#8a8a8a;
+    --white:#fff;
+  }
+  
+  *{ box-sizing:border-box; }
+  
+  .iu-page{
+    max-width:1920px; margin:0 auto; background:#fff; padding:24px 0;
+    font-family: Inter, system-ui, Arial, sans-serif; color:var(--ink);
+  }
+  
+  /* Top line */
+  .iu-topline{ width:var(--card-w); margin:8px auto 12px; text-align: left; }
+  .iu-back{ background:none;border:0;cursor:pointer;font-weight:700;font-size:24px;line-height:1; color: black;}
+  .iu-back .chev{ margin-right:6px; }
+  
+  /* ---- Section spacing (60px gap) ---- */
+  .section{ margin-bottom:60px; }
+  .section-title{ width:var(--card-w); margin:0 auto 10px; font-size:22px; font-weight:700; margin-bottom: 30px;}
+  
+  /* Card base */
+  .iu-card{
+    position:relative; width:var(--card-w); margin:0 auto;
+    background:#f4f4f5; border:1px solid #eee; border-radius:20px; padding:24px 28px;
+    margin-bottom: 100px; text-align: left;
+  }
+  .iu-header{ font-size:16px; font-weight:700; margin-bottom:30px; }
+  
+  /* Form primitives */
+  .iu-row{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:14px; }
+  .iu-field{ display:flex; flex-direction:column; gap:8px; }
+  .iu-field label{ font-size:12px; color:#333; }
+  .iu-input{ height:40px; padding:0 14px; background:#fff; border:1px solid #e6e6e9; border-radius:10px; outline:none; font-size:14px; }
+  .iu-input:focus{ border-color:var(--purple); box-shadow:0 0 0 3px rgba(91,34,209,.12); }
+  .iu-error{ border-color:#ff8a8a !important; }
+  .iu-errtxt{ color:#cc2b2b; font-size:12px; }
+  
+  .iu-tagbox{
+    height:40px; padding:0 12px; background:#fff; border:1px solid #e6e6e9; border-radius:10px;
+    display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  }
+  .iu-placeholder{ color:var(--muted); font-size:14px; }
+  .iu-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+  .iu-chip{ background:#f0eaff; border:1px solid #e2d6ff; padding:4px 8px; border-radius:999px; font-size:12px; }
+  .iu-caret{ margin-left:12px; transform:translateY(-1px); }
+  
+  .iu-tagmenu{
+    margin-top:8px; background:#fff; border:1px solid #e6e6e9; border-radius:12px;
+    padding:10px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px; max-height:180px; overflow:auto;
+  }
+  .iu-tagitem{ border:1px solid #e6e6e9; background:#fff; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
+  .iu-tagitem.selected{ border-color:var(--purple); background:#f3ecff; }
+  
+  .iu-upload{
+    width:var(--upload-w); height:104px; margin:10px auto 16px;
+    border:1px dashed #dbe3ef; border-radius:12px; background:#f9fcff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center;
+  }
+  .iu-link{ color:var(--purple); cursor:pointer; }
+  .iu-filename{ margin-top:4px; font-size:12px; color:#444; }
+  
+  .iu-cats{display: flex;  gap:20px !important; margin:10px 0 14px; }
+  .iu-cats.no-margin{ margin:0;}
+  .iu-catbtn{ border:1px solid #eadfff; background:#f3ecff; color:#5b22d1; padding:8px 14px; border-radius:999px; font-weight:600; cursor:pointer; }
+  .iu-catbtn.active{ background:#5b22d1; color:#fff; }
+  
+  .iu-textarea{ min-height:170px; background:#fff; border:1px solid #e6e6e9; border-radius:10px; padding:12px; resize:vertical; font-size:14px; }
+  .iu-textarea:focus{ border-color:var(--purple); box-shadow:0 0 0 3px rgba(91,34,209,.12); }
+  
+  .iu-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
+  .iu-secondary{ height:40px; padding:0 14px; border-radius:10px; background:#f2f2f4; border:1px solid #e6e6e9; cursor:pointer; font-weight:600; }
+  .iu-primary{ height:40px; padding:0 18px; border-radius:10px; background:var(--purple); color:#fff; border:0; cursor:pointer; font-weight:700; }
+  
+  /* ---- Quiz section ---- */
+  .quiz-card{
+    width:var(--card-w); margin:0 auto;
+    background:#f4f4f5; border:1px solid #eee; border-radius:20px; padding:24px 28px;
+    margin-bottom: 100px; text-align: left;
+  }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .align-right .iu-cats{ justify-content:flex-start; }
+  .quiz-note{ margin:12px 0 8px; font-size:12px; color:#555; }
+  .quiz-selects{ display:flex; gap:16px; margin-bottom:12px; }
+  .quiz-select{ width:220px; appearance:auto; }
+  .qa-row{ display:grid; grid-template-columns:1fr 1fr auto; gap:24px; align-items:end; margin-top:10px; }
+  .quiz-add{
+    width:36px; height:36px; border-radius:999px; border:0; background:#8e5cf6; color:#fff;
+    font-size:20px; line-height:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  
+  /* ---- Content section ---- */
+  .content-card{
+    width:var(--card-w); margin:0 auto;
+    background:#f4f4f5; border:1px solid #eee; border-radius:20px; padding:18px 22px 22px;
+  }
+  .content-head{
+    display:grid; grid-template-columns:1fr 180px 160px 220px; gap:16px;
+    padding:8px 14px; color:#8b8b8f; font-size:14px;
+  }
+  .content-rows{ display:flex; flex-direction:column; gap:14px; margin-top:8px; }
+  .content-row{
+    background:#fff; border-radius:12px; padding:14px;
+    display:grid; grid-template-columns:1fr 180px 160px 220px; gap:16px; align-items:center;
+  }
+  .content-title{
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-left:10px;
+  }
+  .pill{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:6px 12px; border-radius:999px; background:#e9e9ed; color:#333; font-weight:600; font-size:13px;
+  }
+  .pill-gray{ background:#e6e6ea; }
+  
+  .status-pill{ padding:6px 12px; border-radius:999px; font-weight:600; font-size:13px; display:inline-flex; justify-content:center; }
+  .status-green{ background:#d8f5d8; color:#206b20; }
+  .status-red{ background:#ffd1d1; color:#a12b2b; }
+  .status-yellow{ background:#ffe7b3; color:#6a5200; }
+  
+  .content-actions{ display:flex; gap:14px; justify-content:flex-end; }
+  .btn-arch,.btn-del{
+    height:36px; padding:0 18px; border-radius:10px; border:0; color:#fff; background:#4f14c9; cursor:pointer; font-weight:700;
+  }
+  .btn-del{ background:#5312d6; }
+  .actions-col{ justify-self:end; }
+  
