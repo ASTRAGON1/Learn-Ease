@@ -18,7 +18,7 @@
 /* Top line */
 .iu-topline{ width:var(--card-w); margin:8px auto 12px; text-align:left; }
 .iu-back{ background:none; border:0; cursor:pointer; font-weight:700; font-size:24px; line-height:1; color:#000; }
-.iu-back .chev{ margin-right:6px; }
+.iu-back .chev{ margin-right:6px; margin-top: 30px !important;}
 
 /* ---- Section spacing (60px gap) ---- */
 .section{ margin-bottom:60px; }
@@ -149,7 +149,7 @@
 /* ---- Content section ---- */
 .content-card{
   width:var(--card-w); margin:0 auto;
-  background:#f4f4f5; border:1px solid #eee; border-radius:20px; padding:18px 22px 22px;
+  background:#f4f4f5; border:1px solid #eee; border-radius:20px; padding:18px 22px 22px; margin-bottom: 100px;
 }
 .content-head{
   display:grid; grid-template-columns:1fr 180px 160px 220px; gap:16px;

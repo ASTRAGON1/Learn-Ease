@@ -1,5 +1,6 @@
 // src/pages/InstructorUpload.jsx
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import "./InstructorUpload.css";
 
 const ALL_TAGS = [
@@ -81,9 +82,9 @@ export default function InstructorUpload() {
   return (
     <div className="iu-page">
       <div className="iu-topline">
-        <button className="iu-back"><span className="chev">‹</span> Dashboard</button>
+      <Link to="/InstructorDash" className="iu-back"><span className="chev">‹</span> Dashboard</Link>
       </div>
-
+      
       {/* Publishing */}
       <div className="iu-header">Publishing</div>
       <div className="iu-card section">

@@ -151,7 +151,7 @@ export default function InstructorDashboard() {
             <div className="dash-row">
               <div className="jump-card">
                 <span className="jump-text">Jump Into Course Creation</span>
-                <button className="btn-primary">Create Your Course</button>
+                <Link to="/InstructorUpload" className="btn-primary">Create Your Course</Link>
               </div>
             </div>
 
@@ -226,7 +226,6 @@ export default function InstructorDashboard() {
                     See how students like your contents, quiz results analysis, and more.
                   </p>
                 </Link>
-
                 <Link to="/resources/feedback-support" className="res-item">
                   <img src={feedbackSupport} alt="Feedback & Support" className="res-icon" />
                   <h5 className="res-title">Feedback & Support</h5>
@@ -237,7 +236,7 @@ export default function InstructorDashboard() {
 
             <div className="final-cta">
               <p className="ready-text">Are You Ready to Begin?</p>
-              <button className="btn4">Create Your Course</button>
+              <Link to="/InstructorUpload" className="btn4">Create Your Course</Link>
             </div>
           </div>
         )}
