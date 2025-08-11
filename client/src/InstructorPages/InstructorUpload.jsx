@@ -12,7 +12,7 @@ const ALL_TAGS = [
 const COURSES = ["Communication 1", "Communication 2", "Numbers", "Letters"];
 const LESSONS  = ["Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"];
 
-const CONTENT_ROWS = [
+const DEFAULT_ROWS = [
   { title:"Listening Class N24: How to Help Children with Down Syndrome Improve...", category:"Down Syndrome", status:"Published" },
   { title:"Math Session N15: Supporting Early Number Recognition for Kids...", category:"Autism", status:"Draft" },
   { title:"Reading Class N10: Building Vocabulary Step-by-Step for Children...", category:"Down Syndrome", status:"scheduled pub" },
@@ -29,6 +29,10 @@ export default function InstructorUpload() {
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // Tables
+  const [contentRows, setContentRows] = useState(DEFAULT_ROWS);
+  const [archivedRows, setArchivedRows] = useState([]); // NEW
 
   // Quiz
   const [quizTitle, setQuizTitle] = useState("");
@@ -50,24 +54,29 @@ export default function InstructorUpload() {
     return Object.keys(e).length === 0;
   };
 
-  const onSaveDraft = () => {
-    if (!validate()) return;
-    console.log({ title, tags, category, desc, file, status: "draft" });
-    alert("Saved as draft.");
+  const addContentRow = (statusLabel) => {
+    const newRow = { title: title || "Untitled", category, status: statusLabel };
+    setContentRows(prev => [newRow, ...prev]);
   };
 
-  const onPublish = () => {
-    if (!validate()) return;
-    console.log({ title, tags, category, desc, file, status: "publish" });
-    alert("Published!");
-  };
+  const onSaveDraft = () => { if (!validate()) return; addContentRow("Draft"); alert("Saved as draft."); };
+  const onPublish   = () => { if (!validate()) return; addContentRow("Published"); alert("Published!"); window.location.reload(); };
 
   const addPair = () => setPairs([...pairs, { q: "", a: "" }]);
+  const removePair = (idx) => { if (pairs.length === 1) return; setPairs(pairs.filter((_, i) => i !== idx)); };
+  const onPublishQuiz = () => { alert("Quiz published!"); };
 
-  const onPublishQuiz = () => {
-    console.log({ quizTitle, quizCategory, quizCourse, quizLesson, pairs, status: "quiz-publish" });
-    alert("Quiz published!");
+  const deleteContent = (idx) => setContentRows(rows => rows.filter((_, i) => i !== idx));
+
+  const archiveContent = (idx) => {
+    setContentRows(rows => {
+      const row = rows[idx];
+      const remaining = rows.filter((_, i) => i !== idx);
+      setArchivedRows(a => [{ ...row, status: "Archived" }, ...a]);
+      return remaining;
+    });
   };
+  
 
   return (
     <div className="iu-page">
@@ -78,8 +87,6 @@ export default function InstructorUpload() {
       {/* Publishing */}
       <div className="iu-header">Publishing</div>
       <div className="iu-card section">
-        
-
         <div className="iu-row">
           <div className="iu-field">
             <label>Choose a title for your content*:</label>
@@ -119,18 +126,21 @@ export default function InstructorUpload() {
             </div>
 
             {showTagList && (
-              <div className="iu-tagmenu">
+              <ul className="iu-taglist" role="listbox" aria-multiselectable="true">
                 {ALL_TAGS.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className={`iu-tagitem ${tags.includes(t) ? "selected" : ""}`}
-                    onClick={() => toggleTag(t)}
-                  >
-                    {t}
-                  </button>
+                  <li key={t}>
+                    <button
+                      type="button"
+                      className={`iu-tagitem ${tags.includes(t) ? "selected" : ""}`}
+                      onClick={() => toggleTag(t)}
+                      role="option"
+                      aria-selected={tags.includes(t)}
+                    >
+                      {t}
+                    </button>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         </div>
@@ -264,6 +274,17 @@ export default function InstructorUpload() {
                 }}
               />
             </div>
+
+            <button
+              type="button"
+              className="quiz-remove"
+              onClick={()=>removePair(i)}
+              title="Remove this Q/A"
+              style={{marginLeft:8, padding:"0 10px"}}
+            >
+              −
+            </button>
+
             {i === pairs.length-1 && (
               <button type="button" className="quiz-add" onClick={addPair}>+</button>
             )}
@@ -285,8 +306,8 @@ export default function InstructorUpload() {
           <span className="actions-col" />
         </div>
 
-        <div className="content-rows">
-          {CONTENT_ROWS.map((row, idx) => (
+        <div className="content-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
+          {contentRows.map((row, idx) => (
             <div key={idx} className="content-row">
               <div className="content-title" title={row.title}>{row.title}</div>
 
@@ -300,13 +321,52 @@ export default function InstructorUpload() {
               </div>
 
               <div className="content-actions">
-                <button className="btn-arch" onClick={()=>console.log("archive", idx)}>Archive</button>
-                <button className="btn-del"  onClick={()=>console.log("delete", idx)}>Delete</button>
+                <button className="btn-arch" onClick={()=>archiveContent(idx)}>Archive</button>
+                <button className="btn-del"  onClick={()=>deleteContent(idx)}>Delete</button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Archive */}
+      <h2 className="section-title">Archive</h2>
+      <div className="content-card section">
+        <div className="content-head">
+          <span>Content title</span>
+          <span>Category</span>
+          <span>Status</span>
+          <span className="actions-col" />
+        </div>
+
+        <div className="content-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
+          {archivedRows.length === 0 ? (
+            <div style={{ padding: "12px", fontSize: "14px", color: "#666" }}>
+              No archived content
+            </div>
+          ) : (
+            archivedRows.map((row, idx) => (
+              <div key={idx} className="content-row">
+                <div className="content-title" title={row.title}>
+                  {row.title}
+                </div>
+
+                <div className="pill pill-gray">{row.category}</div>
+
+                <div className="status-pill status-yellow">Archived</div>
+
+                <div className="content-actions">
+                  <button className="btn-arch" onClick={() => console.log("show", idx)}>Show</button>
+                  <button className="btn-del" onClick={() => setArchivedRows(a => a.filter((_, i) => i !== idx))}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
