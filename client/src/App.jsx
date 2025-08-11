@@ -16,7 +16,8 @@ import InformationGathering2 from "./InstructorPages/InformationGathering2";
 import InformationGathering3 from "./InstructorPages/InformationGathering3";
 import TeachingCenter from "./InstructorPages/TeachingCenter";
 import InstructorUpload from "./InstructorPages/InstructorUpload";
-import PersonalizedPath from "./StudentPages/PersonalizedPath"; 
+import PersonalizedPath from "./StudentPages/PersonalizedPath";
+import ProfileSettings from "./InstructorPages/ProfileSettings"; 
 import "./App.css";
 
 /* Dev helper (single copy) */
@@ -60,6 +61,7 @@ function App() {
         <Route path="/InformationGathering3" element={<InformationGathering3 />} />
         <Route path="/teachingCenter" element={<TeachingCenter />} />
         <Route path="/InstructorUpload" element={<InstructorUpload />} />
+        <Route path="/ProfileSettings" element={<ProfileSettings />} />
       </Routes>
     </Router>
   );
