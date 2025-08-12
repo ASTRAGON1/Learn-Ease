@@ -17,7 +17,8 @@ import InformationGathering3 from "./InstructorPages/InformationGathering3";
 import TeachingCenter from "./InstructorPages/TeachingCenter";
 import InstructorUpload from "./InstructorPages/InstructorUpload";
 import PersonalizedPath from "./StudentPages/PersonalizedPath";
-import ProfileSettings from "./InstructorPages/ProfileSettings"; 
+import ProfileSettings from "./InstructorPages/ProfileSettings";
+import HelpAndSupport from "./InstructorPages/HelpAndSupport";
 import "./App.css";
 
 /* Dev helper (single copy) */
@@ -62,6 +63,7 @@ function App() {
         <Route path="/teachingCenter" element={<TeachingCenter />} />
         <Route path="/InstructorUpload" element={<InstructorUpload />} />
         <Route path="/ProfileSettings" element={<ProfileSettings />} />
+        <Route path="/HelpAndSupport" element={<HelpAndSupport />} />
       </Routes>
     </Router>
   );
