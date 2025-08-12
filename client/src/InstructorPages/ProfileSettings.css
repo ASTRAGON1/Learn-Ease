@@ -21,6 +21,11 @@
   /* Card */
   .ps-card{ width:var(--card-w); margin:18px auto 40px; background:var(--bg); border:1px solid #eee; border-radius:18px; padding:20px 22px 80px; position:relative; }
   
+  /* Back to dashboard */
+
+  .ps-back {
+    position:  absolute; top: 65px; left: 150px; font-size: 20px; font-weight: bold; color: black;
+  }
   /* Layout */
   .ps-grid{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
   .ps-col{ display:flex; flex-direction:column; gap:16px; }
@@ -48,7 +53,7 @@
   .ps-upload{ background:#fff; border:2px solid #6e6f85; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:10px; }
   .ps-upload-top{ text-align:center; font-weight:600; }
   .ps-link{ color:var(--purple); cursor:pointer; }
-  .ps-upload-body{ background:#f3f3f5; border-radius:6px; height:260px; display:flex; align-items:center; justify-content:center; }
+  .ps-upload-body{ background:#f3f3f5; border-radius:6px; height:260px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
   .ps-avatar-icon{ width:180px; height:180px; border:6px solid #6e6f85; border-radius:50%; position:relative; }
   .ps-avatar-icon::before,.ps-avatar-icon::after{ content:""; position:absolute; left:50%; transform:translateX(-50%); background:#6e6f85; }
   .ps-avatar-icon::before{ width:70px; height:70px; border-radius:50%; top:38px; }
@@ -62,13 +67,13 @@
   .ps-danger{ height:40px; padding:0 16px; border-radius:10px; background:#e23b3b; color:#fff; border:0; cursor:pointer; font-weight:800; margin-top:8px; }
   
   /* Private section */
-  .ps-subtitle{ margin:12px 0 8px; font-size:14px; font-weight:800; text-align: left !important;}
+  .ps-subtitle{ margin:12px 0 12px; font-size:14px; font-weight:800; text-align: left !important;}
   .ps-pw-row{ display:flex; align-items:flex-end; gap:12px; max-width:660px; }
   .ps-pw-row .flex1{ flex:1; }
   
   /* Switches */
   .ps-switchlist{ display:flex; flex-direction:column; gap:10px; margin:8px 0 14px; text-align: left !important;}
-  .ps-switchrow{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:20px; text-align: left !important;}
+  .ps-switchrow{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:20px; text-align: left !important; width: 400px;}
   .ps-switchrow input{ display:none; }
   .ps-switchrow .ps-switch{ width:44px; height:24px; border-radius:999px; background:#d9d9e3; position:relative; transition:.2s; }
   .ps-switchrow .ps-switch::after{
