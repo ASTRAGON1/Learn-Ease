@@ -19,6 +19,8 @@ import InstructorUpload from "./InstructorPages/InstructorUpload";
 import PersonalizedPath from "./StudentPages/PersonalizedPath";
 import ProfileSettings from "./InstructorPages/ProfileSettings";
 import HelpAndSupport from "./InstructorPages/HelpAndSupport";
+import GetSupport from "./InstructorPages/getSupport";
+import InstructorCommunity from "./InstructorPages/InstructorCommunity";
 import "./App.css";
 
 /* Dev helper (single copy) */
@@ -64,6 +66,8 @@ function App() {
         <Route path="/InstructorUpload" element={<InstructorUpload />} />
         <Route path="/ProfileSettings" element={<ProfileSettings />} />
         <Route path="/HelpAndSupport" element={<HelpAndSupport />} />
+        <Route path="/getSupport" element={<GetSupport />} />
+        <Route path="/InstructorCommunity" element={<InstructorCommunity />} />
       </Routes>
     </Router>
   );
