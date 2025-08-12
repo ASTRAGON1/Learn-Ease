@@ -126,3 +126,37 @@
   height: 52px;                                      /* was 56px */
 }
 .sidebar.close .nav-icon{ width: 24px; height: 24px; } /* slightly smaller */
+
+/* Make the Profile <Link> look like the other items */
+.nav-main li .nav-link{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 18px;
+  color:#fff;
+  background:transparent;
+  text-decoration:none;
+  border-radius:12px;
+}
+.nav-main li .nav-link:hover{ background: var(--sb-bg-2); }
+.nav-main li.active .nav-link{
+  background: var(--sb-bg-2);
+  outline: 1px solid rgba(255,255,255,.08);
+}
+
+/* Collapsed state for the <Link> */
+.sidebar.close .nav-main li .nav-link{
+  width:95px;
+  height:56px;
+  padding:0 !important;
+  display:grid;
+  place-items:center;
+  gap:0 !important;
+  text-align:center;
+  border-radius:12px;
+}
+.sidebar.close .nav-main .nav-link .nav-icon{
+  margin:0 !important;
+  transform:none !important;
+}

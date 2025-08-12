@@ -113,9 +113,9 @@ export default function InstructorDashboard() {
 
   function ResourcesSection() {
     const items = [
-      { title: "Teaching Center",       img: teachPic,  link: "/resources/teaching-center", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
-      { title: "Instructor Community",  img: community,  link: "/resources/instructor-community", paragraph: "Share your progress and ask other instructors questions in our community."},
-      { title: "Help and support",      img: feedbackSupport,    link: "/resources/help-support", paragraph: "Can’t find what you need? Our support team is happy to help." },
+      { title: "Teaching Center",       img: teachPic,  link: "/TeachingCenter", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
+      { title: "Instructor Community",  img: community,  link: "/Community", paragraph: "Share your progress and ask other instructors questions in our community."},
+      { title: "Help and support",      img: feedbackSupport,    link: "/HelpSupport", paragraph: "Can’t find what you need? Our support team is happy to help." },
     ];
 
     return (

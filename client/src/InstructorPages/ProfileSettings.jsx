@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "./ProfileSettings.css";
 
 const COUNTRIES = [
@@ -19,6 +20,48 @@ export default function ProfileSettings() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarURL, setAvatarURL] = useState("");
 
+  // Private setting
+  const [email, setEmail] = useState("");
+  const [storedPassword, setStoredPassword] = useState(""); // real old password (not shown)
+  const [passwordMask] = useState("•••••••••••••••");
+  const [showPwdModal, setShowPwdModal] = useState(false);
+  const [newPwd, setNewPwd] = useState("");
+  const [newPwd2, setNewPwd2] = useState("");
+
+  const [notif, setNotif] = useState({
+    updates: true, admin: true, performance: true, ranking: true, followers: false,
+  });
+
+  // ---- Prefill data from backend ----
+  useEffect(() => {
+    (async () => {
+      // TODO: replace with your real API call
+      // const me = await (await fetch("/api/me")).json();
+      const me = {
+        firstName: "Rojola",
+        lastName: "Doe",
+        headline: "",
+        bio: "",
+        country: "",
+        website: "",
+        email: "rojola@example.com",
+        avatarUrl: "",           // put a URL if you already have one
+        password: "OldSecret1!"  // backend will send hashed or raw per your plan
+      };
+
+      setFirst(me.firstName || "");
+      setLast(me.lastName || "");
+      setHeadline(me.headline || "");
+      setBio(me.bio || "");
+      setCountry(me.country || "");
+      setWebsite(me.website || "");
+      setEmail(me.email || "");
+      setAvatarURL(me.avatarUrl || "");
+      setStoredPassword(me.password || ""); // keep it in state, never render
+    })();
+  }, []);
+
+  // preview selected image
   useEffect(() => {
     if (!avatarFile) return;
     const url = URL.createObjectURL(avatarFile);
@@ -26,45 +69,49 @@ export default function ProfileSettings() {
     return () => URL.revokeObjectURL(url);
   }, [avatarFile]);
 
-  // Private setting
-  const [email, setEmail] = useState("");
-  const [passwordMask] = useState("•••••••••••••••");
-  const [showPwdModal, setShowPwdModal] = useState(false);
-  const [newPwd, setNewPwd] = useState("");
-  const [newPwd2, setNewPwd2] = useState("");
-
-  const [notif, setNotif] = useState({
-    updates: true,
-    admin: true,
-    performance: true,
-    ranking: true,
-    followers: false,
-  });
-
   const onDropAvatar = (e) => {
     e.preventDefault();
     const f = e.dataTransfer.files?.[0];
     if (f) setAvatarFile(f);
   };
 
-  const saveProfile = () => {
-    console.log({
-      first, last, headline, bio, country, website, avatarFile
-    });
-    alert("Profile saved");
+  const saveProfile = async () => {
+    try {
+      if (avatarFile) {
+        const fd = new FormData();
+        fd.append("avatar", avatarFile);
+        await fetch("/api/me/avatar", { method: "PUT", body: fd });
+      }
+      await fetch("/api/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ first, last, headline, bio, country, website }),
+      });
+      alert("Profile saved");
+    } catch { alert("Failed to save"); }
   };
 
-  const savePrivate = () => {
-    console.log({ email, notif });
+  // Private settings
+const savePrivate = async () => {
+  try {
+    await fetch("/api/me/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, notifications: notif }),
+    });
     alert("Private settings saved");
-  };
+  } catch { alert("Failed to save"); }
+};
 
   const changePassword = () => {
     if (!newPwd || newPwd !== newPwd2) {
       alert("Passwords do not match.");
       return;
     }
-    console.log("New password set.");
+    console.log({
+      oldPassword: storedPassword, // backend can verify
+      newPassword: newPwd
+    });
     setShowPwdModal(false);
     setNewPwd(""); setNewPwd2("");
     alert("Password updated");
@@ -79,19 +126,17 @@ export default function ProfileSettings() {
 
   return (
     <div className="ps-page">
+      <Link to="/InstructorDash" className="ps-back"><span className="chev">‹</span> Dashboard</Link>
       <h1 className="ps-title">Profile &amp; settings</h1>
+      <div style={{width:"1140px",margin:"0 auto 8px",fontWeight:700}}>
+        Signed in as {first || "—"} {last || ""}
+      </div>
 
       <div className="ps-tabs">
-        <button
-          className={`ps-tab ${tab === "profile" ? "active" : ""}`}
-          onClick={() => setTab("profile")}
-        >
+        <button className={`ps-tab ${tab === "profile" ? "active" : ""}`} onClick={() => setTab("profile")}>
           LearnEase Profile
         </button>
-        <button
-          className={`ps-tab ${tab === "private" ? "active" : ""}`}
-          onClick={() => setTab("private")}
-        >
+        <button className={`ps-tab ${tab === "private" ? "active" : ""}`} onClick={() => setTab("private")}>
           Private setting
         </button>
       </div>
@@ -116,9 +161,7 @@ export default function ProfileSettings() {
               <div className="ps-field">
                 <label>Biography</label>
                 <textarea className="ps-textarea" value={bio} onChange={e=>setBio(e.target.value)} placeholder="Tell learners about your experience, style, and goals." />
-                <small className="ps-help">
-                  At least 50 words. Links and coupon codes are not permitted.
-                </small>
+                <small className="ps-help">At least 50 words. Links and coupon codes are not permitted.</small>
               </div>
               <div className="ps-field">
                 <label>Country</label>
@@ -132,17 +175,18 @@ export default function ProfileSettings() {
             <div className="ps-col">
               <div className="ps-field">
                 <label>Profile Image</label>
-                <div
-                  className="ps-upload"
-                  onDragOver={(e)=>e.preventDefault()}
-                  onDrop={onDropAvatar}
-                >
-                  <input id="ps-avatar" type="file" accept="image/*" hidden onChange={(e)=>setAvatarFile(e.target.files?.[0]||null)} />
+                <div className="ps-upload" onDragOver={(e)=>e.preventDefault()} onDrop={onDropAvatar}>
+                  <input
+                    id="ps-avatar"
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e)=>setAvatarFile(e.target.files?.[0]||null)}
+                  />
                   <div className="ps-upload-top">
-                    Drag &amp; Drop or{" "}
-                    <label htmlFor="ps-avatar" className="ps-link">Choose file</label> to upload
+                    Drag &amp; Drop or <label htmlFor="ps-avatar" className="ps-link">Choose file</label> to upload
                   </div>
-                  <div className="ps-upload-body">
+                  <div className="ps-upload-body" onClick={()=>document.getElementById('ps-avatar')?.click()} role="button" tabIndex={0}>
                     {avatarURL ? (
                       <img src={avatarURL} alt="preview" className="ps-avatar-preview" />
                     ) : (
@@ -178,6 +222,7 @@ export default function ProfileSettings() {
           <div className="ps-pw-row">
             <div className="ps-field sm flex1">
               <label>Password</label>
+              {/* show only dots, keep the real one in storedPassword */}
               <input className="ps-input" value={passwordMask} readOnly />
             </div>
             <button className="ps-secondary" onClick={()=>setShowPwdModal(true)}>Edit</button>
@@ -194,11 +239,7 @@ export default function ProfileSettings() {
             ].map(([key,label])=>(
               <label key={key} className="ps-switchrow">
                 <span>{label}</span>
-                <input
-                  type="checkbox"
-                  checked={notif[key]}
-                  onChange={()=>setNotif(n=>({...n,[key]:!n[key]}))}
-                />
+                <input type="checkbox" checked={notif[key]} onChange={()=>setNotif(n=>({...n,[key]:!n[key]}))}/>
                 <i className="ps-switch" />
               </label>
             ))}
@@ -217,7 +258,6 @@ export default function ProfileSettings() {
         </section>
       )}
 
-      {/* Change Password Modal */}
       {showPwdModal && (
         <div className="ps-modal-backdrop" onClick={()=>setShowPwdModal(false)}>
           <div className="ps-modal" onClick={(e)=>e.stopPropagation()}>
@@ -225,6 +265,7 @@ export default function ProfileSettings() {
               <h2>Change Password</h2>
               <button className="ps-x" onClick={()=>setShowPwdModal(false)}>×</button>
             </div>
+            {/* old password is kept in state (storedPassword) and not shown */}
             <div className="ps-field">
               <label>New password</label>
               <input className="ps-input" type="password" value={newPwd} onChange={e=>setNewPwd(e.target.value)} placeholder="Enter new password" />
