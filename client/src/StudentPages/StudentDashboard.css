@@ -23,13 +23,22 @@
 .sd-nav-links { margin-left:auto; display:flex; align-items:center; gap:2rem; }
 
 /* nav items can be <a>, <Link>, or <button> */
-.sd-nav-link {
+/* DEFAULT BLACK; PURPLE ON HOVER/FOCUS; ACTIVE STAYS BLACK */
+.sd-nav-link{
   background:none; border:0; padding:0;
-  color:#16151f; font: inherit; font-weight:700; font-size:14px;
-  text-decoration:none; cursor:pointer; opacity:.9;
+  color:#16151f;                      /* default black */
+  font: inherit; font-weight:700; font-size:14px;
+  text-decoration:none; cursor:pointer; opacity:.95;
+  transition: color .15s ease, opacity .15s ease;
 }
-.sd-nav-link:hover { opacity:1; }
-.sd-nav-link.active { color:#5b22d1; }
+.sd-nav-link:hover,
+.sd-nav-link:focus-visible{
+  color:#5b22d1;                      /* only on hover/focus */
+  opacity:1;
+}
+.sd-nav-link.active{
+  color:#16151f;                      /* active remains black */
+}
 
 .sd-nav-right { display:flex; align-items:center; gap:1rem; margin-left:2rem; }
 .sd-nav-bell { background:#fff; border:none; font-size:18px; cursor:pointer; }
@@ -219,3 +228,15 @@
 /* page flex so footer stays at bottom */
 .sd-page { min-height: 100vh; display: flex; flex-direction: column; }
 .sd-main { flex: 1; padding-bottom: 64px; }
+/* keep default black */
+.sd-nav-link.active{
+  color:#16151f;
+}
+
+/* make ANY nav link purple on hover/focus, even if active */
+.sd-nav-link:hover,
+.sd-nav-link:focus-visible,
+.sd-nav-link.active:hover,
+.sd-nav-link.active:focus-visible{
+  color:#5b22d1;
+}
