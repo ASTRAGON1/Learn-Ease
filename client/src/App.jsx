@@ -21,6 +21,7 @@ import ProfileSettings from "./InstructorPages/ProfileSettings";
 import HelpAndSupport from "./InstructorPages/HelpAndSupport";
 import GetSupport from "./InstructorPages/getSupport";
 import InstructorCommunity from "./InstructorPages/InstructorCommunity";
+import AIQuiz from "./InstructorPages/AIQuiz";
 import "./App.css";
 
 /* Dev helper (single copy) */
@@ -68,6 +69,7 @@ function App() {
         <Route path="/HelpAndSupport" element={<HelpAndSupport />} />
         <Route path="/getSupport" element={<GetSupport />} />
         <Route path="/InstructorCommunity" element={<InstructorCommunity />} />
+        <Route path="/ai-quiz" element={<AIQuiz />} />
       </Routes>
     </Router>
   );

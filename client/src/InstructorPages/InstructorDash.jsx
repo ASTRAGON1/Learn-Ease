@@ -171,7 +171,7 @@ export default function InstructorDashboard() {
                   follow on our platform — perfect for assessing
                   student progress quickly and effectively.
                 </p>
-                <button className="btn-primary sm">Generate</button>
+                <Link to="/ai-quiz" className="btn-primary sm">Generate</Link>
               </div>
             </div>
 
@@ -187,7 +187,9 @@ export default function InstructorDashboard() {
               <div className="mini-card">
                 <h4>Community & Support</h4>
                 <p>Ask questions, share tips, and connect with other instructors.</p>
-                <button className="btn-primary sm">Join Now</button>
+                <Link to="/InstructorCommunity" className="btn-primary sm">Join Now</Link>
+
+
               </div>
             </div>
 
@@ -197,13 +199,13 @@ export default function InstructorDashboard() {
               </h3>
 
               <div className="res-grid">
-                <Link to="/resources/test-video" className="res-item">
+                <Link to="/teachingCenter" className="res-item">
                   <img src={testPath} alt="Test Video" className="res-icon" />
                   <h5 className="res-title">Test Video</h5>
                   <p className="res-desc">See how your videos gets treated</p>
                 </Link>
 
-                <Link to="/resources/community" className="res-item">
+                <Link to="/InstructorCommunity" className="res-item">
                   <img src={community} alt="Community" className="res-icon" />
                   <h5 className="res-title">Community</h5>
                   <p className="res-desc">
@@ -211,7 +213,7 @@ export default function InstructorDashboard() {
                   </p>
                 </Link>
 
-                <Link to="/resources/how-to-teach" className="res-item">
+                <Link to="/teachingCenter" className="res-item">
                   <img src={teachPic} alt="How to teach" className="res-icon" />
                   <h5 className="res-title">How to teach in LearnEase</h5>
                   <p className="res-desc">
@@ -219,14 +221,14 @@ export default function InstructorDashboard() {
                   </p>
                 </Link>
 
-                <Link to="/resources/performance" className="res-item">
+                <Link to="/InstructorDash" className="res-item">
                   <img src={performanceIcon} alt="Performance" className="res-icon" />
                   <h5 className="res-title">Performance</h5>
                   <p className="res-desc">
                     See how students like your contents, quiz results analysis, and more.
                   </p>
                 </Link>
-                <Link to="/resources/feedback-support" className="res-item">
+                <Link to="/HelpAndSupport" className="res-item">
                   <img src={feedbackSupport} alt="Feedback & Support" className="res-icon" />
                   <h5 className="res-title">Feedback & Support</h5>
                   <p className="res-desc">Get feedback and support from students.</p>
