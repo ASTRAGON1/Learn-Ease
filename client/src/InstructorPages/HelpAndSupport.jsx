@@ -30,63 +30,65 @@ export default function HelpAndSupport() {
   };
 
   return (
-    <div className="hs-page">
-      <div className="hs-topline">
-        <Link to="/InstructorDash" className="hs-back"><span className="chev">‹</span> Dashboard</Link>
-      </div>
-
-      <h1 className="hs-title">
-        {section === "report" ? "Help and support" : "Feedback and support"}
-      </h1>
-
-      <div className="hs-cards">
-        <button
-          type="button"
-          className={`hs-card ${section === "report" ? "active" : ""}`}
-          onClick={() => switchSection("report")}
-        >
-          <div className="hs-emoji">🛠️</div>
-          <h3>Report an issue</h3>
-          <p>Found a bug or something not working? Let us know so we can fix it as soon as possible.</p>
-          <div className="hs-plus">+</div>
-        </button>
-
-        <button
-          type="button"
-          className={`hs-card ${section === "feedback" ? "active" : ""}`}
-          onClick={() => switchSection("feedback")}
-        >
-          <div className="hs-emoji">💬</div>
-          <h3>Give a feedback</h3>
-          <p>Share your thoughts or suggestions to help us improve your experience.</p>
-          <div className="hs-plus">+</div>
-        </button>
-
-        <Link to="/getSupport" className="hs-card hs-link">
-          <div className="hs-emoji">🤝</div>
-          <h3>Get support</h3>
-          <p>Need help with something? Contact our support team and we’ll assist you shortly.</p>
-          <div className="hs-plus">+</div>
+    <div className="sup-page">
+      <div className="sup-topline">
+        <Link to="/InstructorDash" className="sup-back">
+          <span className="sup-chev">‹</span> Dashboard
         </Link>
       </div>
 
-      <section className="hs-card form">
-        <h2 className="hs-subtitle">
+      <h1 className="sup-title">
+        {section === "report" ? "Help and support" : "Feedback and support"}
+      </h1>
+
+      <div className="sup-cards">
+        <button
+          type="button"
+          className={`sup-card ${section === "report" ? "active" : ""}`}
+          onClick={() => switchSection("report")}
+        >
+          <div className="sup-emoji">🛠️</div>
+          <h3>Report an issue</h3>
+          <p>Found a bug or something not working? Let us know so we can fix it as soon as possible.</p>
+          <div className="sup-plus">+</div>
+        </button>
+
+        <button
+          type="button"
+          className={`sup-card ${section === "feedback" ? "active" : ""}`}
+          onClick={() => switchSection("feedback")}
+        >
+          <div className="sup-emoji">💬</div>
+          <h3>Give a feedback</h3>
+          <p>Share your thoughts or suggestions to help us improve your experience.</p>
+          <div className="sup-plus">+</div>
+        </button>
+
+        <Link to="/getSupport" className="sup-card sup-link">
+          <div className="sup-emoji">🤝</div>
+          <h3>Get support</h3>
+          <p>Need help with something? Contact our support team and we’ll assist you shortly.</p>
+          <div className="sup-plus">+</div>
+        </Link>
+      </div>
+
+      <section className="sup-card sup-form">
+        <h2 className="sup-subtitle">
           {section === "report" ? "Report an issue" : "Give a feedback"}
         </h2>
 
-        <div className="hs-field">
+        <div className="sup-field">
           <label>
             {section === "report"
               ? "Select a Topic that you have an issue in"
               : "Select a Topic You Want to Give Feedback On"}
           </label>
-          <div className="hs-topics">
+          <div className="sup-topics">
             {topics.map((t) => (
               <button
                 key={t}
                 type="button"
-                className={`hs-chip ${topic === t ? "active" : ""}`}
+                className={`sup-chip ${topic === t ? "active" : ""}`}
                 onClick={() => setTopic(t)}
               >
                 {t}
@@ -95,21 +97,21 @@ export default function HelpAndSupport() {
           </div>
         </div>
 
-        <div className="hs-field">
+        <div className="sup-field">
           <label>Description</label>
-          <div className="hs-textarea-wrap">
+          <div className="sup-textarea-wrap">
             <textarea
               maxLength={MAX}
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={section === "report" ? "Describe your issue here" : "Describe your feedback here"}
             />
-            <span className="hs-counter">{text.length}/{MAX}</span>
+            <span className="sup-counter">{text.length}/{MAX}</span>
           </div>
         </div>
 
-        <div className="hs-actions">
-          <button className="hs-send" onClick={send}>Send</button>
+        <div className="sup-actions">
+          <button className="sup-send" onClick={send}>Send</button>
         </div>
       </section>
 

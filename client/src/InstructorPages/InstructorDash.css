@@ -186,10 +186,37 @@ border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; curso
 
 /* Improve section */
 .dash-root .improve-section { text-align:center; padding:80px 0; }
-.dash-root .title-improvement { color:black; margin:0 auto; font-size:28px; font-weight:700; line-height:1.2; }
-.dash-root .improve-btn {
+.dash-root .title-improvement { color:#000; margin:0 auto; font-size:28px; font-weight:700; line-height:1.2; }
+.improve-btn, .improve-btn:visited {
+  display: inline-flex;            /* makes width/height work on <a> */
+  align-items: center;
+  justify-content: center;
+  width: 366px;
+  height: 64px;
+  background: #9C6FE4;
+  color: #fff;
+  text-decoration: none;           /* remove underline on <a> */
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0,0,0,.06);
+  transition: background-color .2s;
+}
+.improve-btn {
   margin-top:32px; width:366px; height:64px; background-color:#9C6FE4; color:#fff; border:none; border-radius:12px;
   font-size:18px; font-weight:600; cursor:pointer; box-shadow:0 6px 24px rgba(0,0,0,0.06); transition:background-color .2s;
+}
+.improve-btn:link,
+.improve-btn:visited,
+.improve-btn:hover,
+.improve-btn:active,
+.improve-btn:focus {
+  background:#9C6FE4;   /* same color = no overlay */
+  color:#fff;
+  text-decoration:none;
+  outline:0;
 }
 .dash-root .improve-btn:hover { background-color:#4a17b8; }
 

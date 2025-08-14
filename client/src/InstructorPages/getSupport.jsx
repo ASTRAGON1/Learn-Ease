@@ -43,55 +43,56 @@ export default function GetSupport() {
   };
 
   return (
-    <div className="gs2-page">
-        <div className="gs2-head">
-            <Link to="/HelpAndSupport" className="gs2-back">‹ Get Back</Link>
-            <h1 className="gs2-title">Get support</h1>
-            <span aria-hidden />
-        </div>
-      <div className="gs2-grid">
-        {/* Left: AI chat */}
-        <section className="gs2-card">
-          <h3 className="gs2-sub">Ask the assistant</h3>
+    <div className="sp-page">
+      <div className="sp-head">
+        <Link to="/HelpAndSupport" className="sp-back">‹ Get Back</Link>
+        <h1 className="sp-title">Get support</h1>
+        <span aria-hidden />
+      </div>
 
-          <div className="gs2-chat">
+      <div className="sp-grid">
+        {/* Left: AI chat */}
+        <section className="sp-card">
+          <h3 className="sp-sub">Ask the assistant</h3>
+
+          <div className="sp-chat">
             {chat.map((m, i) => (
-              <div key={i} className={`gs2-msg ${m.who}`}>
+              <div key={i} className={`sp-msg ${m.who}`}>
                 {m.text}
               </div>
             ))}
           </div>
 
-          <div className="gs2-row">
+          <div className="sp-row">
             <input
-              className="gs2-input"
+              className="sp-input"
               placeholder="Type your question…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendAI()}
             />
-            <button className="gs2-primary" onClick={sendAI}>Send</button>
+            <button className="sp-primary" onClick={sendAI}>Send</button>
           </div>
         </section>
 
         {/* Right: Admin contact + tickets */}
-        <section className="gs2-card">
-          <h3 className="gs2-sub">Contact admin</h3>
+        <section className="sp-card">
+          <h3 className="sp-sub">Contact admin</h3>
 
-          <div className="gs2-field">
+          <div className="sp-field">
             <label>Subject</label>
             <input
-              className="gs2-input"
+              className="sp-input"
               value={subj}
               onChange={(e) => setSubj(e.target.value)}
               placeholder="Brief summary"
             />
           </div>
 
-          <div className="gs2-field">
+          <div className="sp-field">
             <label>Category</label>
             <select
-              className="gs2-input"
+              className="sp-input"
               value={cat}
               onChange={(e) => setCat(e.target.value)}
             >
@@ -103,29 +104,29 @@ export default function GetSupport() {
             </select>
           </div>
 
-          <div className="gs2-field">
+          <div className="sp-field">
             <label>Message</label>
             <textarea
-              className="gs2-textarea"
+              className="sp-textarea"
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
               placeholder="Describe your issue…"
             />
           </div>
 
-          <div className="gs2-actions">
-            <button className="gs2-primary" onClick={sendTicket}>
+          <div className="sp-actions">
+            <button className="sp-primary" onClick={sendTicket}>
               Send to admin
             </button>
           </div>
 
-          <h4 className="gs2-mini">Your tickets</h4>
-          <ul className="gs2-tickets">
+          <h4 className="sp-mini">Your tickets</h4>
+          <ul className="sp-tickets">
             {tickets.map((t) => (
               <li key={t.id}>
-                <span className="id">{t.id}</span>
-                <span className="subject">{t.subject}</span>
-                <span className={`status ${t.status.toLowerCase()}`}>{t.status}</span>
+                <span className="sp-id">{t.id}</span>
+                <span className="sp-subject">{t.subject}</span>
+                <span className={`sp-status ${t.status.toLowerCase()}`}>{t.status}</span>
               </li>
             ))}
           </ul>

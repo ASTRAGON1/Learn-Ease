@@ -96,7 +96,7 @@ export default function InstructorDashboard() {
 
         <div className="improve-section">
           <h2 className="title-improvement">Improve yourself to get better results!</h2>
-          <button className="improve-btn">Teaching center</button>
+          <Link to="/teachingCenter" className="improve-btn">Teaching center</Link>
         </div>
       </div>
     );
@@ -104,10 +104,7 @@ export default function InstructorDashboard() {
 
   function CurriculumWrapper() {
     return (
-      <div className="perf-container" style={{ marginLeft: collapsed ? 94 : 370, paddingTop: 60 }}>
-        <Link to="/InstructorDash" className="dahsboard-back">‹ Dashboard</Link>
         <CurriculumSection />
-      </div>
     );
   }
 

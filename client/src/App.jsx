@@ -5,7 +5,8 @@ import LandingPage from "./LandingPage/LandingPage";
 import Login from "./StudentPages/Login";
 import StudentSignUp from "./StudentPages/StudentSignUp";
 import StudentDashboard from "./StudentPages/StudentDashboard";
-import Courses from "./StudentPages/courses"; // <-- path matches file name
+import Courses from "./StudentPages/courses";
+
 
 import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
@@ -22,6 +23,9 @@ import HelpAndSupport from "./InstructorPages/HelpAndSupport";
 import GetSupport from "./InstructorPages/getSupport";
 import InstructorCommunity from "./InstructorPages/InstructorCommunity";
 import AIQuiz from "./InstructorPages/AIQuiz";
+
+import AdminPanel from "./AdminPages/AdminPanel";
+
 import "./App.css";
 
 /* Dev helper (single copy) */
@@ -70,6 +74,10 @@ function App() {
         <Route path="/getSupport" element={<GetSupport />} />
         <Route path="/InstructorCommunity" element={<InstructorCommunity />} />
         <Route path="/ai-quiz" element={<AIQuiz />} />
+
+        {/* Admin */}
+        <Route path="/admin" element={<AdminPanel />} />
+        
       </Routes>
     </Router>
   );
