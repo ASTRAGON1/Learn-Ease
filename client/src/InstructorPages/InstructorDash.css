@@ -252,3 +252,6 @@ border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; curso
   background: #c7bdf3; border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
 }
 .dash-root ::-webkit-scrollbar-thumb:hover { background: #a996f0; background-clip: content-box; }
+/* Only for curriculum view */
+.dash-home.is-curriculum { padding-left: 0 !important; }  /* cancel global pad */
+.dash-home .curriculum-wrap { transition: margin-left .2s ease; display:block; }

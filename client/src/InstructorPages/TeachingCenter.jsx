@@ -56,7 +56,7 @@ export default function TeachingCenter() {
             "LearnEase is more than a teaching platform—it’s a mission-driven space for educators who want to make a difference. Our platform is uniquely built to serve kids and teens with autism and Down syndrome, offering teachers an opportunity to create a real impact. With structured paths, creative freedom, and a supportive community, teaching on LearnEase is both meaningful and fulfilling.",
         },
       ],
-      cta: { title: "Ready to start teaching? Let’s go!", btn: "Create Your Course", to: "/create-course" },
+      cta: { title: "Ready to start teaching? Let’s go!", btn: "Create Your Course", to: "/InstructorUpload" },
     },
     2: {
       heroTitle: "Plan Your Path to Success",
@@ -90,7 +90,7 @@ export default function TeachingCenter() {
             "Teachers can reach out to platform admins via a built-in chat or report system. This ensures smooth collaboration, allows teachers to request support, and helps maintain the quality and accuracy of all uploaded content.",
         },
       ],
-      cta: { title: "Ready to start teaching? Let’s go!", btn: "Create Your Course", to: "/create-course" },
+      cta: { title: "Ready to start teaching? Let’s go!", btn: "Create Your Course", to: "/InstructorUpload" },
     },
   };
 
@@ -121,7 +121,7 @@ export default function TeachingCenter() {
           "Teachers retain full ownership of the content they upload. However, all materials must follow platform guidelines—no nudity or inappropriate clothing, and teachers are encouraged to dress professionally in any video content. This helps maintain a formal and respectful learning environment.",
       },
     ],
-    cta: { title: "Publish your videos, content here!", btn: "Publish your content", to: "/upload" },
+    cta: { title: "Publish your videos, content here!", btn: "Publish your content", to: "/InstructorUpload" },
   };
 
   const COMMUNITY = {
@@ -156,7 +156,7 @@ export default function TeachingCenter() {
           "We prioritize a respectful and inclusive atmosphere, especially for students with autism or Down syndrome. Our moderation system ensures a safe environment for all members of our community.",
       },
     ],
-    cta: { title: "Join the community of instructors!", btn: "Join the community", to: "/community" },
+    cta: { title: "Join the community of instructors!", btn: "Join the community", to: "/InstructorCommunity" },
   };
 
   const NEWS = {
@@ -191,7 +191,7 @@ export default function TeachingCenter() {
           "Stay ahead with curated news and research about inclusive education, teaching strategies, and advancements in learning technologies for special needs students.",
       },
     ],
-    cta: { title: "Get Feedback from Admins", btn: "Get Feedback", to: "/feedback" },
+    cta: { title: "Give Feedback to the Admins", btn: "Give Feedback", to: "/getSupport" },
   };
 
   // pick current dataset

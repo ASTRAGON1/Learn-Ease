@@ -104,14 +104,14 @@ export default function InstructorDashboard() {
 
   function CurriculumWrapper() {
     return (
-        <CurriculumSection />
+      <Curriculum />
     );
   }
 
   function ResourcesSection() {
     const items = [
       { title: "Teaching Center",       img: teachPic,  link: "/TeachingCenter", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
-      { title: "Instructor Community",  img: community,  link: "/Community", paragraph: "Share your progress and ask other instructors questions in our community."},
+      { title: "Instructor Community",  img: community,  link: "/InstructorCommunity", paragraph: "Share your progress and ask other instructors questions in our community."},
       { title: "Help and support",      img: feedbackSupport,    link: "/HelpAndSupport", paragraph: "Can’t find what you need? Our support team is happy to help." },
     ];
 
@@ -140,7 +140,7 @@ export default function InstructorDashboard() {
         onNavigate={setActive}
       />
 
-      <main className="dash-home">
+      <main className={`dash-home ${active === "curriculum" ? "is-curriculum" : ""}`}>
         {active === "course" && (
           <div className="dash">
             <h1 className="dash-title">Welcome {name}, ready to teach?</h1>
@@ -241,7 +241,14 @@ export default function InstructorDashboard() {
         )}
 
         {active === "performance" && <PerformanceSection />}
-        {active === "curriculum" && <CurriculumSection />}
+        {active === "curriculum" && (
+          <div
+            className="curriculum-wrap"
+            style={{ marginLeft: collapsed ? 44 : 320 }}
+          >
+            <CurriculumSection />
+          </div>
+        )}
         {active === "resources"  && <ResourcesSection />}
       </main>
 

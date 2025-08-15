@@ -1,7 +1,6 @@
 import React from "react";
 import "./CurriculumSection.css";
 
-// ===== READ-ONLY snapshot (no UI to edit/change) =====
 const USER_CURRICULUM = Object.freeze([
   {
     key: "autism",
@@ -26,7 +25,8 @@ const USER_CURRICULUM = Object.freeze([
           { title: "Listening 5 – Daily Conversations" },
         ],
       },
-      { label: "Speaking & Communication",
+      {
+        label: "Speaking & Communication",
         subsections: [
           {
             title: "Communication 1 – Understanding Emotions",
@@ -50,6 +50,7 @@ const USER_CURRICULUM = Object.freeze([
       { label: "Daily Life Skills" },
       { label: "Social Interaction" },
       { label: "Emotional Recognition & Expression" },
+      { label: "How to talk to girls like a boss" },
     ],
   },
   {
@@ -70,49 +71,60 @@ const USER_CURRICULUM = Object.freeze([
 
 export default function CurriculumSection() {
   return (
-    <div className="uc-wrap" aria-readonly="true">
-      {USER_CURRICULUM.map((path) => (
-        <section key={path.key} className="uc-path">
-          <h3 className="uc-title">{path.title}</h3>
+    <div className="le-content">
+      <div className="section-title"><h2>Learning Paths</h2></div>
+      <div className="sub">Two paths: Autism and Down Syndrome.</div>
 
-          {/* labels row */}
-          <div className="uc-labels">
-            {path.items.map((it, i) => (
-              <div key={i} className="uc-label">{it.label}</div>
-            ))}
-          </div>
-
-          {/* timeline (purely visual) */}
-          <div className="uc-timeline">
-            {path.items.map((_, i) => (
-              <div key={i} className="uc-point">
-                <div className="uc-circle" />
+      <div className="list" style={{ marginTop: 12 }}>
+        {USER_CURRICULUM.map((path) => (
+          <div key={path.key} className="list-item">
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div className="row">
+                <span className="badge purple">{path.title}</span>
               </div>
-            ))}
-          </div>
+              <span className="sub">{path.items.length} topics</span>
+            </div>
 
-          {/* fully expanded details (no toggles) */}
-          <div className="uc-details">
-            {path.items.map((it, i) => (
-              <div key={i} className="uc-group">
-                {it.subsections && <h4 className="uc-group-title">{it.label}</h4>}
-                {it.subsections?.map((sub, j) => (
-                  <div key={j} className="uc-subblock">
-                    <div className="uc-subtitle">{sub.title}</div>
-                    {sub.lessons && (
-                      <ul className="uc-lesson-list">
-                        {sub.lessons.map((ls, k) => (
-                          <li key={k} className="uc-lesson">{ls}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
+            <div className="list" style={{ marginTop: 10 }}>
+              {path.items.map((topic, ti) => (
+                <details key={ti} className="list-item topic" >
+                  <summary className="row" style={{ justifyContent: "space-between" }}>
+                    <div className="row"><strong>{topic.label}</strong></div>
+                    <span className="sub">
+                      {topic.subsections ? `${topic.subsections.length} courses` : "No courses"}
+                    </span>
+                  </summary>
+
+                  {topic.subsections && (
+                    <div className="list" style={{ marginTop: 8 }}>
+                      {topic.subsections.map((course, ci) => (
+                        <details key={ci} className="list-item course" >
+                          <summary className="row" style={{ justifyContent: "space-between" }}>
+                            <div className="row"><b>{course.title}</b></div>
+                            <span className="sub">
+                              {course.lessons ? `${course.lessons.length} lessons` : "No lessons"}
+                            </span>
+                          </summary>
+
+                          {course.lessons && (
+                            <div className="list" style={{ marginTop: 8 }}>
+                              {course.lessons.map((lesson, li) => (
+                                <div key={li} className="row" style={{ justifyContent: "space-between" }}>
+                                  <span>{lesson}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </details>
+                      ))}
+                    </div>
+                  )}
+                </details>
+              ))}
+            </div>
           </div>
-        </section>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
