@@ -6,7 +6,7 @@ import Login from "./StudentPages/Login";
 import StudentSignUp from "./StudentPages/StudentSignUp";
 import StudentDashboard from "./StudentPages/StudentDashboard";
 import Courses from "./StudentPages/courses";
-
+import QuizzApp from "./StudentPages/QuizzApp";
 // Default page + named Sidebar
 import PersonalizedPath, { Sidebar as StudentSidebar } from "./StudentPages/PersonalizedPath";
 import MessagesPage from "./StudentPages/messages";
@@ -68,7 +68,7 @@ function App() {
         <Route path="/signup" element={<StudentSignUp />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/courses" element={<Courses />} />
-
+        <Route path="/quiz" element={<QuizzApp />} />
         {/* PersonalizedPath already renders its own Sidebar */}
         <Route path="/personalized" element={<PersonalizedPath />} />
 
