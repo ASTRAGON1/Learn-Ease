@@ -32,7 +32,7 @@ export default function StudentDashboard() {
 
             {/* Header links: Courses -> Personalized Path */}
             <nav className="sd-nav-links">
-              <Link to="/personalized" className="sd-nav-link">Courses</Link>
+              <Link to="/courses" className="sd-nav-link">Courses</Link>
               <span className="sd-nav-link active">Quizzes</span>
               <Link to="/achievement" className="sd-nav-link">Achievement</Link>
               <Link to="/personalized" className="sd-nav-link">Personalized path</Link>
