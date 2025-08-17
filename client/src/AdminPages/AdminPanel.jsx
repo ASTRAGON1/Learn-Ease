@@ -1,5 +1,5 @@
 // AdminPanel.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import RainfallChart from "../components/RainfallChartAdmin";
 import "./AdminPanel.css";
 
@@ -52,59 +52,13 @@ const demoApplications = [
   },
 ];
 
-const demoUsers = [
-  {
-    id: "u1",
-    name: "Lina Ahmed",
-    role: "student",
-    category: "Autism",
-    online: true,
-    status: "active",
-    joinedAt: "2025-06-10",
-  },
-  {
-    id: "u2",
-    name: "Mehmet Ali",
-    role: "student",
-    category: "Down Syndrome",
-    online: false,
-    status: "active",
-    joinedAt: "2025-06-18",
-  },
-  {
-    id: "u3",
-    name: "Sara Noor",
-    role: "instructor",
-    category: "Autism",
-    online: false,
-    status: "active",
-    joinedAt: "2025-05-02",
-  },
-  {
-    id: "u4",
-    name: "Yusuf Can",
-    role: "instructor",
-    category: "Down Syndrome",
-    online: true,
-    status: "suspended",
-    joinedAt: "2025-04-11",
-  },
-  {
-    id: "u5",
-    name: "Layla Karim",
-    role: "student",
-    category: "Autism",
-    online: true,
-    status: "active",
-    joinedAt: "2025-07-20",
-  },
-];
+
 
 const demoReports = [
   {
     id: "r1",
     type: "abuse",
-    fromRole: "student",
+    reporterId: "u1",               // ← Lina Ahmed (student)
     category: "Autism",
     description: "Inappropriate message in chat",
     createdAt: "2025-08-09",
@@ -112,7 +66,7 @@ const demoReports = [
   {
     id: "r2",
     type: "content",
-    fromRole: "instructor",
+    reporterId: "u3",               // ← Sara Noor (instructor)
     category: "Down Syndrome",
     description: "Video encoding issue",
     createdAt: "2025-08-08",
@@ -122,46 +76,74 @@ const demoReports = [
 const demoFeedback = [
   {
     id: "f1",
-    fromRole: "student",
+    reporterId: "u5",               // ← Layla Karim (student)
     category: "Autism",
     description: "Loving the new dashboard!",
     visible: false,
+    createdAt: "2025-08-07",
   },
   {
     id: "f2",
-    fromRole: "instructor",
+    reporterId: "u4",               // ← Yusuf Can (instructor)
     category: "Down Syndrome",
     description: "Please add bulk upload for quizzes.",
     visible: false,
+    createdAt: "2025-08-06",
   },
 ];
 
-const demoProfiles = {
-  students: [
-    { userId: "u1", hours: 42, performance: { avgScore: 86, completionRate: 0.72 } },
-    { userId: "u5", hours: 18, performance: { avgScore: 74, completionRate: 0.4 } },
-  ],
-  instructors: [
+  const demoPeople = [
+    // STUDENTS
     {
-      userId: "u3",
-      videos: ["Autism Basics.mp4", "Advanced Strategies.mp4"],
-      files: ["guide.pdf"],
-      quizzes: ["Quiz 1", "Quiz 2"],
+      id: "u1", name: "Lina Ahmed", role: "student", category: "Autism",
+      online: true, status: "active", joinedAt: "2025-06-10",
+      student: { hours: 42, performance: { avgScore: 86, completionRate: 0.72 } },
     },
     {
-      userId: "u4",
-      videos: ["Speech Warmups.mp4"],
-      files: ["speech-exercises.pdf"],
-      quizzes: ["Assessment A"],
+      id: "u2", name: "Mehmet Ali", role: "student", category: "Down Syndrome",
+      online: false, status: "active", joinedAt: "2025-06-18",
+      student: { hours: 25, performance: { avgScore: 80, completionRate: 0.55 } },
     },
-  ],
-};
+    {
+      id: "u5", name: "Layla Karim", role: "student", category: "Autism",
+      online: true, status: "active", joinedAt: "2025-07-20",
+      student: { hours: 18, performance: { avgScore: 74, completionRate: 0.40 } },
+    },
 
-// ---- Minimal SVG Line Chart (no external deps) ----
-function LineChart({ data, color = "var(--primary)" }) {
-  
-}
-
+    // INSTRUCTORS
+    {
+      id: "u3", name: "Sara Noor", role: "instructor", category: "Autism",
+      online: false, status: "active", joinedAt: "2025-05-02",
+      headline: "Speech Therapist & Autism Specialist",
+      location: "Istanbul, TR",
+      bio: "Speech-language pathologist focused on ASD communication strategies and family coaching.",
+      description: "8+ years creating IEPs, ABA-informed sessions, and caregiver training.",
+      instructor: {
+        uploads: {
+          videos: ["Autism Basics.mp4", "Advanced Strategies.mp4"],
+          files: ["guide.pdf"], quizzes: ["Quiz 1", "Quiz 2"],
+        },
+        cvUrl: "#", likes: 128, followers: 542, rating: 4.6,
+        skills: ["Autism", "ABA", "Speech Therapy", "IEP"],
+      },
+    },
+    {
+      id: "u4", name: "Yusuf Can", role: "instructor", category: "Down Syndrome",
+      online: true, status: "suspended", joinedAt: "2025-04-11",
+      headline: "Special Ed Instructor — DS early intervention",
+      location: "Ankara, TR",
+      bio: "Designs motor-skill and speech routines for DS students; mentors junior teachers.",
+      description: "Former clinic educator; videos on articulation and daily-living routines.",
+      instructor: {
+        uploads: {
+          videos: ["Speech Warmups.mp4"],
+          files: ["speech-exercises.pdf"], quizzes: ["Assessment A"],
+        },
+        cvUrl: "#", likes: 73, followers: 301, rating: 4.2,
+        skills: ["Down Syndrome", "Early Intervention", "Motor Skills", "Parent Coaching"],
+      },
+    },
+  ];
 
 // ---- Reusable tiny components ----
 function StatCard({ title, value, hint }) {
@@ -177,7 +159,7 @@ function StatCard({ title, value, hint }) {
   );
 }
 
-function Table({ columns, rows, keyField = "id" }) {
+function Table({ columns, rows, keyField = "id", onRow }) {
   return (
     <div className="card">
       <table className="table">
@@ -186,7 +168,7 @@ function Table({ columns, rows, keyField = "id" }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row[keyField]}>
+            <tr key={row[keyField]}onClick={onRow ? () => onRow(row) : undefined}className={onRow ? "row-click" : undefined}style={onRow ? { cursor: "pointer" } : undefined}>
               {columns.map((c) => (
                 <td key={c.key}>
                   {typeof c.render === "function"
@@ -204,10 +186,11 @@ function Table({ columns, rows, keyField = "id" }) {
 
 // ---- API STUBS ----
 const api = {
-  adminLogin: async () => ({ ok: true, token: "demo", adminName: "Admin" }),
+  adminLogin: async (email, password) =>
+    ({ ok: !!email && !!password, token: "demo", adminName: "Admin" }),
   listInstructorApplications: async () => ({ ok: true, data: demoApplications }),
   decideApplication: async (id, decision) => ({ ok: true, id, decision }),
-  listUsers: async () => ({ ok: true, data: demoUsers }),
+  listUsers: async () => ({ ok: true, data: demoPeople }),
   suspendUser: async (id) => ({ ok: true, id }),
   reinstateUser: async (id) => ({ ok: true, id }),
   deleteUser: async (id) => ({ ok: true, id }),
@@ -223,24 +206,35 @@ const api = {
   getSettings: async () => ({ ok: true, data: {} }),
   saveSettings: async (settings) => ({ ok: true, settings }),
   addUser: async (payload) => ({ ok: true, payload }),
-  getProfiles: async () => ({ ok: true, data: demoProfiles }),
+
 };
 
 export default function AdminPanel() {
-  const [isAuthed, setIsAuthed] = useState(true); // keep demo signed-in
-  const [adminName, setAdminName] = useState("Admin");
+  const [isAuthed, setIsAuthed] = useState(() => !!localStorage.getItem("le_admin_token"));
+  const [adminName, setAdminName] = useState(localStorage.getItem("le_admin_name") || "Admin");
   const [section, setSection] = useState("dashboard");
+
+  // Login state
+  const [loginForm, setLoginForm] = useState({
+    email: "admin@learnease.com",
+    password: "admin",
+  });
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  
+
 
   // Data state
   const [applications, setApplications] = useState(demoApplications);
-  const [users, setUsers] = useState(demoUsers);
+  const [users, setUsers] = useState(demoPeople);
   const [reports, setReports] = useState(demoReports);
   const [feedback, setFeedback] = useState(demoFeedback);
+  const [modLog, setModLog] = useState([]); // {id, userId, type, name, reason, at}
   const [learningPaths, setLearningPaths] = useState([
     generateLearningPath("Autism"),
     generateLearningPath("Down Syndrome"),
   ]);
-  const [profiles] = useState(demoProfiles);
+  const [selectedInstructorId, setSelectedInstructorId] = useState(null);
 
   const [search, setSearch] = useState("");
   const [userFilters, setUserFilters] = useState({
@@ -248,6 +242,30 @@ export default function AdminPanel() {
     status: "all",
     category: "all",
   });
+  const profiles = useMemo(() => ({
+    students: users
+      .filter(u => u.role === "student")
+      .map(u => ({
+        userId: u.id,
+        hours: u.student?.hours ?? 0,
+        performance: u.student?.performance ?? { avgScore: 0, completionRate: 0 },
+      })),
+    instructors: users
+      .filter(u => u.role === "instructor")
+      .map(u => ({
+        userId: u.id,
+        videos: u.instructor?.uploads?.videos ?? [],
+        files: u.instructor?.uploads?.files ?? [],
+        quizzes: u.instructor?.uploads?.quizzes ?? [],
+      })),
+  }), [users]);
+
+  useEffect(() => {
+    if (isAuthed) {
+      localStorage.setItem("le_admin_token", "demo");
+      localStorage.setItem("le_admin_name", adminName);
+    }
+  }, [isAuthed, adminName]);
 
   // Dashboard stats
   const totalUsers = users.length;
@@ -267,23 +285,70 @@ export default function AdminPanel() {
   async function decideApplication(id, decision) {
     const res = await api.decideApplication(id, decision);
     if (!res.ok) return;
-    setApplications((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: decision } : a))
-    );
-    if (decision === "accept") {
-      const app = applications.find((a) => a.id === id);
-      const newUser = {
-        id: `u-${Date.now()}`,
-        name: app.name,
-        role: "instructor",
-        category: app.category,
-        online: false,
-        status: "active",
-        joinedAt: new Date().toISOString().slice(0, 10),
-      };
-      setUsers((prev) => [newUser, ...prev]);
+  
+    if (decision === "decline") {
+      const reason = prompt("Reason for decline?");
+      if (reason === null) return; // user cancelled
+      setApplications(prev =>
+        prev.map(a =>
+          a.id === id ? {
+            ...a,
+            status: "declined",
+            declinedReason: reason,
+            declinedAt: new Date().toISOString().slice(0,10)
+          } : a
+        )
+      );
+      alert("Application declined.");
+      return;
     }
+  
+    // ACCEPT
+    setApplications(prev =>
+      prev.map(a => (a.id === id ? { ...a, status: "accepted" } : a))
+    );
+  
+    const app = applications.find(a => a.id === id);
+    if (!app) return;
+  
+    // avoid duplicate if clicked twice
+    if (users.some(u => u.name === app.name && u.role === "instructor")) return;
+  
+    const defaultSkills =
+      app.category === "Autism"
+        ? ["Autism", "ABA", "Speech Therapy"]
+        : ["Down Syndrome", "Early Intervention"];
+  
+    const newUser = {
+      id: `u-${Date.now()}`,
+      name: app.name,
+      role: "instructor",
+      category: app.category,
+      online: false,
+      status: "active",
+      joinedAt: new Date().toISOString().slice(0, 10),
+  
+      headline: "",
+      location: "",
+      bio: app.description || "",
+      description: app.description || "",
+  
+      instructor: {
+        uploads: { videos: [], files: [], quizzes: [] },
+        cvUrl: app.cvUrl || "",
+        likes: 0,
+        followers: 0,
+        rating: 0,
+        skills: defaultSkills,
+        contactEmail: app.email || "",
+      },
+    };
+  
+    setUsers(prev => [newUser, ...prev]);
+    // Optional: jump to their profile
+    setSelectedInstructorId(newUser.id); setSection("instructorProfile");
   }
+  
 
   async function toggleFeedback(id, visible) {
     const res = await api.setFeedbackVisibility(id, visible);
@@ -300,7 +365,23 @@ export default function AdminPanel() {
       prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
     );
   }
-
+  async function doLogin(e) {
+    e.preventDefault();
+    setLoginError("");
+    setLoginBusy(true);
+    try {
+      const res = await api.adminLogin(loginForm.email, loginForm.password);
+      if (!res?.ok) { setLoginError("Invalid credentials"); return; }
+      setAdminName(res.adminName || "Admin");
+      setIsAuthed(true);          // useEffect will persist token/name
+      setSection("dashboard");
+    } catch {
+      setLoginError("Login failed");
+    } finally {
+      setLoginBusy(false);
+    }
+  }
+  
   async function handleReinstate(id) {
     const res = await api.reinstateUser(id);
     if (!res.ok) return;
@@ -369,6 +450,80 @@ export default function AdminPanel() {
         (!search || u.name.toLowerCase().includes(search.toLowerCase()))
     );
   }
+
+
+  
+  function openInstructor(id) {
+    setSelectedInstructorId(id);
+    setSection("instructorProfile");
+  }
+  function latestUploadFor(userId){
+    const u = users.find(x => x.id === userId);
+    const up = u?.instructor?.uploads;
+    if (!up) return "—";
+    const lastVideo = up.videos && up.videos.length ? up.videos[up.videos.length - 1] : undefined;
+    const lastFile  = up.files  && up.files.length  ? up.files [up.files.length  - 1] : undefined;
+    return lastVideo || lastFile || "—";
+
+  }
+  
+  function deleteInstructorUpload(userId, type /* 'videos'|'files' */, idx, reason) {
+    let removedName = "";
+  
+    setUsers(prev =>
+      prev.map(u => {
+        if (u.id !== userId) return u;
+  
+        // always have safe objects to spread
+        const prevInf = u.instructor || { uploads: { videos: [], files: [], quizzes: [] } };
+        const prevUploads = prevInf.uploads || { videos: [], files: [], quizzes: [] };
+  
+        // pick the right list safely
+        const arr = Array.isArray(prevUploads[type]) ? [...prevUploads[type]] : [];
+        if (idx < 0 || idx >= arr.length) return u; // guard OOB
+  
+        // remove and keep the name for audit row
+        const removed = arr.splice(idx, 1)[0];
+        removedName = String(removed ?? "");
+  
+        // return updated user
+        return {
+          ...u,
+          instructor: {
+            ...prevInf,
+            uploads: { ...prevUploads, [type]: arr },
+          },
+        };
+      })
+    );
+  
+    // add to moderation log outside of setUsers to avoid nested setState pitfalls
+    setModLog(prev => [
+      {
+        id: `ml-${Date.now()}`,
+        userId,
+        type,                        // 'videos' | 'files'
+        name: removedName,
+        reason: reason || "",
+        at: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+  }
+  
+  
+
+  function Stars({ value = 0 }) {
+    const rounded = Math.round(value);
+    return (
+      <span className="stars" title={`${value.toFixed(1)} / 5`}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <span key={i} className={i < rounded ? "on" : "off"}>★</span>
+        ))}
+      </span>
+    );
+  }
+  
 
   // --- Section UIs ---
   function Dashboard() {
@@ -497,7 +652,14 @@ export default function AdminPanel() {
       {
         key: "status",
         label: "Status",
-        render: (v) => (v === "pending" ? <span className="badge purple dot">Pending</span> : v),
+        render: (_, row) =>
+          row.status === "pending"
+            ? <span className="badge purple dot" title="Awaiting review">Pending</span>
+            : row.status === "accepted"
+            ? <span className="badge green dot">Accepted</span>
+            : row.status === "declined"
+            ? <span className="badge red dot" title={row.declinedReason || ""}>Declined</span>
+            : row.status,
       },
     ];
     return (
@@ -513,18 +675,40 @@ export default function AdminPanel() {
               label: "Actions",
               render: (_, row) => (
                 <div className="row">
-                  <button className="btn small success" onClick={() => decideApplication(row.id, "accept")} type="button">
-                    Accept
-                  </button>
-                  <button className="btn small danger" onClick={() => decideApplication(row.id, "decline")} type="button">
-                    Decline
-                  </button>
+                  {row.status === "pending" && (
+                    <>
+                      <button className="btn small success" onClick={() => decideApplication(row.id, "accept")} type="button">
+                        Accept
+                      </button>
+                      <button className="btn small danger" onClick={() => decideApplication(row.id, "decline")} type="button">
+                        Decline
+                      </button>
+                    </>
+                  )}
+                  {row.status !== "pending" && (
+                    <button
+                      className="btn small ghost"
+                      onClick={() =>
+                        setApplications(prev =>
+                          prev.map(a =>
+                            a.id === row.id
+                              ? { ...a, status: "pending", declinedReason: undefined, declinedAt: undefined }
+                              : a
+                          )
+                        )
+                      }
+                      type="button"
+                    >
+                      Reopen
+                    </button>
+                  )}
                 </div>
               ),
             },
           ]}
           rows={applications}
         />
+
       </div>
     );
   }
@@ -533,25 +717,44 @@ export default function AdminPanel() {
     const cols = [
       { key: "id", label: "ID" },
       { key: "type", label: "Type" },
-      { key: "fromRole", label: "From" },
+      {
+        key: "reporterId",
+        label: "From",
+        render: (_, row) => {
+          const u = users.find(x => x.id === row.reporterId);
+          return u ? `${u.name} (${u.role})` : (row.fromRole || "—");
+        },
+      },
       { key: "category", label: "Category" },
       { key: "description", label: "Description" },
       { key: "createdAt", label: "Date" },
     ];
+  
+    const rows = useMemo(
+      () => [...reports].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))),
+      [reports]
+    );
+  
     return (
       <div className="le-content">
-        <div className="section-title">
-          <h2>Reports</h2>
-        </div>
-        <Table columns={cols} rows={reports} />
+        <div className="section-title"><h2>Reports</h2></div>
+        <Table columns={cols} rows={rows} />
       </div>
     );
   }
+  
 
   function Feedback() {
     const cols = [
       { key: "id", label: "ID" },
-      { key: "fromRole", label: "From" },
+      {
+        key: "reporterId",
+        label: "From",
+        render: (_, row) => {
+          const u = users.find(x => x.id === row.reporterId);
+          return u ? `${u.name} (${u.role})` : (row.fromRole || "—");
+        },
+      },
       { key: "category", label: "Category" },
       { key: "description", label: "Description" },
       {
@@ -564,12 +767,11 @@ export default function AdminPanel() {
         label: "Actions",
         render: (_, row) => (
           <div className="row">
-            {!row.visible && (
+            {!row.visible ? (
               <button className="btn small secondary" onClick={() => toggleFeedback(row.id, true)} type="button">
                 Show feedback
               </button>
-            )}
-            {row.visible && (
+            ) : (
               <button className="btn small ghost" onClick={() => toggleFeedback(row.id, false)} type="button">
                 Hide
               </button>
@@ -578,15 +780,21 @@ export default function AdminPanel() {
         ),
       },
     ];
+  
+    const rows = useMemo(
+      () => [...feedback].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || ""))),
+      [feedback]
+    );
+  
     return (
       <div className="le-content">
-        <div className="section-title">
-          <h2>Feedback</h2>
-        </div>
-        <Table columns={cols} rows={feedback} />
+        <div className="section-title"><h2>Feedback</h2></div>
+        <Table columns={cols} rows={rows} />
       </div>
     );
   }
+  
+  
 
   function Users() {
     const cols = [
@@ -802,20 +1010,23 @@ export default function AdminPanel() {
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Videos</th>
-                  <th>Files</th>
-                  <th>Quizzes</th>
+                  <th>Latest file/video upload</th>
+                  <th>Category</th>
                 </tr>
               </thead>
               <tbody>
                 {profiles.instructors.map((ip) => {
-                  const u = users.find((x) => x.id === ip.userId) || { name: ip.userId };
+                  const u = users.find((x) => x.id === ip.userId) || { name: ip.userId, category: "—" };
                   return (
-                    <tr key={ip.userId}>
+                    <tr
+                      key={ip.userId}
+                      className="row-click"
+                      onClick={() => openInstructor(ip.userId)}
+                      title="Open instructor profile"
+                    >
                       <td>{u.name}</td>
-                      <td>{ip.videos.join(", ") || "—"}</td>
-                      <td>{ip.files.join(", ") || "—"}</td>
-                      <td>{ip.quizzes.join(", ") || "—"}</td>
+                      <td>{latestUploadFor(ip.userId)}</td>
+                      <td>{u.category}</td>
                     </tr>
                   );
                 })}
@@ -827,6 +1038,172 @@ export default function AdminPanel() {
     );
   }
 
+  function InstructorProfile({ id }) {
+    const u = users.find((x) => x.id === id);
+    const inf = u?.instructor || {};
+    const uploads = inf.uploads || { videos: [], files: [], quizzes: [] };
+    const myLog = useMemo(() => modLog.filter(e => e.userId === id), [modLog, id]);
+
+    if (!u) {
+      return (
+        <div className="le-content">
+          <div className="section-title">
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <h2>Instructor not found</h2>
+              <button className="btn ghost" onClick={() => setSection("profiles")} type="button">← Back</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  
+    const uploadsCount = (uploads.videos?.length || 0) + (uploads.files?.length || 0);
+  
+    return (
+      <div className="le-content">
+        <div className="section-title">
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <h2>Instructor Profile</h2>
+            <button className="btn ghost" onClick={() => setSection("profiles")} type="button">← Back</button>
+          </div>
+        </div>
+  
+        {/* Futuristic header like LinkedIn */}
+        <div className="card profile-hero">
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+            <div className="row" style={{ gap: 16, alignItems: "center" }}>
+              <div className="avatar xl">{u.name.slice(0, 2).toUpperCase()}</div>
+              <div>
+                <div className="profile-name">{u.name}</div>
+                <div className="sub">{u.headline || `${u.category} • ${u.role}`}</div>
+                <div className="sub">{u.location || "—"}</div>
+                <div className="chips" style={{ marginTop: 6 }}>
+                  {(inf.skills || []).map((s) => <span className="chip" key={s}>{s}</span>)}
+                </div>
+              </div>
+            </div>
+  
+            <div className="metrics">
+              <div className="stat">
+                <div className="num"><Stars value={inf.rating || 0} /></div>
+                <div className="label">{(inf.rating || 0).toFixed(1)} rating</div>
+              </div>
+              <div className="stat">
+                <div className="num">{inf.followers || 0}</div>
+                <div className="label">Followers</div>
+              </div>
+              <div className="stat">
+                <div className="num">{inf.likes || 0}</div>
+                <div className="label">Likes</div>
+              </div>
+              <div className="stat">
+                <div className="num">{uploadsCount}</div>
+                <div className="label">Uploads</div>
+              </div>
+            </div>
+          </div>
+  
+          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+            {inf.cvUrl && <a className="btn secondary" href={inf.cvUrl} target="_blank" rel="noreferrer">View CV</a>}
+          </div>
+        </div>
+  
+        {/* About */}
+        <div className="le-grid-2">
+          <div className="card glass">
+            <h3>About</h3>
+            <p style={{ marginTop: 6 }}>{u.bio || "—"}</p>
+            {u.description && <p className="sub" style={{ marginTop: 6 }}>{u.description}</p>}
+          </div>
+  
+          <div className="card">
+            <h3>Quick Facts</h3>
+            <ul className="facts">
+              <li><b>Category:</b> {u.category}</li>
+              <li><b>Joined:</b> {u.joinedAt}</li>
+              <li><b>Status:</b> {u.status}</li>
+            </ul>
+          </div>
+        </div>
+  
+        {/* Uploads (with delete + reason) */}
+        <div className="le-grid-2">
+          <div className="card">
+            <h3>Latest Videos</h3>
+            <table className="table">
+              <thead><tr><th>Name</th><th>Actions</th></tr></thead>
+              <tbody>
+                {(uploads.videos?.length ? uploads.videos : ["—"]).map((v, i) => (
+                  <tr key={`v-${i}`}>
+                    <td>{v}</td>
+                    <td>
+                      {v !== "—" && (
+                        <button
+                          className="btn small danger"
+                          type="button"
+                          onClick={() => {
+                            const reason = prompt("Reason for deleting this video?");
+                            if (reason === null) return;
+                            deleteInstructorUpload(id, "videos", i, reason);
+                          }}
+                        >Delete</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+  
+          <div className="card">
+            <h3>Latest Files</h3>
+            <table className="table">
+              <thead><tr><th>Name</th><th>Actions</th></tr></thead>
+              <tbody>
+                {(uploads.files?.length ? uploads.files : ["—"]).map((f, i) => (
+                  <tr key={`f-${i}`}>
+                    <td>{f}</td>
+                    <td>
+                      {f !== "—" && (
+                        <button
+                          className="btn small danger"
+                          type="button"
+                          onClick={() => {
+                            const reason = prompt("Reason for deleting this file?");
+                            if (reason === null) return;
+                            deleteInstructorUpload(id, "files", i, reason);
+                          }}
+                        >Delete</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="card" style={{ marginTop: 12 }}>
+            <h3>Moderation Log</h3>
+            <table className="table">
+              <thead><tr><th>When</th><th>Action</th><th>Reason</th></tr></thead>
+              <tbody>
+                {myLog.map(e => (
+                  <tr key={e.id}>
+                    <td>{new Date(e.at).toLocaleString()}</td>
+                    <td>Deleted {e.type.slice(0, -1)}: <b>{e.name}</b></td>
+                    <td>{e.reason}</td>
+                  </tr>
+                ))}
+                {myLog.length === 0 && (
+                  <tr><td colSpan={3} className="sub">No moderation actions yet</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // ===== SETTINGS (NEW UI/UX) =====
   function Settings() {
     const [tab, setTab] = useState("user"); // 'user' | 'security'
@@ -1359,20 +1736,30 @@ export default function AdminPanel() {
             <div className="le-logo-badge">LE</div> LearnEase Admin
           </div>
           <h1>Sign in</h1>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setIsAuthed(true);
-              setAdminName("Admin");
-            }}
-            className="row"
-            style={{ flexDirection: "column", alignItems: "stretch", gap: 10 }}
-          >
-            <input className="input" name="email" type="email" placeholder="Email" required defaultValue="admin@learnease.com" />
-            <input className="input" name="password" type="password" placeholder="Password" required defaultValue="admin" />
-            <button className="btn" type="submit">Login</button>
+          <form onSubmit={doLogin} className="row" style={{ flexDirection: "column", alignItems: "stretch", gap: 10 }}>
+            <input
+              className="input"
+              type="email"
+              placeholder="Email"
+              required
+              value={loginForm.email}
+              onChange={(e) => setLoginForm(p => ({ ...p, email: e.target.value }))}
+            />
+            <input
+              className="input"
+              type="password"
+              placeholder="Password"
+              required
+              value={loginForm.password}
+              onChange={(e) => setLoginForm(p => ({ ...p, password: e.target.value }))}
+            />
+            <button className="btn" type="submit" disabled={loginBusy}>
+              {loginBusy ? "Logging in..." : "Login"}
+            </button>
+            {loginError && <div className="sub" style={{ color: "#c1352b" }}>{loginError}</div>}
             <div className="sub">Demo accepts any credentials. Wire api.adminLogin() to enforce real auth.</div>
           </form>
+
         </div>
       </div>
     );
@@ -1407,7 +1794,17 @@ export default function AdminPanel() {
               <div style={{ fontWeight: 700 }}>{adminName}</div>
               <div className="sub">Administrator</div>
             </div>
-            <button className="btn ghost" onClick={() => setIsAuthed(false)} type="button">
+            <button
+              className="btn ghost"
+              onClick={() => {
+                localStorage.removeItem("le_admin_token");
+                localStorage.removeItem("le_admin_name");
+                setIsAuthed(false);
+                setAdminName("Admin");
+                setSection("dashboard");
+              }}
+              type="button"
+            >
               Logout
             </button>
           </div>
@@ -1421,6 +1818,7 @@ export default function AdminPanel() {
         {section === "learning" && <LearningPaths />}
         {section === "profiles" && <Profiles />}
         {section === "settings" && <Settings />}
+        {section === "instructorProfile" && selectedInstructorId && <InstructorProfile id={selectedInstructorId} />}
       </main>
     </div>
   );
