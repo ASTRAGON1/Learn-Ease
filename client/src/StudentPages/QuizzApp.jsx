@@ -1,13 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import "./quizPurple.css"; // keep in src/
 
-/**
- * Single-page Quiz (6–7 MCQs) in purple/white theme
- * - Shows course + instructor details on top
- * - All questions are visible on ONE page
- * - Submit once; show per-question correctness
- * - Minimal JS; a11y-friendly radio groups
- */
+
 
 // ---------- Demo data (replace with API) ----------
 const DEMO_QUIZ = {
