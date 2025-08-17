@@ -11,6 +11,7 @@ import QuizzApp from "./StudentPages/QuizzApp";
 import PersonalizedPath, { Sidebar as StudentSidebar } from "./StudentPages/PersonalizedPath";
 import MessagesPage from "./StudentPages/messages";
 import MessageThread from "./StudentPages/MessageThread"; // ✅ NEW
+import CoursePlayer from "./StudentPages/CoursePlayer";     // ✅ NEW (route /course/:id)
 
 import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
@@ -71,6 +72,8 @@ function App() {
         <Route path="/quiz" element={<QuizzApp />} />
         {/* PersonalizedPath already renders its own Sidebar */}
         <Route path="/personalized" element={<PersonalizedPath />} />
+        {/* Course player */}
+        <Route path="/course/:id" element={<CoursePlayer />} />
 
         {/* Messages + Thread use the same Sidebar via the shell */}
         <Route

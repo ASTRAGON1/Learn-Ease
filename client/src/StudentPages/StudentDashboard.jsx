@@ -1,11 +1,13 @@
 import React, { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./StudentDashboard.css";
 import logo from "../assets/logo.png";
 import quizPic from "../assets/quizpic.png";
 import Footer from "../components/Footer";
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
+
   // demo recs
   const recs = [
     { contentId: "SPEK101-05", title: "Asking for Help – Part 1", topic: "Communication", thumbnail: quizPic, watchPercent: 82, lastQuizScore: 42, quizId: "quiz-ask-help-1" },
@@ -56,7 +58,12 @@ export default function StudentDashboard() {
               <span className="sd-progress-text">50% Complete</span>
             </div>
             <div className="sd-course-action">
-              <button className="sd-join-btn">Join Now <span>→</span></button>
+              <button
+                className="sd-join-btn"
+                onClick={() => navigate("/course/SPEK101")}
+              >
+                Join Now <span>→</span>
+              </button>
             </div>
           </div>
         </section>
