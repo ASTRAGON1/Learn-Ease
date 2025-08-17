@@ -1,3 +1,4 @@
+// AIQuiz.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";  
 import "./AIQuiz.css";
@@ -97,67 +98,67 @@ export default function AIQuiz() {
   };
 
   return (
-    <div className="qz-page">
-      <div className="qz-topbar">
-        <Link to="/InstructorDash" className="qz-back">
-          <span className="qz-chev">‹</span> Dashboard
+    <div className="qzInst-page">
+      <div className="qzInst-topbar">
+        <Link to="/InstructorDash" className="qzInst-back">
+          <span className="qzInst-chev">‹</span> Dashboard
         </Link>
       </div>
-      <h1 className="qz-title">Generate Quizzes using AI</h1>
+      <h1 className="qzInst-title">Generate Quizzes using AI</h1>
 
       {/* FORM CARD */}
-      <section className="qz-card">
-        <h3 className="qz-sub">AI Quiz</h3>
+      <section className="qzInst-card">
+        <h3 className="qzInst-sub">AI Quiz</h3>
 
-        <div className="qz-grid">
-          <div className="qz-left">
-            <div className="qz-field">
+        <div className="qzInst-grid">
+          <div className="qzInst-left">
+            <div className="qzInst-field">
               <label>Title of the quiz*</label>
               <input
-                className="qz-input"
+                className="qzInst-input"
                 placeholder="Give your question here"
                 value={title}
                 onChange={(e)=>setTitle(e.target.value)}
               />
             </div>
 
-            <div className="qz-smallmuted">Choose the course and the lesson this quiz will be associated</div>
-            <div className="qz-row">
-              <select className="qz-input" value={course} onChange={(e)=>setCourse(e.target.value)}>
+            <div className="qzInst-smallmuted">Choose the course and the lesson this quiz will be associated</div>
+            <div className="qzInst-row">
+              <select className="qzInst-input" value={course} onChange={(e)=>setCourse(e.target.value)}>
                 <option value="" disabled>Course</option>
                 {COURSES.map(c=><option key={c} value={c}>{c}</option>)}
               </select>
-              <select className="qz-input" value={lesson} onChange={(e)=>setLesson(e.target.value)}>
+              <select className="qzInst-input" value={lesson} onChange={(e)=>setLesson(e.target.value)}>
                 <option value="" disabled>Lesson</option>
                 {LESSONS.map(l=><option key={l} value={l}>{l}</option>)}
               </select>
             </div>
 
-            <div className="qz-row">
-              <div className="qz-field">
+            <div className="qzInst-row">
+              <div className="qzInst-field">
                 <label>Number of Questions</label>
-                <select className="qz-input" value={numQ} onChange={(e)=>setNumQ(e.target.value)}>
+                <select className="qzInst-input" value={numQ} onChange={(e)=>setNumQ(e.target.value)}>
                   {[4,6,8,10,12,15,20].map(n=> <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
-              <div className="qz-field">
+              <div className="qzInst-field">
                 <label>Number of Answers per question</label>
-                <select className="qz-input" value={answersPerQ} onChange={(e)=>setAnswersPerQ(e.target.value)}>
+                <select className="qzInst-input" value={answersPerQ} onChange={(e)=>setAnswersPerQ(e.target.value)}>
                   {[3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
             </div>
           </div>
 
-          <div className="qz-right">
-            <div className="qz-field">
+          <div className="qzInst-right">
+            <div className="qzInst-field">
               <label>Category:</label>
-              <div className="qz-pills">
+              <div className="qzInst-pills">
                 {CATS.map(c=>(
                   <button
                     type="button"
                     key={c}
-                    className={`qz-pill ${category===c ? "active":""}`}
+                    className={`qzInst-pill ${category===c ? "qzInst-active":""}`}
                     onClick={()=>setCategory(c)}
                   >
                     {c}
@@ -166,37 +167,37 @@ export default function AIQuiz() {
               </div>
             </div>
 
-            <div className="qz-field">
+            <div className="qzInst-field">
               <label>Level of difficulty</label>
-              <select className="qz-input" value={difficulty} onChange={(e)=>setDifficulty(e.target.value)}>
+              <select className="qzInst-input" value={difficulty} onChange={(e)=>setDifficulty(e.target.value)}>
                 {DIFFS.map(d=> <option key={d}>{d}</option>)}
               </select>
             </div>
           </div>
         </div>
 
-        <div className="qz-form-actions">
-          <button className="qz-primary" onClick={generate} disabled={!canGenerate}>Generate</button>
+        <div className="qzInst-form-actions">
+          <button className="qzInst-primary" onClick={generate} disabled={!canGenerate}>Generate</button>
         </div>
       </section>
 
       {/* GENERATED RESULTS */}
       {hasQuiz && (
-        <section className="qz-card">
-          <div className="qz-results-head">
+        <section className="qzInst-card">
+          <div className="qzInst-results-head">
             <h3>AI Generated Quiz</h3>
-            <div className="qz-meta">
+            <div className="qzInst-meta">
               <span>{category}</span> · <span>{course} / {lesson}</span> · <span>{difficulty}</span>
             </div>
           </div>
 
-          <ol className="qz-list">
+          <ol className="qzInst-list">
             {items.map((it, idx)=>(
-              <li key={it.id} className="qz-q-card">
-                <div className="qz-q">{idx+1}. {it.q}</div>
-                <ul className="qz-answers">
+              <li key={it.id} className="qzInst-q-card">
+                <div className="qzInst-q">{idx+1}. {it.q}</div>
+                <ul className="qzInst-answers">
                   {it.answers.map((a, i)=>(
-                    <li key={i} className={`qz-ans ${i===it.correctIdx? "qz-correct":"qz-wrong"}`}>
+                    <li key={i} className={`qzInst-ans ${i===it.correctIdx? "qzInst-correct":"qzInst-wrong"}`}>
                       {a}
                     </li>
                   ))}
@@ -205,34 +206,34 @@ export default function AIQuiz() {
             ))}
           </ol>
 
-          <div className="qz-legend">
-            <span className="qz-dot qz-green" /> Correct
-            <span className="qz-sep" />
-            <span className="qz-dot qz-red" /> Wrong
+          <div className="qzInst-legend">
+            <span className="qzInst-dot qzInst-green" /> Correct
+            <span className="qzInst-sep" />
+            <span className="qzInst-dot qzInst-red" /> Wrong
           </div>
 
-          <div className="qz-form-actions">
-            <button className="qz-secondary" onClick={clearGenerated}>Cancel</button>
-            <button className="qz-secondary" onClick={saveDraft}>Save as Draft</button>
-            <button className="qz-primary" onClick={publish}>Publish</button>
+          <div className="qzInst-form-actions">
+            <button className="qzInst-secondary" onClick={clearGenerated}>Cancel</button>
+            <button className="qzInst-secondary" onClick={saveDraft}>Save as Draft</button>
+            <button className="qzInst-primary" onClick={publish}>Publish</button>
           </div>
         </section>
       )}
 
       {/* LISTS */}
       {(drafts.length>0 || published.length>0) && (
-        <section className="qz-lists">
+        <section className="qzInst-lists">
           {drafts.length>0 && (
-            <div className="qz-card">
+            <div className="qzInst-card">
               <h3>Your drafts</h3>
-              <ul className="qz-mini-list">
+              <ul className="qzInst-mini-list">
                 {drafts.map((d, i)=>(
                   <li key={i}>
                     <div>
                       <strong>{d.meta.title}</strong>
-                      <div className="qz-mini">{d.meta.course} / {d.meta.lesson} · {d.meta.category} · {d.meta.numQ}Q</div>
+                      <div className="qzInst-mini">{d.meta.course} / {d.meta.lesson} · {d.meta.category} · {d.meta.numQ}Q</div>
                     </div>
-                    <button className="qz-link qz-danger" onClick={()=>delDraft(i)}>Delete</button>
+                    <button className="qzInst-link qzInst-danger" onClick={()=>delDraft(i)}>Delete</button>
                   </li>
                 ))}
               </ul>
@@ -240,16 +241,16 @@ export default function AIQuiz() {
           )}
 
           {published.length>0 && (
-            <div className="qz-card">
+            <div className="qzInst-card">
               <h3>Published</h3>
-              <ul className="qz-mini-list">
+              <ul className="qzInst-mini-list">
                 {published.map((d, i)=>(
                   <li key={i}>
                     <div>
                       <strong>{d.meta.title}</strong>
-                      <div className="qz-mini">{d.meta.course} / {d.meta.lesson} · {d.meta.category} · {d.meta.numQ}Q</div>
+                      <div className="qzInst-mini">{d.meta.course} / {d.meta.lesson} · {d.meta.category} · {d.meta.numQ}Q</div>
                     </div>
-                    <button className="qz-link qz-danger" onClick={()=>delPub(i)}>Remove</button>
+                    <button className="qzInst-link qzInst-danger" onClick={()=>delPub(i)}>Remove</button>
                   </li>
                 ))}
               </ul>
