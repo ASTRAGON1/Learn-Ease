@@ -10,7 +10,6 @@ export default function CoursePlayer() {
   const navigate = useNavigate();
   const { id } = useParams(); // e.g. SPEK101
 
-  // start closed; open what you want by listing ids here
   const [openIds, setOpenIds] = useState(new Set([]));
   const [playhead, setPlayhead] = useState(5); // seconds (demo)
 
@@ -87,7 +86,7 @@ export default function CoursePlayer() {
         <section className="cp-player">
           <header className="cp-topbar">
             <button
-              className="icon-btn"
+              className="cp-icon-btn"
               aria-label="Back"
               onClick={() => navigate("/student-dashboard")}
             >
@@ -99,7 +98,7 @@ export default function CoursePlayer() {
               <p className="cp-meta">9 Lesson&nbsp;&nbsp; 6h 30min</p>
             </div>
 
-            <button className="icon-btn" aria-label="Settings">
+            <button className="cp-icon-btn" aria-label="Settings">
               <Gear />
             </button>
           </header>
@@ -127,10 +126,10 @@ export default function CoursePlayer() {
 
         {/* RIGHT: contents */}
         <aside className="cp-sidebar">
-          <div className="card">
-            <div className="card-head">
+          <div className="cp-card">
+            <div className="cp-card-head">
               <h3>Course Contents</h3>
-              <button className="icon-btn sm" aria-label="Calendar">
+              <button className="cp-icon-btn cp-sm" aria-label="Calendar">
                 <Calendar />
               </button>
             </div>
@@ -148,22 +147,22 @@ export default function CoursePlayer() {
               </div>
             </div>
 
-            <div className="cp-accordion pill">
+            <div className="cp-accordion cp-pill">
               {sections.map((sec, sIdx) => {
                 const open = openIds.has(sec.id);
                 return (
-                  <div key={sec.id} className={`cp-acc-item ${open ? "open" : ""}`}>
+                  <div key={sec.id} className={`cp-acc-item ${open ? "cp-open" : ""}`}>
                     <div className="cp-acc-summary">
-                      <div className="sum-left">
-                        <span className="sum-title">{sec.title}</span>
-                        <span className="sum-sub">
+                      <div className="cp-sum-left">
+                        <span className="cp-sum-title">{sec.title}</span>
+                        <span className="cp-sum-sub">
                           <Clock /> {sec.duration}
                         </span>
                       </div>
-                      <div className="sum-right">
-                        <span className="sum-badge">{sec.lessonsCount} Lessons</span>
+                      <div className="cp-sum-right">
+                        <span className="cp-sum-badge">{sec.lessonsCount} Lessons</span>
                         <button
-                          className="chev-btn"
+                          className="cp-chev-btn"
                           aria-label={open ? "Collapse section" : "Expand section"}
                           aria-expanded={open}
                           onClick={() => toggle(sec.id)}
@@ -180,16 +179,20 @@ export default function CoursePlayer() {
                           return (
                             <div
                               key={l.id}
-                              className={`cp-lesson row ${locked ? "locked" : ""}`}
+                              className={`cp-lesson cp-row ${locked ? "cp-locked" : ""}`}
                             >
-                              <span className="row-num">{i + 1}.</span>
-                              <span className={`check ${l.done ? "on" : ""}`}>
+                              <span className="cp-row-num">{i + 1}.</span>
+                              <span className={`cp-check ${l.done ? "cp-on" : ""}`}>
                                 {l.done ? <Check /> : null}
                               </span>
-                              <span className="l-title">{l.title}</span>
-                              <span className="spacer" />
-                              <span className="l-time">{l.time}</span>
-                              {locked && <LockIcon />}
+                              <span className="cp-l-title">{l.title}</span>
+                              <span className="cp-spacer" />
+                              <span className="cp-l-time">{l.time}</span>
+                              {locked && (
+                                <span className="cp-lock">
+                                  <LockIcon />
+                                </span>
+                              )}
                             </div>
                           );
                         })}
@@ -244,15 +247,7 @@ function Play() {
 function Calendar() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <rect
-        x="3"
-        y="4"
-        width="18"
-        height="18"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
+      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
       <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
@@ -267,13 +262,7 @@ function Clock() {
 }
 function Dot() {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 8 8"
-      fill="currentColor"
-      style={{ opacity: 0.9 }}
-    >
+    <svg width="16" height="16" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: 0.9 }}>
       <circle cx="4" cy="4" r="3.5" />
     </svg>
   );
@@ -281,18 +270,13 @@ function Dot() {
 function Chevron({ open }) {
   return (
     <svg
-      className={`chev ${open ? "up" : ""}`}
+      className={`cp-chev ${open ? "cp-up" : ""}`}
       width="16"
       height="16"
       viewBox="0 0 24 24"
       fill="none"
     >
-      <path
-        d="M6 15l6-6 6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -324,26 +308,13 @@ function Question() {
   );
 }
 function Badge({ children }) {
-  return <span className="badge">{children}</span>;
+  return <span className="cp-badge">{children}</span>;
 }
 function LockIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <rect
-        x="5"
-        y="11"
-        width="14"
-        height="9"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M8 11V8a4 4 0 118 0v3"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
