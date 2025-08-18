@@ -12,6 +12,7 @@ import PersonalizedPath, { Sidebar as StudentSidebar } from "./StudentPages/Pers
 import MessagesPage from "./StudentPages/messages";
 import MessageThread from "./StudentPages/MessageThread"; // ✅ NEW
 import CoursePlayer from "./StudentPages/CoursePlayer";     // ✅ NEW (route /course/:id)
+import AchievementPage from "./StudentPages/AchievementPage";
 
 import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
@@ -70,10 +71,10 @@ function App() {
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/quiz" element={<QuizzApp />} />
-        {/* PersonalizedPath already renders its own Sidebar */}
         <Route path="/personalized" element={<PersonalizedPath />} />
-        {/* Course player */}
         <Route path="/course/:id" element={<CoursePlayer />} />
+        <Route path="/achievements" element={<AchievementPage />}/>
+
 
         {/* Messages + Thread use the same Sidebar via the shell */}
         <Route

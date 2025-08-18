@@ -36,7 +36,7 @@ export default function StudentDashboard() {
             <nav className="sd-nav-links">
               <Link to="/courses" className="sd-nav-link">Courses</Link>
               <Link to="/quiz" className="sd-nav-link active">Quizzes</Link>
-              <Link to="/achievement" className="sd-nav-link">Achievement</Link>
+              <Link to="/achievements" className="sd-nav-link">Achievement</Link>
               <Link to="/personalized" className="sd-nav-link">Personalized path</Link>
             </nav>
 
