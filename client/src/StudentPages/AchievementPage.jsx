@@ -49,34 +49,34 @@ function getBadgeTier(grade) {
   if (grade >= 80) return "Gold";     // 80-94
   if (grade >= 65) return "Silver";   // 65-79
   if (grade >= 50) return "Bronze";   // 50-64
-  return "No Badge";                   // <50
+  return "No Badge";                  // <50
 }
 
 function ProgressBar({ value }) {
   const v = Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
   return (
-    <div className="progress">
-      <div className="progress__bar" style={{ width: `${v}%` }} />
+    <div className="achv-progress">
+      <div className="achv-progress__bar" style={{ width: `${v}%` }} />
     </div>
   );
 }
 
 function Badge({ tier, grade }) {
   const tierClass =
-    tier === "Platinum" ? "badge badge--platinum" :
-    tier === "Gold" ? "badge badge--gold" :
-    tier === "Silver" ? "badge badge--silver" :
-    tier === "Bronze" ? "badge badge--bronze" :
-    "badge badge--none";
+    tier === "Platinum" ? "achv-badge achv-badge--platinum" :
+    tier === "Gold" ? "achv-badge achv-badge--gold" :
+    tier === "Silver" ? "achv-badge achv-badge--silver" :
+    tier === "Bronze" ? "achv-badge achv-badge--bronze" :
+    "achv-badge achv-badge--none";
 
   return (
     <div className={tierClass}>
-      <div className="badge__row">
-        <div className="badge__icon"><Trophy className="i" /></div>
-        <div className="badge__meta">
-          <p className="badge__label">Achievement</p>
-          <h4 className="badge__title">{tier} Badge</h4>
-          <p className="badge__grade">Final grade: {grade}%</p>
+      <div className="achv-badge__row">
+        <div className="achv-badge__icon"><Trophy className="i" /></div>
+        <div className="achv-badge__meta">
+          <p className="achv-badge__label">Achievement</p>
+          <h4 className="achv-badge__title">{tier} Badge</h4>
+          <p className="achv-badge__grade">Final grade: {grade}%</p>
         </div>
       </div>
     </div>
@@ -106,22 +106,42 @@ function CourseCard({ course }) {
       </div>
 
       <div className="course__body">
-        <div className="course__top">
-          <div className="course__info">
-            <h3 className="course__title">{title}</h3>
-            <p className="course__instructor">Instructor: {instructor}</p>
-          </div>
+        {/* TITLE + STATUS on ONE LINE */}
+        <div
+          className="course__titleRow"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <h3
+            className="course__title"
+            style={{
+              margin: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: "1 1 auto",
+            }}
+          >
+            {title}
+          </h3>
 
           {completed ? (
-            <span className="pill pill--done">
+            <span className="achv-pill achv-pill--done" style={{ flex: "0 0 auto" }}>
               <CheckCircle2 className="i" /> Completed
             </span>
           ) : (
-            <span className="pill pill--lock">
+            <span className="achv-pill achv-pill--lock" style={{ flex: "0 0 auto" }}>
               <Lock className="i" /> In progress
             </span>
           )}
         </div>
+
+        <p className="course__instructor">Instructor: {instructor}</p>
 
         <div className="course__stats">
           <div className="course__quiz">
@@ -161,35 +181,33 @@ export default function AchievementPage({ courses = demoCourses }) {
     <div className="achv-page">
       <header className="achv-header">
         <div className="achv-header__inner">
-          <div className="brand">
-            <img src={logo} alt="Logo" className="brand__img" />
-            <h1 className="brand__title">Your Achievements</h1>
+          <div className="achv-brand">
+            <img src={logo} alt="Logo" className="achv-brand__img" />
+            <h1 className="achv-brand__title">Your Achievements</h1>
           </div>
 
-          {/* purple arrow only */}
           <button
-            className="back-arrow"
+            className="achv-back-arrow"
             onClick={() => navigate(-1)}
             type="button"
             aria-label="Go back"
           >
-            <ArrowLeft className="icon-arrow" />
+            <ArrowLeft className="achv-icon-arrow" />
           </button>
         </div>
       </header>
 
-      {/* Content */}
       <main className="achv-main">
         {/* Earned Badges */}
-        <section className="section">
-          <div className="section__head">
-            <h2 className="section__title">Earned Badges</h2>
-            <p className="section__meta">{earned.length} course(s) completed</p>
+        <section className="achv-section">
+          <div className="achv-section__head">
+            <h2 className="achv-section__title">Earned Badges</h2>
+            <p className="achv-section__meta">{earned.length} course(s) completed</p>
           </div>
           {earned.length === 0 ? (
-            <div className="empty">You haven&apos;t earned any badges yet. Keep learning!</div>
+            <div className="achv-empty">You haven&apos;t earned any badges yet. Keep learning!</div>
           ) : (
-            <div className="grid">
+            <div className="achv-grid">
               {earned.map((c) => (
                 <CourseCard key={c.id} course={c} />
               ))}
@@ -198,15 +216,15 @@ export default function AchievementPage({ courses = demoCourses }) {
         </section>
 
         {/* In Progress */}
-        <section className="section">
-          <div className="section__head">
-            <h2 className="section__title">In Progress</h2>
-            <p className="section__meta">{inProgress.length} course(s)</p>
+        <section className="achv-section">
+          <div className="achv-section__head">
+            <h2 className="achv-section__title">In Progress</h2>
+            <p className="achv-section__meta">{inProgress.length} course(s)</p>
           </div>
           {inProgress.length === 0 ? (
-            <div className="empty">No courses in progress.</div>
+            <div className="achv-empty">No courses in progress.</div>
           ) : (
-            <div className="grid">
+            <div className="achv-grid">
               {inProgress.map((c) => (
                 <CourseCard key={c.id} course={c} />
               ))}
@@ -215,20 +233,20 @@ export default function AchievementPage({ courses = demoCourses }) {
         </section>
 
         {/* Legend */}
-        <section className="legend">
-          <h3 className="legend__title">Badge Tiers</h3>
-          <ul className="legend__list">
-            <li className="legend__item">
-              <span className="dot dot--bronze" /> Bronze: 50–64%
+        <section className="achv-legend">
+          <h3 className="achv-legend__title">Badge Tiers</h3>
+          <ul className="achv-legend__list">
+            <li className="achv-legend__item">
+              <span className="achv-dot achv-dot--bronze" /> Bronze: 50–64%
             </li>
-            <li className="legend__item">
-              <span className="dot dot--silver" /> Silver: 65–79%
+            <li className="achv-legend__item">
+              <span className="achv-dot achv-dot--silver" /> Silver: 65–79%
             </li>
-            <li className="legend__item">
-              <span className="dot dot--gold" /> Gold: 80–94%
+            <li className="achv-legend__item">
+              <span className="achv-dot achv-dot--gold" /> Gold: 80–94%
             </li>
-            <li className="legend__item">
-              <span className="dot dot--platinum" /> Platinum: 95–100%
+            <li className="achv-legend__item">
+              <span className="achv-dot achv-dot--platinum" /> Platinum: 95–100%
             </li>
           </ul>
         </section>
