@@ -27,6 +27,7 @@ import HelpAndSupport from "./InstructorPages/HelpAndSupport";
 import GetSupport from "./InstructorPages/getSupport";
 import InstructorCommunity from "./InstructorPages/InstructorCommunity";
 import AIQuiz from "./InstructorPages/AIQuiz";
+import Land from "./LandingPage/landPage";
 
 import AdminPanel from "./AdminPages/AdminPanel";
 import "./App.css";
@@ -63,6 +64,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/land" element={<Land />} />
 
         {/* Student */}
         <Route path="/login" element={<Login />} />
