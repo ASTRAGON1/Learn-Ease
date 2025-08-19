@@ -1,19 +1,24 @@
+// App.jsx
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
 
 import LandingPage from "./LandingPage/LandingPage";
+import Land from "./LandingPage/landPage";
+
+// Student
 import Login from "./StudentPages/Login";
 import StudentSignUp from "./StudentPages/StudentSignUp";
 import StudentDashboard from "./StudentPages/StudentDashboard";
 import Courses from "./StudentPages/courses";
 import QuizzApp from "./StudentPages/QuizzApp";
-// Default page + named Sidebar
 import PersonalizedPath, { Sidebar as StudentSidebar } from "./StudentPages/PersonalizedPath";
 import MessagesPage from "./StudentPages/messages";
-import MessageThread from "./StudentPages/MessageThread"; // ✅ NEW
-import CoursePlayer from "./StudentPages/CoursePlayer";     // ✅ NEW (route /course/:id)
+import MessageThread from "./StudentPages/MessageThread";
+import CoursePlayer from "./StudentPages/CoursePlayer";
 import AchievementPage from "./StudentPages/AchievementPage";
+import QuizInformationPage from "./StudentPages/QuizInformation";
 
+// Instructor
 import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
 import InstructorSignUp1 from "./InstructorPages/InstructorSignUp1";
@@ -28,23 +33,23 @@ import HelpAndSupport from "./InstructorPages/HelpAndSupport";
 import GetSupport from "./InstructorPages/getSupport";
 import InstructorCommunity from "./InstructorPages/InstructorCommunity";
 import AIQuiz from "./InstructorPages/AIQuiz";
-import Land from "./LandingPage/landPage";
 
+// Admin
 import AdminPanel from "./AdminPages/AdminPanel";
+
 import "./App.css";
 
 /* Dev helper */
 function DevAuth() {
-  const { search } = window.location;
   useEffect(() => {
-    const p = new URLSearchParams(search);
-    if (p.get("dev") === "student") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("dev") === "student") {
       localStorage.setItem("token", "dev");
       localStorage.setItem("role", "student");
       localStorage.setItem("userId", "123");
       window.location.replace("/login");
     }
-  }, [search]);
+  }, []);
   return null;
 }
 
@@ -58,12 +63,13 @@ function StudentShell({ children }) {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <Router>
       <DevAuth />
 
       <Routes>
+        {/* Public / Landing */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/land" element={<Land />} />
 
@@ -75,10 +81,10 @@ function App() {
         <Route path="/quiz" element={<QuizzApp />} />
         <Route path="/personalized" element={<PersonalizedPath />} />
         <Route path="/course/:id" element={<CoursePlayer />} />
-        <Route path="/achievements" element={<AchievementPage />}/>
+        <Route path="/achievements" element={<AchievementPage />} />
+        <Route path="/quiz-information" element={<QuizInformationPage />} />
 
-
-        {/* Messages + Thread use the same Sidebar via the shell */}
+        {/* Messages with sidebar */}
         <Route
           path="/messages"
           element={
@@ -121,5 +127,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
