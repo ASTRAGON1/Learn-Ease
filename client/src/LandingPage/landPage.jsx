@@ -1,10 +1,21 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
 import Logo2 from "../assets/fullLogo.png";
+import illus from "../assets/illustration.png";
 import "./landPage.css";
-
+export const REVIEWS_DEMO = [
+  { id: "r1", rating: 5, text: "The visual schedules and short activities keep my son calm and engaged. We finally see steady progress.", authorName: "Amina", authorRole: "Parent" },
+  { id: "r2", rating: 5, text: "AI suggestions helped me adapt lessons quickly. Students love the picture-based tasks.", authorName: "Selim", authorRole: "Teacher" },
+  { id: "r3", rating: 4, text: "Reports are simple to share with therapists. We’re aligned on goals each week.", authorName: "Derya", authorRole: "Parent" },
+  { id: "r4", rating: 5, text: "I can plan sensory breaks and use social stories easily. Huge time saver.", authorName: "Marc", authorRole: "Teacher" },
+  { id: "r5", rating: 5, text: "I can plan sensory breaks and use social stories easily. Huge time saver.", authorName: "Marc", authorRole: "Teacher" },
+  { id: "r6", rating: 5, text: "I can plan sensory breaks and use social stories easily. Huge time saver.", authorName: "Marc", authorRole: "Teacher" },
+  { id: "r7", rating: 1, text: "wlad l97ab kheoroni makaina la kraya la wlo gha zho ", authorName: "Marc", authorRole: "Teacher" },
+];
 export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup }) {
-  const [faqOpen, setFaqOpen] = useState([false, false, false]);
+  const stars = (n) => "★".repeat(Math.max(0, n)) + "☆".repeat(Math.max(0, 5 - n));
+  const [reviews, setReviews] = useState(REVIEWS_DEMO);
+  const [faqOpen, setFaqOpen] = useState({});
   const [newsEmail, setNewsEmail] = useState("");
   const [newsMsg, setNewsMsg] = useState("");
   const revTrackRef = useRef(null);
@@ -12,8 +23,19 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
 
   const onRevPrev = () => revTrackRef.current?.scrollBy({ left: -320, behavior: "smooth" });
   const onRevNext = () => revTrackRef.current?.scrollBy({ left: 320, behavior: "smooth" });
-  const toggleFaq = (i) => setFaqOpen((p) => p.map((v, idx) => (idx === i ? !v : v)));
+  const toggleFaq = (i) => setFaqOpen(prev => ({ ...prev, [i]: !prev[i] }));
+  const faqItems = [
+    { q: "How does the AI personalize learning?", a: "It adapts tasks by difficulty, supports (visual/auditory prompts), and pacing based on progress and attention patterns." },
+    { q: "Is LearnEase suitable for Down syndrome and autism?", a: "Yes. The platform is co-designed with specialists and families, focusing on structure, clarity, and sensory-aware activities." },
+    { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
+    { q: "Who are the classes for?", a: "Our classes are specially designed for kids and teens with Down Syndrome or similar learning needs." },
+    { q: "Are the teachers qualified?", a: "Yes, all our teachers are trained in special education and have experience working with children with special needs." },
+    { q: "How do I become a teacher on this platform?", a: "Click 'Teach on Edu' and fill out your information. We'll review and get back to you quickly." },
+    { q: "How do I sign up my child?", a: "Click on the 'Sign Up' button at the top right, then fill in your child's details. It's easy and takes only a few minutes." },
+    { q: "What devices can I use?", a: "You can use a browser for now, but we are planning to add more devices in the future" },
+    { q: "Are the classes live or recorded?", a: "Currently, all our classes are pre-recorded to give students the flexibility to learn at their own pace. However, we're working on introducing live video classes in future updates to enhance interactivity and engagement." },
 
+  ];
   const handleNewsSubmit = (e) => {
     e.preventDefault();
     const valid = /[^\s@]+@[^\s@]+\.[^\s@]+/.test(newsEmail);
@@ -23,7 +45,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
   };
 
   const becomeInstructor = () => {
-    if (onSignup) onSignup(); else window.location.href = "/signup";
+    if (onSignup) onSignup(); else window.location.href = "/InstructorSignUp1";
   };
 
   return (
@@ -101,7 +123,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               </div>
             </div>
           </div>
-          <div className="landPage-illus">Add an illustration here</div>
+          <img className="landPage-illus" src={illus} alt="LearnEase illustration" />
         </div>
       </section>
 
@@ -138,16 +160,20 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
         <div className="landPage-container">
           <h2 className="landPage-title">What families & teachers say</h2>
           <p className="landPage-subtitle">Real feedback from our community.</p>
-          <div className="landPage-rev-row">
-            <div className="landPage-rev-track" ref={revTrackRef} aria-label="Reviews carousel">
-              <article className="landPage-rev-card"><div className="landPage-stars">★★★★★</div><p>“The visual schedules and short activities keep my son calm and engaged. We finally see steady progress.”</p><small className="landPage-muted">— Amina, Parent</small></article>
-              <article className="landPage-rev-card"><div className="landPage-stars">★★★★★</div><p>“AI suggestions helped me adapt lessons quickly. Students love the picture-based tasks.”</p><small className="landPage-muted">— Selim, Teacher</small></article>
-              <article className="landPage-rev-card"><div className="landPage-stars">★★★★☆</div><p>“Reports are simple to share with therapists. We’re aligned on goals each week.”</p><small className="landPage-muted">— Derya, Parent</small></article>
-              <article className="landPage-rev-card"><div className="landPage-stars">★★★★★</div><p>“I can plan sensory breaks and use social stories easily. Huge time saver.”</p><small className="landPage-muted">— Marc, Teacher</small></article>
-            </div>
-            <div className="landPage-rev-nav">
-              <button className="landPage-rev-btn" onClick={onRevPrev} aria-label="Previous">‹</button>
-              <button className="landPage-rev-btn" onClick={onRevNext} aria-label="Next">›</button>
+
+          <div className="landPage-rev-viewport">
+            <div className="landPage-rev-track landPage-auto" aria-label="Reviews carousel">
+              {[...reviews, ...reviews].map((r, i) => (
+                <article
+                  key={`${r.id}-${i}`}
+                  className="landPage-rev-card"
+                  aria-hidden={i >= reviews.length ? "true" : undefined}
+                >
+                  <div className="landPage-stars">{stars(r.rating)}</div>
+                  <p>“{r.text}”</p>
+                  <small className="landPage-muted">— {r.authorName}, {r.authorRole}</small>
+                </article>
+              ))}
             </div>
           </div>
         </div>
@@ -157,19 +183,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
       <section id="faq" className="landPage-section">
         <div className="landPage-container">
           <h2 className="landPage-title">FAQ</h2>
-          {[
-            { q: "How does the AI personalize learning?", a: "It adapts tasks by difficulty, supports (visual/auditory prompts), and pacing based on progress and attention patterns." },
-            { q: "Is LearnEase suitable for Down syndrome and autism?", a: "Yes. The platform is co-designed with specialists and families, focusing on structure, clarity, and sensory-aware activities." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-            { q: "Can parents see progress?", a: "Parents get simple weekly reports, goals, and shared routines, plus messaging with teachers." },
-          ].map((item, i) => (
+          {faqItems.map((item, i) => (
             <div className={`landPage-faq-item ${faqOpen[i] ? "landPage-open" : ""}`} key={i}>
               <div className="landPage-faq-q" onClick={() => toggleFaq(i)}>
                 <span>{item.q}</span>
@@ -179,7 +193,8 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
             </div>
           ))}
         </div>
-      </section>
+</section>
+
 
       {/* NEWSLETTER */}
       <section id="newsletter" className="landPage-section">

@@ -17,7 +17,7 @@ a{color:inherit;text-decoration:none}
 .landPage-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-2);padding:18px;margin:2px}
 
 /* Layout + typography */
-.landPage-container{max-width:var(--container);margin:0 auto;padding:0 24px}
+.landPage-container{max-width:var(--container);margin:0 auto;padding:0 24px;}
 .landPage-section{padding:72px 0}
 .landPage-title{font-size:42px;line-height:1.15;margin:0 0 10px;font-weight:800}
 .landPage-subtitle{font-size:18px;color:var(--muted);margin:0 0 24px}
@@ -66,7 +66,7 @@ label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
 
 /* Two-column info */
 .landPage-two-col{display:grid;grid-template-columns:1fr 1fr;gap:36px}
-.landPage-illus{border-radius:18px;border:1px dashed var(--line);height:320px;display:grid;place-items:center;background:#fafafa;font-weight:700;color:#64748b}
+.landPage-illus{border-radius:18px;border:1px dashed var(--line);height:320px;display:grid;place-items:center;background:#fafafa;font-weight:700;color:#64748b;margin-left: 100px;}
 
 /* Teaching */
 .landPage-teaching{background:#fbfbff;border:1px solid var(--line);border-left:none;border-right:none}
@@ -78,7 +78,12 @@ label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
 /* Reviews */
 .landPage-reviews{background:linear-gradient(180deg,transparent,#fbfbff)}
 .landPage-rev-row{position:relative}
-.landPage-rev-track{display:flex;gap:16px;overflow:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
+.landPage-rev-track{display:flex;gap:16px;overflow:auto;scroll-snap-type:x mandatory;padding-bottom:0; overflow-x: auto;overflow-y: hidden;-ms-overflow-style: none;scrollbar-width: none; }
+.landPage-rev-track::-webkit-scrollbar{
+  width: 0;
+  height: 0;                    /* Chrome/Safari */
+}
+.landPage-rev-track::-webkit-scrollbar-thumb{ background: transparent; }
 .landPage-rev-card{scroll-snap-align:start;min-width:300px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-2);padding:18px}
 .landPage-stars{font-size:18px;color:#f59e0b}
 .landPage-rev-nav{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
@@ -162,4 +167,39 @@ footer{background:#0b1020;color:#cbd5e1;margin-top:60px}
   }
   .landPage-btn-news{border-radius:14px}
   .landPage-news-card{ grid-template-columns: 1fr 1fr; }
+}
+
+/* viewport hides overflow */
+.landPage-rev-viewport{
+  position: relative;
+  overflow: hidden;
+}
+
+/* base track overrides (we don't want scrollbars/snap here) */
+.landPage-rev-track{
+  display: flex;
+  gap: 16px;
+  overflow: visible;          /* no scrollbars */
+  scroll-snap-type: none;
+  padding-bottom: 0;
+  width: max-content;
+}
+
+/* auto-scrolling loop: two copies -> move by half width */
+.landPage-auto{
+  animation: landPage-marquee var(--landPage-rev-speed, 40s) linear infinite;
+}
+.landPage-auto:hover{ animation-play-state: paused; } /* optional pause on hover */
+
+@keyframes landPage-marquee{
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* slides one full set */
+}
+
+/* optional: hide nav if present */
+.landPage-rev-nav{ display:none; }
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .landPage-auto{ animation: none; }
 }

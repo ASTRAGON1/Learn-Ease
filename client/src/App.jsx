@@ -1,17 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
-import LandingPage from "./LandingPage/LandingPage";
+import LandingPage from "./LandingPage/landPage";
 import Login from "./StudentPages/Login";
 import StudentSignUp from "./StudentPages/StudentSignUp";
 import StudentDashboard from "./StudentPages/StudentDashboard";
 import Courses from "./StudentPages/courses";
 import QuizzApp from "./StudentPages/QuizzApp";
-// Default page + named Sidebar
 import PersonalizedPath, { Sidebar as StudentSidebar } from "./StudentPages/PersonalizedPath";
 import MessagesPage from "./StudentPages/messages";
-import MessageThread from "./StudentPages/MessageThread"; // ✅ NEW
-import CoursePlayer from "./StudentPages/CoursePlayer";     // ✅ NEW (route /course/:id)
+import MessageThread from "./StudentPages/MessageThread";
+import CoursePlayer from "./StudentPages/CoursePlayer";
 import AchievementPage from "./StudentPages/AchievementPage";
 
 import InstructorDashboard from "./InstructorPages/InstructorDash";
@@ -65,7 +64,6 @@ function App() {
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/land" element={<Land />} />
 
         {/* Student */}
         <Route path="/login" element={<Login />} />
