@@ -2,10 +2,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import LandingPage from "./LandingPage/LandingPage";
-import Land from "./LandingPage/landPage";
-
-// Student
+import LandingPage from "./LandingPage/landPage";
 import Login from "./StudentPages/Login";
 import StudentSignUp from "./StudentPages/StudentSignUp";
 import StudentDashboard from "./StudentPages/StudentDashboard";
@@ -71,7 +68,6 @@ export default function App() {
       <Routes>
         {/* Public / Landing */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/land" element={<Land />} />
 
         {/* Student */}
         <Route path="/login" element={<Login />} />
