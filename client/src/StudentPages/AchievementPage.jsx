@@ -2,7 +2,7 @@ import React from "react";
 import { Trophy, Lock, CheckCircle2, Star, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "./AchievementPage.css";
-import logo from "../assets/simpleLogo2.png";
+import logo from "../assets/achievementlogo.png";
 
 /* ===================== Demo Data ===================== */
 const demoCourses = [
@@ -183,7 +183,6 @@ export default function AchievementPage({ courses = demoCourses }) {
         <div className="achv-header__inner">
           <div className="achv-brand">
             <img src={logo} alt="Logo" className="achv-brand__img" />
-            <h1 className="achv-brand__title">Your Achievements</h1>
           </div>
 
           <button
