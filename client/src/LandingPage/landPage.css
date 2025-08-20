@@ -81,7 +81,7 @@ label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
 .landPage-rev-track{display:flex;gap:16px;overflow:auto;scroll-snap-type:x mandatory;padding-bottom:0; overflow-x: auto;overflow-y: hidden;-ms-overflow-style: none;scrollbar-width: none; }
 .landPage-rev-track::-webkit-scrollbar{
   width: 0;
-  height: 0;                    /* Chrome/Safari */
+  height: 0;
 }
 .landPage-rev-track::-webkit-scrollbar-thumb{ background: transparent; }
 .landPage-rev-card{scroll-snap-align:start;min-width:300px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-2);padding:18px}

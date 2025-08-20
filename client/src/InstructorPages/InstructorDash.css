@@ -52,7 +52,7 @@
 .dash-root .jump-text{ font-size: 20px; font-weight: 500; color: #1a1a1f; }
 
 /* Primary button */
-.dash-root .btn-primary{
+.dash-root .InstructorDash-btn-primary{
   background: #5b22d1;
   color: #fff;
   border: 0;
@@ -65,8 +65,8 @@
   box-shadow: 0 8px 22px rgba(91,34,209,.18);
   transition: background .15s ease;
 }
-.dash-root .btn-primary:hover{ background: #4a17b8; }
-.dash-root .btn-primary.sm{ width:auto; height:auto; padding:10px 18px; border-radius:8px; }
+.dash-root .InstructorDash-btn-primary:hover{ background: #4a17b8; }
+.dash-root .InstructorDash-btn-primary.sm{ width:auto; height:auto; padding:10px 18px; border-radius:8px; }
 
 /* Helper line */
 .dash-root .hint{
