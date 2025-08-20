@@ -35,7 +35,7 @@ export default function StudentDashboard() {
             {/* Header links: Courses -> Personalized Path */}
             <nav className="sd-nav-links">
               <Link to="/courses" className="sd-nav-link">Courses</Link>
-              <Link to="/quiz" className="sd-nav-link active">Quizzes</Link>
+              <Link to="/quiz-information" className="sd-nav-link active">Quizzes</Link>
               <Link to="/achievements" className="sd-nav-link">Achievement</Link>
               <Link to="/personalized" className="sd-nav-link">Personalized path</Link>
             </nav>
@@ -72,7 +72,7 @@ export default function StudentDashboard() {
         <section className="qz-wrap">
           <div className="qz-head">
             <h2>Quizzes</h2>
-            <Link className="qz-link" to="/personalized">View all</Link>
+            <Link className="qz-link" to="/quiz-information">View all</Link>
           </div>
 
           <div className="qz-grid">
@@ -125,10 +125,6 @@ export default function StudentDashboard() {
                 <button className="qz-btn">View Report</button>
               </div>
             </div>
-          </div>
-
-          <div className="qz-more">
-            <Link className="qz-btn lg" to="/personalized">Check More</Link>
           </div>
         </section>
 
