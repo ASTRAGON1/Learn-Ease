@@ -1,129 +1,90 @@
-/* InstructorLogin.css */
+:root{
+  --il-bg:#f7f7fb; --il-surface:#fff; --il-text:#0f172a; --il-muted:#64748b;
+  --il-primary:#6d28d9; --il-line:rgba(2,6,23,.12); --il-danger:#e11d48;
+  --il-shadow:0 12px 30px rgba(2,6,23,.08); --il-radius:16px;
+}
 
-/* full-page background and centering */
-.login-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: #D9CAF3;
-  }
-  
-  /* ── CONTAINER ── */
-  /* make this the positioned ancestor for the back link */
-  .login-container {
-    position: relative;
-    width: 1280px;
-    display: flex;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    background: #fff;
-  }
-  
-  /* back link */
-  .login-back {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 16px;
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-    z-index: 1;
-  }
-  
-  /* ── LEFT PANEL ── */
-  .login-left {
-    width: 640px;
-    padding: 60px 92px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
-    background: #fff;
-  }
-  
-  .login-logo {
-    width: 120px;
-    margin-bottom: 90px;
-  }
-  
-  .login-title {
-    font-size: 28px;
-    font-weight: 500;
-    color: #4C0FAD;
-    margin-bottom: 24px;
-  }
-  
-  .login-label {
-    width: 100%;
-    font-size: 14px;
-    color: #4A2145;
-    text-align: left;
-    margin: 0 0 8px;
-  }
-  
-  .login-input {
-    width: 100%;
-    height: 56px;
-    margin-bottom: 16px;
-    padding: 0 16px;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  
-  .login-input::placeholder {
-    color: #999;
-    font-style: italic;
-    font-size: 14px;
-  }
-  
-  .login-button {
-    width: 100%;
-    height: 56px;
-    background: #4C0FAD;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 18px;
-    cursor: pointer;
-    margin-top: 16px;
-  }
-  
-  .login-footer {
-    font-size: 14px;
-    color: black;
-    margin-top: 16px;
-  }
-  
-  .login-footer a {
-    color: #4C0FAD;
-    text-decoration: none;
-  }
-  
-  /* ── RIGHT PANEL ── */
-  .login-right {
-    width: 640px;
-    background: #E4DBFD;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .login-illustration {
-    max-width: 100%;
-    max-height: 100%;
-  }
-  
-  /* red error text */
-  .error-text {
-    width: 100%;
-    color: #e03e3e;
-    font-size: 14px;
-    margin-bottom: 8px;
-    text-align: left;
-  }
-  
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--il-text);background:var(--il-bg)}
+
+.instructorLogin-wrap{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative}
+.instructorLogin-back{display: inline-flex;
+  align-self: flex-start;
+  gap: 6px;
+  margin: 0 0 10px 6px;   
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 600;}
+.instructorLogin-back:hover{text-decoration: none; transform: translateX(-2px); }
+
+.instructorLogin-card{width:100%;max-width:440px;background:var(--il-surface);border:1px solid var(--il-line);border-radius:var(--il-radius);box-shadow:var(--il-shadow);padding:28px;display: flex;
+  flex-direction: column;}
+.instructorLogin-title{margin:8px 0 4px;font-size:28px;font-weight:800}
+.instructorLogin-subtitle{margin:0 0 18px;color:var(--il-muted);font-size:14px}
+
+.instructorLogin-alert{border:1px solid rgba(225,29,72,.25);background:rgba(225,29,72,.06);color:#9f1239;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px}
+
+.instructorLogin-form{display:grid;gap:14px}
+.instructorLogin-field label{text-align: left; display:block;font-weight:650;font-size:14px;margin-bottom:6px; margin-left: 6px;}
+
+.instructorLogin-input{width:100%;height:48px;padding:12px 14px;border:1px solid var(--il-line);border-radius:12px;outline:none;transition:.2s;background:#fff}
+.instructorLogin-input:focus{box-shadow:0 0 0 4px rgba(109,40,217,.2);border-color:var(--il-primary)}
+.instructorLogin-invalid,
+.instructorLogin-input-group.instructorLogin-invalid .instructorLogin-input{border-color:rgba(225,29,72,.6)}
+
+.instructorLogin-input-group{position:relative;display:grid}
+.instructorLogin-input-group .instructorLogin-input{padding-right:50px}
+
+/* Eye button */
+.instructorLogin-eye{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  height:36px; width:36px; display:grid; place-items:center;
+  background:#fff; border:1px solid var(--il-line); border-radius:10px;
+  cursor:pointer; padding:0; box-shadow:0 2px 8px rgba(8,15,52,.08);
+}
+.instructorLogin-eye svg{width:22px;height:22px;stroke:var(--il-muted);fill:none}
+.instructorLogin-eye:hover svg{stroke:var(--il-primary)}
+
+.instructorLogin-error{color:var(--il-danger);font-size:12px;margin-top:6px;display:block}
+
+.instructorLogin-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+
+/* Toggle switch */
+.instructorLogin-switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.instructorLogin-switch input{position:absolute;opacity:0;pointer-events:none}
+.instructorLogin-switch-track{
+  width:38px;height:22px;border:1px solid var(--il-line);border-radius:999px;
+  background:#e5e7eb; position:relative; transition:.15s; box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
+}
+.instructorLogin-switch-track::after{
+  content:""; position:absolute; top:50%; left:2px; transform:translateY(-50%);
+  width:18px;height:18px;border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.15);
+  transition:transform .15s ease;
+}
+.instructorLogin-switch input:checked + .instructorLogin-switch-track{background:var(--il-primary); border-color:var(--il-primary)}
+.instructorLogin-switch input:checked + .instructorLogin-switch-track::after{transform:translate(16px,-50%)}
+.instructorLogin-switch-label{white-space:nowrap}
+
+.instructorLogin-link{color:var(--il-primary);text-decoration:none}
+.instructorLogin-link:hover{text-decoration:underline}
+
+.instructorLogin-btn{
+  width:100%; display:inline-flex; align-items:center; justify-content:center;
+  height:44px; border-radius:12px; border:1px solid transparent;
+  background:var(--il-primary); color:#fff; font-weight:700; cursor:pointer;
+  transition:.15s ease; box-shadow:0 6px 16px rgba(109,40,217,.25);
+}
+.instructorLogin-btn:hover{filter:brightness(1.06); transform:translateY(-1px)}
+.instructorLogin-btn:disabled{opacity:.7; cursor:not-allowed; transform:none}
+
+.instructorLogin-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:instructorLogin-spin .8s linear infinite}
+@keyframes instructorLogin-spin{to{transform:rotate(360deg)}}
+
+.instructorLogin-foot{margin-top:14px;display:flex;gap:8px;align-items:center;justify-content:center;font-size:14px;color:var(--il-muted)}
+
+@media (max-width:420px){
+  .instructorLogin-card{padding:22px}
+  .instructorLogin-title{font-size:24px}
+  .instructorLogin-back{left:16px;top:16px}
+}

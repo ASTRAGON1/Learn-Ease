@@ -148,7 +148,7 @@ export default function InstructorDashboard() {
             <div className="dash-row">
               <div className="jump-card">
                 <span className="jump-text">Jump Into Course Creation</span>
-                <Link to="/InstructorUpload" className="btn-primary">Create Your Course</Link>
+                <Link to="/InstructorUpload" className="InstructorDash-btn-primary">Create Your Course</Link>
               </div>
             </div>
 
