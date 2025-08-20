@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./StudentDashboard.css";
 import logo from "../assets/logo.png";
@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
+  const [openId, setOpenId] = useState(null);
 
   // demo recs
   const recs = [
@@ -14,6 +15,52 @@ export default function StudentDashboard() {
     { contentId: "SPEK101-06", title: "Asking for Help – Part 2", topic: "Communication", thumbnail: quizPic, watchPercent: 67, lastQuizScore: 61, quizId: "quiz-ask-help-2" },
     { contentId: "SPEK101-02", title: "Recognizing Emotions – Basics", topic: "Emotions", thumbnail: quizPic, watchPercent: 94, lastQuizScore: 55, quizId: "quiz-emotions-1" },
   ];
+
+  // demo quizzes for cards
+  const quizzes = [
+    {
+      id: "q1",
+      title: "Speaking Quiz 2",
+      courseName: "Communication Basics",
+      instructor: "Jane Doe",
+      status: "upcoming", // upcoming | missed | graded
+      date: "Aug 15, 10:00",
+      duration: "20 mins",
+      grade: null,
+      scorePct: null,
+      badgeClass: "upcoming",
+      primaryAction: { label: "Join", kind: "primary" },
+    },
+    {
+      id: "q2",
+      title: "Speaking Quiz 2",
+      courseName: "Speech Practice",
+      instructor: "Ali Ben",
+      status: "missed",
+      date: "Aug 11, 10:00",
+      duration: "20 mins",
+      grade: "0/10",
+      scorePct: null,
+      badgeClass: "missed",
+      primaryAction: { label: "Retake", kind: "warn" },
+    },
+    {
+      id: "q3",
+      title: "Speaking Quiz 2",
+      courseName: "Public Speaking",
+      instructor: "Nadia K.",
+      status: "graded",
+      date: "Aug 5, 10:00",
+      duration: "20 mins",
+      grade: "8.6/10",
+      scorePct: 86,
+      badgeClass: "graded",
+      primaryAction: { label: "View Report", kind: "primary" },
+    },
+  ];
+
+  const statusLabel = (s) =>
+    s === "upcoming" ? "Upcoming" : s === "graded" ? "Graded" : "Missed";
 
   const recRowRef = useRef(null);
   const recScroll = (dir) => {
@@ -32,7 +79,6 @@ export default function StudentDashboard() {
               <img src={logo} alt="LearnEase Logo" className="sd-nav-logo-img" />
             </Link>
 
-            {/* Header links: Courses -> Personalized Path */}
             <nav className="sd-nav-links">
               <Link to="/courses" className="sd-nav-link">Courses</Link>
               <Link to="/quiz-information" className="sd-nav-link active">Quizzes</Link>
@@ -42,7 +88,7 @@ export default function StudentDashboard() {
 
             <div className="sd-nav-right">
               <button className="sd-nav-bell" aria-label="Notifications">🔔</button>
-              <Link to="/profile" className="sd-nav-avatar-link"><div className="sd-nav-avatar" /></Link>
+              <Link to="/StudentProfile" className="sd-nav-avatar-link"><div className="sd-nav-avatar" /></Link>
             </div>
           </div>
         </header>
@@ -76,55 +122,86 @@ export default function StudentDashboard() {
           </div>
 
           <div className="qz-grid">
-            {/* sample cards */}
-            <div className="qz-card">
-              <div className="qz-media">
-                <img src={quizPic} alt="" />
-                <span className="qz-badge upcoming">⏳ Upcoming</span>
-              </div>
-              <div className="qz-body">
-                <h4 className="qz-title">Speaking Quiz 2</h4>
-                <div className="qz-meta"><span>🗓 Aug 15, 10:00</span><span className="qz-dot">•</span><span>⏱ 20 mins</span></div>
-              </div>
-              <div className="qz-actions">
-                <button className="qz-btn ghost">Details</button>
-                <button className="qz-btn">Join</button>
-              </div>
-            </div>
+            {quizzes.map((q) => (
+              <div key={q.id} className="qz-card">
+                <div className="qz-media">
+                  <img src={quizPic} alt="" />
+                  <span className={`qz-badge ${q.badgeClass}`}>
+                    {q.status === "upcoming" && "⏳ "}
+                    {q.status === "missed" && "⚠️ "}
+                    {q.status === "graded" && "✅ "}
+                    {statusLabel(q.status)}
+                  </span>
 
-            <div className="qz-card">
-              <div className="qz-media">
-                <img src={quizPic} alt="" />
-                <span className="qz-badge missed">⚠️ Missed</span>
-              </div>
-              <div className="qz-body">
-                <h4 className="qz-title">Speaking Quiz 2</h4>
-                <div className="qz-meta"><span>🗓 Aug 11, 10:00</span><span className="qz-dot">•</span><span>⏱ 20 mins</span></div>
-              </div>
-              <div className="qz-actions">
-                <button className="qz-btn ghost">Details</button>
-                <button className="qz-btn warn">Retake</button>
-              </div>
-            </div>
-
-            <div className="qz-card">
-              <div className="qz-media">
-                <img src={quizPic} alt="" />
-                <span className="qz-badge graded">✅ Graded</span>
-                <div className="qz-score">
-                  <div className="qz-score-ring" style={{ background: "conic-gradient(var(--ok) 310deg, #e9e5ff 0)" }}><span>86%</span></div>
-                  <small>Score</small>
+                  {q.status === "graded" && q.scorePct != null && (
+                    <div className="qz-score">
+                      <div
+                        className="qz-score-ring"
+                        style={{
+                          background: `conic-gradient(var(--ok) ${Math.round(
+                            (q.scorePct / 100) * 360
+                          )}deg, #e9e5ff 0)`,
+                        }}
+                      >
+                        <span>{q.scorePct}%</span>
+                      </div>
+                      <small>Score</small>
+                    </div>
+                  )}
                 </div>
+
+                <div className="qz-body">
+                  <h4 className="qz-title">{q.title}</h4>
+                  <div className="qz-meta">
+                    <span>🗓 {q.date}</span>
+                    <span className="qz-dot">•</span>
+                    <span>⏱ {q.duration}</span>
+                  </div>
+                </div>
+
+                <div className="qz-actions">
+                  <button
+                    className="qz-btn ghost"
+                    onClick={() => setOpenId((id) => (id === q.id ? null : q.id))}
+                  >
+                    {openId === q.id ? "Close" : "Details"}
+                  </button>
+                   {q.status === "missed" ? (
+    // Only Retake navigates to /quiz
+    <Link to="/quiz" className="qz-btn warn">Retake</Link>
+  ) : (
+    // Join / View Report do NOT navigate
+    <button className="qz-btn disabled" aria-disabled="true">
+      {q.primaryAction.label}
+    </button>
+  )}
+</div>
+                {/* In-card details widget */}
+<div className={`qz-details ${openId === q.id ? "show" : ""}`}>
+  <button
+    className="qz-back-btn"
+    onClick={() => setOpenId(null)}
+    aria-label="Close details"
+  >
+    ← 
+  </button>
+  <h5 className="qz-d-title">Quiz Details</h5>
+  <div className="qz-d-grid">
+    <div className="qz-kv"><span className="qz-k">Course:</span><span className="qz-v">{q.courseName}</span></div>
+    <div className="qz-kv"><span className="qz-k">Instructor:</span><span className="qz-v">{q.instructor}</span></div>
+    <div className="qz-kv"><span className="qz-k">Status:</span><span className={`qz-v tag ${q.badgeClass}`}>{statusLabel(q.status)}</span></div>
+    <div className="qz-kv"><span className="qz-k">Schedule:</span><span className="qz-v">{q.date} • {q.duration}</span></div>
+    {q.status === "graded" && (
+      <div className="qz-kv"><span className="qz-k">Grade:</span><span className="qz-v">{q.grade}</span></div>
+    )}
+    {q.status === "missed" && (
+      <div className="qz-kv"><span className="qz-k">Grade:</span><span className="qz-v">0/10</span></div>
+    )}
+  </div>
+</div>
+
               </div>
-              <div className="qz-body">
-                <h4 className="qz-title">Speaking Quiz 2</h4>
-                <div className="qz-meta"><span>🗓 Aug 5, 10:00</span><span className="qz-dot">•</span><span>⏱ 20 mins</span></div>
-              </div>
-              <div className="qz-actions">
-                <button className="qz-btn ghost">Details</button>
-                <button className="qz-btn">View Report</button>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -151,8 +228,8 @@ export default function StudentDashboard() {
                     <div className="sd-rec-watch">Watched {i.watchPercent}%</div>
                   </div>
                   <div className="sd-rec-actions">
-                    <button className="sd-rec-btn ghost">Rewatch</button>
-                    <button className="sd-rec-btn primary">Retake quiz</button>
+                    <Link className="sd-rec-btn ghost" to="/CoursePlayer">Rewatch</Link>
+                    <Link to="/quiz" className="sd-rec-btn primary">Retake quiz</Link>
                   </div>
                 </div>
               ))}

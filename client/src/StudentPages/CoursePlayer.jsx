@@ -3,8 +3,61 @@ import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./CoursePlayer.css";
 
-const sampleImage =
+// one image const
+const SAMPLE_IMAGE =
   "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1600&auto=format&fit=crop";
+const courseInfo = {
+  title: "Learn C Fast | Start Coding Quickly | Master The Fundamentals of C",
+  rating: 4.4,
+  ratingsCount: 3291,
+  students: 97018,
+  total: "3 hours",
+  updated: "May 2021",
+  language: "English",
+  captions: "English [Auto]",
+};
+
+/* tiny icons */
+function Star() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-6.2 3.4 1.2-6.9L2 8.9l7-1 3-6 3 6 7 1-5 4.9 1.2 6.9z"/></svg>); }
+function Users() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/><path d="M22 21v-2a4 4 0 00-3-3.87" stroke="currentColor" strokeWidth="2"/><path d="M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="2"/></svg>); }
+function Globe() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18" stroke="currentColor" strokeWidth="2"/></svg>); }
+function UpdateIcon() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 10-3.1 6.8" stroke="currentColor" strokeWidth="2"/><path d="M21 3v6h-6" stroke="currentColor" strokeWidth="2"/></svg>); }
+const announcements = [
+  {
+    id: 1,
+    author: "Ali",
+    avatar: "https://i.pravatar.cc/40?img=12",
+    timeAgo: "4 years ago",
+    title: "My GymX software!",
+    body: `Hello dear students!  
+I hope you are doing well.
+
+I created a Gym management system and I would like you to see it and help me share it. Please share it with your friends and nearby gyms and tell them to share it with nearby gyms.
+
+Here is the youtube link: https://youtu.be/y-CEi891lfw
+
+Thanks a lot!  
+Happy programming!`,
+    comments: 9,
+  },
+];
+const reviewsMeta = {
+  average: 4.4,
+  distribution: { 5: 42, 4: 38, 3: 15, 2: 3, 1: 2 }, // percentages
+};
+
+function Stars({ value=5, size=14, color="#c06700" }) {
+  return (
+    <span style={{ display:"inline-flex", gap:4 }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24"
+             fill={i < value ? color : "none"} stroke={color} strokeWidth="2">
+          <path d="M12 17.3l-6.2 3.4 1.2-6.9L2 8.9l7-1 3-6 3 6 7 1-5 4.9 1.2 6.9z"/>
+        </svg>
+      ))}
+    </span>
+  );
+}
 
 export default function CoursePlayer() {
   const navigate = useNavigate();
@@ -12,6 +65,7 @@ export default function CoursePlayer() {
 
   const [openIds, setOpenIds] = useState(new Set([]));
   const [playhead, setPlayhead] = useState(5); // seconds (demo)
+  const [activeTab, setActiveTab] = useState("overview");
 
   const sections = useMemo(
     () => [
@@ -79,6 +133,51 @@ export default function CoursePlayer() {
     });
   }
 
+  // Inline styles for tabs (scoped)
+  const tabsSx = {
+    wrap: {
+      display: "flex",
+      position: "relative",
+      gap: 8,
+      marginTop: 14,
+      background: "#fff",
+      border: "1px solid rgba(0,0,0,.08)",
+      borderRadius: 12,
+      padding: 4,
+    },
+    tab: (on) => ({
+      flex: 1,
+      background: "transparent",
+      border: "none",
+      padding: "10px 12px",
+      cursor: "pointer",
+      fontWeight: 600,
+      color: on ? "#0f172a" : "#6b7280",
+      borderRadius: 10,
+    }),
+    underline: {
+      position: "absolute",
+      left: 4,
+      top: 4,
+      bottom: 4,
+      width: "calc((100% - 8px)/3)",
+      background: "rgba(124,92,255,.12)",
+      border: "1px solid rgba(124,92,255,.35)",
+      borderRadius: 10,
+      transition: "transform .25s ease",
+      pointerEvents: "none",
+    },
+    panel: {
+      background: "#fff",
+      border: "1px solid rgba(0,0,0,.08)",
+      borderRadius: 12,
+      padding: 14,
+      marginTop: 10,
+      lineHeight: 1.5,
+    },
+    bullets: { margin: "6px 0 0 16px" },
+  };
+
   return (
     <div className="cp-page">
       <div className="cp-shell">
@@ -95,7 +194,6 @@ export default function CoursePlayer() {
 
             <div className="cp-title-wrap">
               <h1 className="cp-title">{id ? `${id} Course Player` : "Course Player"}</h1>
-              <p className="cp-meta">9 Lesson&nbsp;&nbsp; 6h 30min</p>
             </div>
 
             <button className="cp-icon-btn" aria-label="Settings">
@@ -104,7 +202,7 @@ export default function CoursePlayer() {
           </header>
 
           <div className="cp-media">
-            <img src={sampleImage} alt="Classroom" />
+            <img src={SAMPLE_IMAGE} alt="Classroom" />
             <button className="cp-play" aria-label="Play/Pause">
               <Play />
             </button>
@@ -121,6 +219,163 @@ export default function CoursePlayer() {
               />
               <span className="cp-time">03:26</span>
             </div>
+          </div>
+
+          {/* TABS UNDER VIDEO */}
+          <nav role="tablist" aria-label="Course sections" style={tabsSx.wrap}>
+            <button
+              role="tab"
+              aria-selected={activeTab === "overview"}
+              onClick={() => setActiveTab("overview")}
+              style={tabsSx.tab(activeTab === "overview")}
+            >
+              Overview
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === "announcements"}
+              onClick={() => setActiveTab("announcements")}
+              style={tabsSx.tab(activeTab === "announcements")}
+            >
+              Announcements
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === "reviews"}
+              onClick={() => setActiveTab("reviews")}
+              style={tabsSx.tab(activeTab === "reviews")}
+            >
+              Reviews
+            </button>
+            <span
+              style={{
+                ...tabsSx.underline,
+                transform:
+                  activeTab === "overview"
+                    ? "translateX(0%)"
+                    : activeTab === "announcements"
+                    ? "translateX(100%)"
+                    : "translateX(200%)",
+              }}
+            />
+          </nav>
+
+          <div style={tabsSx.panel}>
+           {activeTab === "overview" && (
+  <div>
+    <h2 style={{margin:"0 0 10px", fontSize: "28px", lineHeight: 1.2}}>
+      {courseInfo.title}
+    </h2>
+
+    <div style={{display:"flex", gap:"28px", flexWrap:"wrap", marginBottom:16}}>
+      <div style={{display:"flex", alignItems:"center", gap:8}}>
+        <Star/><strong>{courseInfo.rating}</strong>
+        <span style={{color:"#6b7280"}}>· {courseInfo.ratingsCount.toLocaleString()} ratings</span>
+      </div>
+      <div style={{display:"flex", alignItems:"center", gap:8}}>
+        <Users/><strong>{courseInfo.students.toLocaleString()}</strong>
+        <span style={{color:"#6b7280"}}>Students</span>
+      </div>
+      <div style={{display:"flex", alignItems:"center", gap:8}}>
+        <Clock/><strong>{courseInfo.total}</strong>
+        <span style={{color:"#6b7280"}}>Total</span>
+      </div>
+    </div>
+
+    <div style={{display:"grid", rowGap:8, color:"#0f172a"}}>
+      <div style={{display:"flex", alignItems:"center", gap:10}}>
+        <UpdateIcon/><span>Last updated <strong>{courseInfo.updated}</strong></span>
+      </div>
+      <div style={{display:"flex", alignItems:"center", gap:10}}>
+        <Globe/><span>{courseInfo.language} · {courseInfo.captions}</span>
+      </div>
+    </div>
+  </div>
+)}
+
+           {activeTab === "announcements" && (
+  <div>
+    {announcements.map((a) => (
+      <div key={a.id} style={{marginBottom:24, borderBottom:"1px solid #eee", paddingBottom:16}}>
+        <div style={{display:"flex", alignItems:"center", gap:10, marginBottom:8}}>
+          <img src={a.avatar} alt={a.author} style={{width:36, height:36, borderRadius:"50%"}}/>
+          <div>
+            <a href="#" style={{fontWeight:600, color:"#6b46c1"}}>{a.author}</a>
+            <div style={{fontSize:13, color:"#6b7280"}}>posted an announcement · {a.timeAgo}</div>
+          </div>
+        </div>
+
+        <h3 style={{margin:"8px 0", fontSize:18}}>{a.title}</h3>
+        <p style={{whiteSpace:"pre-line", marginBottom:12}}>{a.body}</p>
+
+        <div style={{display:"flex", alignItems:"center", gap:8}}>
+          <div style={{width:32, height:32, borderRadius:"50%", background:"#111", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12}}>AH</div>
+          <input placeholder="Enter your comment" style={{flex:1, padding:"6px 10px", border:"1px solid #ccc", borderRadius:6}}/>
+        </div>
+
+        <a href="#" style={{fontSize:13, color:"#6b46c1", marginTop:6, display:"inline-block"}}>
+          Show comments ({a.comments})
+        </a>
+      </div>
+    ))}
+  </div>
+)}
+
+{activeTab === "reviews" && (
+  <div>
+    {/* Student feedback header */}
+    <h3 style={{ fontSize:24, margin:"0 0 16px" }}>Student feedback</h3>
+
+    <div style={{ display:"grid", gridTemplateColumns:"220px 1fr", gap:24, alignItems:"center" }}>
+      {/* Left: average */}
+      <div>
+        <div style={{ fontSize:64, color:"#c06700", lineHeight:1 }}>{reviewsMeta.average}</div>
+        <div style={{ margin:"4px 0" }}><Stars value={4} size={18} /></div>
+        <div style={{ color:"#c06700", fontWeight:700 }}>Course Rating</div>
+      </div>
+
+      {/* Right: distribution bars */}
+      <div style={{ display:"grid", gap:10 }}>
+        {[5,4,3,2,1].map(stars => {
+          const pct = reviewsMeta.distribution[stars] || 0;
+          return (
+            <div key={stars} style={{ display:"grid", gridTemplateColumns:"1fr auto auto", alignItems:"center", gap:12 }}>
+              {/* bar */}
+              <div style={{ height:10, background:"#e5e7eb", borderRadius:8, overflow:"hidden" }}>
+                <div style={{ width:`${pct}%`, height:"100%", background:"#9aa0b4" }} />
+              </div>
+              <Stars value={stars} />
+              <a href="#" style={{ color:"#6b46c1", fontSize:14 }}>{pct}%</a>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    {/* Reviews list header */}
+    <h3 style={{ fontSize:24, margin:"28px 0 12px" }}>Reviews</h3>
+
+    {/* Search + filter row */}
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 44px 220px", gap:12 }}>
+      <input placeholder="Search reviews"
+             style={{ padding:"10px 12px", border:"1px solid #d1d5db", borderRadius:8 }} />
+      <button aria-label="Search"
+              style={{ border:"none", borderRadius:8, background:"#6d28d9", color:"#fff", display:"grid", placeItems:"center" }}>
+        🔍
+      </button>
+      <select defaultValue="all"
+              style={{ padding:"10px 12px", border:"1px solid #d1d5db", borderRadius:8 }}>
+        <option value="all">All ratings</option>
+        <option value="5">5 stars</option>
+        <option value="4">4 stars</option>
+        <option value="3">3 stars</option>
+        <option value="2">2 stars</option>
+        <option value="1">1 star</option>
+      </select>
+    </div>
+  </div>
+)}
+
           </div>
         </section>
 
@@ -177,10 +432,7 @@ export default function CoursePlayer() {
                         {sec.lessons.map((l, i) => {
                           const locked = !l.done && i > 0 && sIdx > 0; // demo rule
                           return (
-                            <div
-                              key={l.id}
-                              className={`cp-lesson cp-row ${locked ? "cp-locked" : ""}`}
-                            >
+                            <div key={l.id} className={`cp-lesson cp-row ${locked ? "cp-locked" : ""}`}>
                               <span className="cp-row-num">{i + 1}.</span>
                               <span className={`cp-check ${l.done ? "cp-on" : ""}`}>
                                 {l.done ? <Check /> : null}
@@ -260,13 +512,6 @@ function Clock() {
     </svg>
   );
 }
-function Dot() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 8 8" fill="currentColor" style={{ opacity: 0.9 }}>
-      <circle cx="4" cy="4" r="3.5" />
-    </svg>
-  );
-}
 function Chevron({ open }) {
   return (
     <svg
@@ -292,23 +537,6 @@ function Check() {
       />
     </svg>
   );
-}
-function Question() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M9.5 9a2.5 2.5 0 115 0c0 2-2.5 1.5-2.5 4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="12" cy="18" r="1" fill="currentColor" />
-    </svg>
-  );
-}
-function Badge({ children }) {
-  return <span className="cp-badge">{children}</span>;
 }
 function LockIcon() {
   return (

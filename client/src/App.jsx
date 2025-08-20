@@ -14,6 +14,7 @@ import MessageThread from "./StudentPages/MessageThread";
 import CoursePlayer from "./StudentPages/CoursePlayer";
 import AchievementPage from "./StudentPages/AchievementPage";
 import QuizInformationPage from "./StudentPages/QuizInformation";
+import StudentProfile from "./StudentPages/StudentProfile";
 
 // Instructor
 import InstructorDashboard from "./InstructorPages/InstructorDash";
@@ -79,6 +80,9 @@ export default function App() {
         <Route path="/course/:id" element={<CoursePlayer />} />
         <Route path="/achievements" element={<AchievementPage />} />
         <Route path="/quiz-information" element={<QuizInformationPage />} />
+        <Route path="/CoursePlayer" element={<CoursePlayer />} />
+        <Route path="/StudentProfile" element={<StudentProfile />} />
+
 
         {/* Messages with sidebar */}
         <Route
