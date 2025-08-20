@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import "./StudentProfile.css";
+import ProfileLogo from "../assets/ProfileLogo.png";
 
 /* ===== Demo Data (replace with API) ===== */
 const demoStudent = {
@@ -8,7 +9,7 @@ const demoStudent = {
   age: 10,
   pronouns: "she/her",
   gradeLevel: "Grade 4",
-  diagnosis: ["Autism Spectrum", "Down Syndrome"],
+  diagnosis: ["Down Syndrome"],
   avatar: "https://i.pravatar.cc/160?img=47",
   guardian: { name: "Samira Benali", phone: "+213 555 123 456", email: "samira@example.com" },
   emergency: { name: "Youssef Benali", phone: "+213 555 987 654" },
@@ -39,14 +40,14 @@ const demoStudent = {
       title: "Use 'help please' without prompt",
       progress: 55,
       due: "2025-11-10",
-      strategies: ["Model phrase", "Visual prompt near desk", "Token for attempts"],
+      strategies: ["Model phrase", "Visual prompt near ", "Token for attempt"],
     },
     {
       id: "g-soc-1",
       title: "Initiate greeting with peers",
       progress: 30,
       due: "2025-10-20",
-      strategies: ["Role-play", "Peer buddy", "Sticker reinforcement"],
+      strategies: ["Role-play", "Peer buddy up", "Sticker reinforcement"],
     },
   ],
   courses: [
@@ -131,13 +132,12 @@ export default function StudentProfile() {
         <button className="sp-back" aria-label="Back" onClick={() => window.history.back()}>
           ←
         </button>
-        <div className="sp-brand">
-          <div className="sp-logo">NL</div>
-          <div className="sp-brand-text">
-            <strong>NeuroLearn</strong>
-            <span>Care-first learning</span>
-          </div>
-        </div>
+ <div className="sp-brand">
+    <img src={ProfileLogo} alt="NeuroLearn logo" className="sp-logo-img" loading="lazy" />
+    <div className="sp-brand-text">
+      
+    </div>
+  </div>
         <div className="sp-header-actions">
           <button className="sp-btn ghost" onClick={() => alert("Notify guardian (demo)")}>Notify</button>
           <button className="sp-btn" onClick={() => setTab(Tab.Settings)}>Settings</button>
@@ -210,30 +210,30 @@ export default function StudentProfile() {
             </div>
           </div>
 
-          <div className="sp-card">
-            <h4>Quick phrases</h4>
-            <div className="sp-chips">
-              {profile.quickPhrases.map((q) => (
-                <button key={q} className="sp-chip btn" onClick={() => alert(`Speak: ${q}`)}>
-                  {q}
-                </button>
-              ))}
+            <div className="sp-card">
+              <h4>Quick phrases</h4>
+              <div className="sp-chips">
+                {profile.quickPhrases.map((q) => (
+                  <button key={q} className="sp-chip btn" onClick={() => alert(`Speak: ${q}`)}>
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="sp-card">
-            <h4>Mood tracker</h4>
-            <div className="sp-moods">
-              {["😀", "🙂", "😐", "🙁", "😫"].map((m) => (
-                <button
-                  key={m}
-                  className={`sp-mood ${mood === m ? "active" : ""}`}
-                  onClick={() => setMood(m)}
-                  aria-label={`Mood ${m}`}
-                >
-                  {m}
-                </button>
-              ))}
+            <div className="sp-card">
+              <h4>Mood tracker</h4>
+              <div className="sp-moods">
+                {["😀", "🙂", "😐", "🙁", "😫"].map((m) => (
+                  <button
+                    key={m}
+                    className={`sp-mood ${mood === m ? "active" : ""}`}
+                    onClick={() => setMood(m)}
+                    aria-label={`Mood ${m}`}
+                  >
+                    {m}
+                  </button>
+                ))}
             </div>
           </div>
         </aside>

@@ -12,6 +12,7 @@
   --ring: rgba(124,92,255,.2);
   --shadow: 0 10px 24px rgba(8,15,52,.06);
   --radius: 16px;
+    --header-h: 80px;        
 }
 
 * { box-sizing: border-box; }
@@ -19,27 +20,49 @@ html, body, #root { height: 100%; }
 body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; color:var(--text); background:var(--bg); }
 
 /* Header */
+/* Full-bleed sticky header */
 .sp-header{
-  position: sticky; top:0; z-index:10;
-  display:flex; align-items:center; justify-content:space-between;
-  gap:16px; height:64px; padding:8px 16px; background:var(--surface);
-  border-bottom:1px solid var(--line);
-}
-.sp-back{
-  border:0; background:#fff; border:1px solid var(--line);
-  width:36px; height:36px; border-radius:10px; cursor:pointer;
-}
-.sp-brand{ display:flex; align-items:center; gap:12px; }
-.sp-logo{
-  width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
-  color:#fff; font-weight:800; letter-spacing:.5px;
-  background: linear-gradient(135deg, var(--primary), #5b22d1);
-}
-.sp-brand-text{ display:flex; flex-direction:column; line-height:1.1; }
-.sp-brand-text strong{ font-size:14px; }
-.sp-brand-text span{ font-size:12px; color:var(--muted); }
+  position: sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:12px;
+  background:var(--surface); border-bottom:1px solid var(--line);
 
-.sp-header-actions{ display:flex; gap:8px; }
+  /* make it span the full viewport width even if parent is centered */
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  margin-right:calc(50% - 50vw);
+  padding:12px 24px;
+}
+
+/* order: brand left → actions → arrow at far right */
+.sp-brand{ display:flex; align-items:center; gap:10px; }
+.sp-logo-img{
+  width:96px;
+  height:96px;
+  object-fit:contain;
+  border-radius:12px;      /* optional */
+}
+.sp-header-actions{ order:2; margin-left:auto; display:flex; gap:12px; }
+.sp-back{
+  order:3;
+  width:44px; height:44px; border-radius:14px;
+  border:1px solid var(--line); background:#fff;
+  display:grid; place-items:center; font-size:18px; line-height:1; cursor:pointer;
+}
+
+/* same size for Notify & Settings */
+.sp-header .sp-btn{
+  height:44px; min-width:120px; padding:0 16px; border-radius:14px;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.sp-header .sp-btn.ghost{
+  background:#fff; color:var(--primary);
+  border:1px solid var(--primary-2); box-shadow:none;
+}
+
+/* mobile tweak */
+@media (max-width:560px){
+  .sp-header .sp-btn{ min-width:100px; }
+}
 
 /* Buttons */
 .sp-btn{
@@ -77,9 +100,33 @@ body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
 /* Cards */
 .sp-card{
   background:var(--surface); border:1px solid var(--line);
-  border-radius:var(--radius); box-shadow: var(--shadow); padding:16px;
+  border-radius:var(--radius); box-shadow: var(--shadow); padding:16px; gap: 24px;
 }
-.sp-card h3{ margin:0 0 10px; }
+.sp-card h3{ margin:0 0 10px; margin-top: 10px; }
+.sp-card + .sp-card { margin-top: 20px; }
+/* Mood tracker boxes */
+.sp-moods{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.sp-mood{
+  width:56px;
+  height:56px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  font-size:26px;
+  line-height:1;
+  box-shadow:var(--shadow);
+}
+.sp-mood.active{ outline:3px solid var(--ring); outline-offset:2px; }
+
 .sp-card h4{ margin:0 0 10px; font-size:14px; color:var(--muted); }
 
 /* Sidebar profile */
@@ -96,7 +143,7 @@ body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
 
 .sp-name{ margin:10px 0 2px; font-size:20px; }
 .sp-sub{ color:var(--muted); font-size:13px; }
-.sp-dx{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.sp-dx{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; justify-content: center;}
 
 .sp-stats{
   margin:14px 0 0; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;
@@ -277,3 +324,28 @@ body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
 
 /* Utilities */
 .sp-main{ display:flex; flex-direction:column; gap:16px; }
+
+/* Bigger logo + header */
+:root{ --header-h: 104px; }            /* was 72px */
+
+.sp-logo-img{
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* keep offsets correct */
+.sp-tabs{ top: var(--header-h); }
+@supports(padding-top: env(safe-area-inset-top)){
+  .sp-header{ height: calc(var(--header-h) + env(safe-area-inset-top)); }
+  .sp-page{ padding-top: calc(var(--header-h) + env(safe-area-inset-top)); }
+  .sp-tabs{ top: calc(var(--header-h) + env(safe-area-inset-top)); }
+}
+
+/* optional: smaller on phones */
+@media (max-width:560px){
+  :root{ --header-h: 84px; }
+  .sp-logo-img{ width: 64px; height: 64px; }
+}
