@@ -1,0 +1,97 @@
+/* ===== Layout ===== */
+.achv-page { min-height: 100vh; background: #f8fafc; color: #111827; }
+.achv-header { position: sticky; top:0; min-height: 70px; z-index: 10; background: rgba(255,255,255,.9); backdrop-filter: blur(6px); border-bottom: 1px solid #e5e7eb; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+.achv-header__inner { max-width: 1120px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.achv-brand { display:flex; align-items:center; gap:12px; }
+.achv-brand__img { height: 62px; width: auto; display: block; }
+.achv-brand__title { font-size: 20px; font-weight: 800; margin: 0; }
+
+.achv-main { max-width: 1120px; margin: 0 auto; padding: 32px 16px; display: grid; gap: 40px; }
+
+/* ===== Sections ===== */
+.achv-section__head { display:flex; align-items:center; justify-content: space-between; margin-bottom: 12px; }
+.achv-section__title { font-size: 18px; font-weight: 700; margin: 0; }
+.achv-section__meta { font-size: 13px; color:#6b7280; }
+.achv-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.achv-empty { border: 2px dashed #d1d5db; background:#fff; color:#6b7280; text-align:center; padding: 28px; border-radius: 14px; }
+
+/* ===== Legend ===== */
+.achv-legend { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding: 20px; }
+.achv-legend__title { font-size: 16px; font-weight:700; margin:0 0 12px; }
+.achv-legend__list { list-style:none; padding:0; margin:0; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 14px; }
+.achv-legend__item { display:flex; align-items:center; gap:8px; }
+.achv-dot { display:inline-block; width:8px; height:8px; border-radius:999px; }
+.achv-dot--bronze { background:#fb923c; }
+.achv-dot--silver { background:#9ca3af; }
+.achv-dot--gold { background:#f59e0b; }
+.achv-dot--platinum { background:#cbd5e1; }
+
+/* ===== Course Card ===== */
+.course { border:1px solid #e5e7eb; background:#fff; border-radius: 16px; overflow:hidden; box-shadow: 0 6px 16px rgba(8,15,52,.06); display:flex; flex-direction:column; }
+.course__cover { aspect-ratio: 16/6; background:#f3f4f6; }
+.course__cover img { width:100%; height:100%; object-fit:cover; display:block; }
+.course__body { padding: 20px; display:flex; flex-direction:column; gap: 14px; }
+.course__top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.course__title { margin:0; font-weight:700; font-size: 18px; line-height:1.2; }
+.course__instructor { margin:4px 0 0; color:#6b7280; font-size: 14px; }
+.course__stats { display:flex; align-items:center; justify-content:space-between; font-size:14px; color:#6b7280; }
+.course__grade { font-weight:600; color:#111827; }
+.course__earned { margin-top: 4px; }
+.course__date { margin-top:8px; color:#6b7280; font-size:12px; }
+.course__hint { display:flex; align-items:center; gap:8px; color:#6b7280; font-size:14px; }
+.course-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px; /* keeps a little space between text and badge */
+  white-space: nowrap; /* prevents wrapping */
+}
+
+.course-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  flex-shrink: 1; /* allow text to shrink a bit if needed */
+  overflow: hidden;
+  text-overflow: ellipsis; /* adds ... if too long */
+}
+
+.course-status {
+  flex-shrink: 0; /* keep badge from shrinking */
+}
+
+/* ===== Pills ===== */
+.achv-pill { display:inline-flex; align-items:center; gap:6px; padding: 6px 10px; border-radius:999px; font-size:12px; border:1px solid transparent; }
+.achv-pill .i { width:16px; height:16px; }
+.achv-pill--done { color:#065f46; background:#ecfdf5; border-color:#a7f3d0; }
+.achv-pill--lock { color:#374151; background:#f9fafb; border-color:#e5e7eb; }
+
+/* ===== Progress ===== */
+.achv-progress { width:100%; height:8px; border-radius:999px; background:#e5e7eb; overflow:hidden; }
+.achv-progress__bar { height:100%; background:#6366f1; }
+
+/* ===== Badge ===== */
+.achv-badge { position:relative; border-radius: 16px; padding: 16px; border:1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(8,15,52,.06); }
+.achv-badge__row { display:flex; align-items:center; gap:12px; }
+.achv-badge__icon { height: 48px; width: 48px; border-radius: 12px; display:grid; place-items:center; border:1px solid #e5e7eb; background:#fff; }
+.achv-badge__icon .i { width:24px; height:24px; }
+.achv-badge__label { font-size:12px; text-transform:uppercase; letter-spacing:.06em; opacity:.8; margin:0; }
+.achv-badge__title { font-size:20px; font-weight:800; margin:2px 0 0; }
+.achv-badge__grade { font-size:13px; opacity:.75; margin:4px 0 0; }
+
+/* ===== Badge tiers ===== */
+.achv-badge--platinum { background: linear-gradient(160deg,#f1f5f9,#cbd5e1); box-shadow: 0 6px 16px rgba(148,163,184,.35); border-color:#cbd5e1; }
+.achv-badge--gold { background: linear-gradient(160deg,#fffbeb,#fde68a); box-shadow: 0 6px 16px rgba(245,158,11,.25); border-color:#facc15; }
+.achv-badge--silver { background: linear-gradient(160deg,#f3f4f6,#e5e7eb); box-shadow: 0 6px 16px rgba(107,114,128,.2); border-color:#d1d5db; }
+.achv-badge--bronze { background: linear-gradient(160deg,#fff7ed,#fed7aa); box-shadow: 0 6px 16px rgba(251,146,60,.25); border-color:#fdba74; }
+.achv-badge--none { background:#f3f4f6; border-color:#e5e7eb; color:#6b7280; }
+
+/* ===== Back arrow (icon only) ===== */
+.achv-back-arrow { background: transparent; border: 0; padding: 0; line-height: 0; cursor: pointer; }
+.achv-icon-arrow { width: 26px; height: 26px; color: #7c5cff; transition: transform .15s ease; }
+.achv-back-arrow:hover .achv-icon-arrow { transform: translateX(-2px); }
+
+/* ===== Optional card image alignment helpers (if needed) ===== */
+.ach-card img { width: 100%; height: 180px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px; display: block; }
+.ach-card { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #fff; }

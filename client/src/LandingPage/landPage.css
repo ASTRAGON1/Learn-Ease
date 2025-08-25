@@ -1,0 +1,205 @@
+:root{
+  --bg:#ffffff; --text:#0f172a; --muted:#475569;
+  --primary:#6d28d9; --primary-2:#8b5cf6; --accent:#10b981;
+  --ring:rgba(109,40,217,.25); --card:#ffffff; --line:rgba(2,6,23,.08);
+  --radius:16px; --shadow:0 12px 30px rgba(2,6,23,.08); --shadow-2:0 6px 16px rgba(2,6,23,.08);
+  --container:1600px;
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+
+/* Scope helpers */
+.landPage-muted{color:var(--muted)}
+.landPage-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-2);padding:18px;margin:2px}
+
+/* Layout + typography */
+.landPage-container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+.landPage-section{padding:72px 0}
+.landPage-title{font-size:42px;line-height:1.15;margin:0 0 10px;font-weight:800}
+.landPage-subtitle{font-size:18px;color:var(--muted);margin:0 0 24px}
+
+/* Buttons */
+.landPage-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;border:1px solid transparent;background:var(--primary);color:#fff;font-weight:600;box-shadow:var(--shadow-2);cursor:pointer;transition:.2s}
+.landPage-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.landPage-btn.landPage-outline{background:#fff;color:var(--primary);border-color:var(--primary)}
+.landPage-btn.landPage-ghost{background:transparent;border-color:var(--line);color:var(--text)}
+.landPage-pill{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:999px}
+
+/* Inputs */
+input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);outline:none;transition:.2s;background:#fff;color:var(--text)}
+input::placeholder{color:#9aa4b2}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px var(--ring);border-color:var(--primary)}
+label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
+
+/* Navbar */
+.landPage-nav-wrap{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line);backdrop-filter:saturate(180%) blur(6px)}
+.landPage-nav{height:72px;display:flex;align-items:center;gap:20px}
+.landPage-brand{display:flex;align-items:center;gap:12px;font-weight:800}
+.landPage-brand img{height:32px;width:auto}
+.landPage-nav-links{margin-left:auto;display:flex;gap:18px;align-items:center}
+.landPage-nav-links a{padding:10px 12px;border-radius:10px}
+.landPage-nav-links a:hover{background:rgba(2,6,23,.05)}
+
+/* Hero */
+.landPage-hero{padding:96px 0 64px;background:linear-gradient(180deg,#faf8ff,transparent)}
+.landPage-hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:56px;align-items:center}
+.landPage-hero-badges{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.landPage-hero-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+
+/* Utility helpers */
+.landPage-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;} /* fixed comma */
+.landPage-mt-12{margin-top:12px}
+.landPage-mt-10{margin-top:10px}
+.landPage-mt-14{margin-top:25px}
+.landPage-mt-6{margin-top:6px}
+.landPage-no-margin{margin:0}
+.landPage-p-14{padding:14px}
+.landPage-grid-span-2{grid-column:1/-1}
+.landPage-sm-text{font-size:12px}
+.landPage-stat{font-size:24px;font-weight:800}
+.landPage-pad-left-18{padding-left:18px}
+.landPage-cta-row{display:flex;gap:12px;flex-wrap:wrap}
+
+/* Two-column info */
+.landPage-two-col{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+.landPage-illus{border-radius:18px;border:1px dashed var(--line);height:320px;display:grid;place-items:center;background:#fafafa;font-weight:700;color:#64748b;margin-left: 100px;}
+
+/* Teaching */
+.landPage-teaching{background:#fbfbff;border:1px solid var(--line);border-left:none;border-right:none}
+.landPage-teaching-grid{display:grid;grid-template-columns:1fr .9fr;gap:28px;align-items:center}
+.landPage-checklist{display:grid;gap:10px;margin-top:16px}
+.landPage-checklist li{display:flex;gap:10px;align-items:flex-start}
+.landPage-icon{height:24px;width:24px;border-radius:8px;display:grid;place-items:center;background:rgba(16,185,129,.12)}
+
+/* Reviews */
+.landPage-reviews{background:linear-gradient(180deg,transparent,#fbfbff)}
+.landPage-rev-row{position:relative}
+.landPage-rev-track{display:flex;gap:16px;overflow:auto;scroll-snap-type:x mandatory;padding-bottom:0; overflow-x: auto;overflow-y: hidden;-ms-overflow-style: none;scrollbar-width: none; }
+.landPage-rev-track::-webkit-scrollbar{
+  width: 0;
+  height: 0;
+}
+.landPage-rev-track::-webkit-scrollbar-thumb{ background: transparent; }
+.landPage-rev-card{scroll-snap-align:start;min-width:300px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-2);padding:18px}
+.landPage-stars{font-size:18px;color:#f59e0b}
+.landPage-rev-nav{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.landPage-rev-btn{pointer-events:auto;border-radius:50%;height:40px;width:40px;display:grid;place-items:center;border:1px solid var(--line);background:#fff}
+
+/* FAQ */
+.landPage-faq-item{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.landPage-faq-item + .landPage-faq-item{margin-top:10px}
+.landPage-faq-q{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:600}
+.landPage-faq-a{display:none;color:var(--muted);padding-top:8px}
+.landPage-faq-item.landPage-open .landPage-faq-a{display:block}
+
+/* Newsletter card */
+.landPage-news-card{
+  align-items: center;  
+  display:grid;grid-template-columns:1.2fr .8fr;gap:24px;
+  border:1px solid var(--line);border-radius:18px;padding:20px;background:#fff;box-shadow:var(--shadow)
+}
+
+/* >>> Newsletter form: joined input + button <<< */
+.landPage-news-form{
+  display:grid;
+  grid-template-columns: 1fr auto;   /* big input, auto button */
+  gap:0;                               /* no gap between them */
+  align-items:stretch;
+  justify-items:end;
+  justify-self: center;         /* center horizontally in the right column */
+  justify-items: stretch;       /* input + button fill their slots */
+  width: 100%;
+  max-width: 560px;
+}
+.landPage-news-input{
+  height:56px;
+  background:#fff !important;         /* prevent forced dark inputs */
+  color:var(--text);
+  border:1px solid var(--line);
+  border-right:none;                   /* fuse with button */
+  border-radius:14px 0 0 14px;
+  box-shadow:var(--shadow-2);
+}
+.landPage-btn-news{
+  height:56px;
+  padding:0 22px;
+  border-radius:0 14px 14px 0;
+  box-shadow:var(--shadow-2);
+}
+
+/* Footer */
+footer{background:#0b1020;color:#cbd5e1;margin-top:60px}
+.landPage-foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:20px;padding:36px 0}
+.landPage-foot a{color:#cbd5e1}
+.landPage-foot small{color:#94a3b8}
+.landPage-logo-lockup{display:flex;align-items:center;gap:10px;font-weight:800;justify-content: center;}
+.landPage-logo-lockup img{height:28px;width:auto}
+.landPage-link-col{display:grid;gap:8px;margin-top:10px}
+.landPage-copyright{border-top:1px solid rgba(255,255,255,.08);padding:16px 0;color:#94a3b8;text-align:center}
+
+/* Responsive */
+@media (max-width: 1200px){
+  :root{ --container:1120px; }
+  .landPage-hero-grid{grid-template-columns:1.2fr 1fr}
+}
+@media (max-width: 980px){
+  .landPage-hero-grid,
+  .landPage-two-col,
+  .landPage-teaching-grid,
+  .landPage-news-card,
+  .landPage-foot{grid-template-columns:1fr}
+  .landPage-nav-links{gap:10px}
+  .landPage-title{font-size:32px}
+
+  /* stack input and button on small screens */
+  .landPage-news-form{
+    grid-template-columns:1fr;
+    gap:10px;
+    justify-items:stretch;
+  }
+  .landPage-news-input{
+    border-right:1px solid var(--line);
+    border-radius:14px;
+  }
+  .landPage-btn-news{border-radius:14px}
+  .landPage-news-card{ grid-template-columns: 1fr 1fr; }
+}
+
+/* viewport hides overflow */
+.landPage-rev-viewport{
+  position: relative;
+  overflow: hidden;
+}
+
+/* base track overrides (we don't want scrollbars/snap here) */
+.landPage-rev-track{
+  display: flex;
+  gap: 16px;
+  overflow: visible;          /* no scrollbars */
+  scroll-snap-type: none;
+  padding-bottom: 0;
+  width: max-content;
+}
+
+/* auto-scrolling loop: two copies -> move by half width */
+.landPage-auto{
+  animation: landPage-marquee var(--landPage-rev-speed, 40s) linear infinite;
+}
+.landPage-auto:hover{ animation-play-state: paused; } /* optional pause on hover */
+
+@keyframes landPage-marquee{
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* slides one full set */
+}
+
+/* optional: hide nav if present */
+.landPage-rev-nav{ display:none; }
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .landPage-auto{ animation: none; }
+}

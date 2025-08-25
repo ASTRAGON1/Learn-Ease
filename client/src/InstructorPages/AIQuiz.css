@@ -1,0 +1,125 @@
+/* AIQuiz.css */
+:root{
+  --purple:#5b22d1;
+  --purple2:#4a17b8;
+  --ink:#12131a;
+  --muted:#6e7280;
+  --bg:#f7f7fb;
+  --card:#ffffff;
+  --border:#e7e9f2;
+  --green:#1f9d57;
+  --green-bg:#e8f7ef;
+  --red:#c1352b;
+  --red-bg:#ffeaea;
+}
+
+*{ box-sizing:border-box; }
+html,body{ max-width:100%; overflow-x:hidden; }
+body{ background:var(--bg); }
+
+.qzInst-page{
+  max-width:1180px; margin:0 auto; padding:32px 18px 80px;
+  font-family:Inter,system-ui,Arial,sans-serif; color:var(--ink);
+}
+
+.qzInst-title{ text-align:center; font-size:32px; font-weight:900; margin:10px 0 40px; }
+
+.qzInst-card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:18px 20px; margin-bottom:18px;
+}
+
+.qzInst-sub{ margin:4px 0 12px; font-size:16px; font-weight:800; }
+
+.qzInst-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; text-align:left; }
+@media (max-width:920px){ .qzInst-grid{ grid-template-columns:1fr; } }
+
+.qzInst-field{ display:flex; flex-direction:column; gap:6px; }
+.qzInst-field label{ font-size:15px; font-weight:700; color:#333; }
+
+.qzInst-smallmuted{ color:var(--muted); font-size:12px; margin:2px 0 8px; }
+
+.qzInst-input{
+  height:40px; padding:0 12px; background:#fff; border:1px solid var(--border);
+  border-radius:10px; outline:none; font-size:14px; color:black;
+}
+.qzInst-input:focus{ border-color:#b7a8ff; box-shadow:0 0 0 3px rgba(91,34,209,.12); }
+
+.qzInst-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+.qzInst-pills{ display:flex; gap:10px; flex-wrap:wrap; }
+.qzInst-pill{
+  padding:8px 14px; border-radius:999px; border:1px solid #eadfff;
+  background:#f3ecff; color:var(--purple2); font-weight:700; cursor:pointer;
+}
+.qzInst-pill.qzInst-active{ background:var(--purple); color:#fff; border-color:transparent; }
+
+.qzInst-form-actions{
+  display:flex; justify-content:flex-end; gap:8px; margin-top:12px;
+}
+.qzInst-primary{
+  height:40px; padding:0 16px; border-radius:10px; border:0;
+  background:linear-gradient(90deg,var(--purple),#7b57e6); color:#fff; font-weight:800; cursor:pointer;
+}
+.qzInst-secondary{
+  height:40px; padding:0 16px; border-radius:10px; border:1px solid #e3defe;
+  background:#f1eefc; color:#3f22a6; font-weight:700; cursor:pointer;
+}
+
+.qzInst-results-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.qzInst-results-head .qzInst-meta{ color:var(--muted); font-size:12px; }
+
+.qzInst-list{ padding-left:20px; display:flex; flex-direction:column; gap:12px; }
+.qzInst-q-card{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; }
+.qzInst-q{ font-weight:700; margin-bottom:8px; }
+
+.qzInst-answers{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+.qzInst-ans{
+  padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+  background:#fff; font-weight:600;
+}
+.qzInst-ans.qzInst-correct{ background:var(--green-bg); border-color:#bfead4; color:var(--green); }
+.qzInst-ans.qzInst-wrong{ background:var(--red-bg); border-color:#ffd2cf; color:var(--red); }
+
+.qzInst-legend{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; margin-top:8px; }
+.qzInst-dot{ width:10px; height:10px; border-radius:999px; display:inline-block; }
+.qzInst-dot.qzInst-green{ background:var(--green); }
+.qzInst-dot.qzInst-red{ background:var(--red); }
+.qzInst-sep{ width:12px; }
+
+.qzInst-lists{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media (max-width:920px){ .qzInst-lists{ grid-template-columns:1fr; } }
+
+.qzInst-mini-list{ list-style:none; padding:0; margin:8px 0 0; display:flex; flex-direction:column; gap:10px; }
+.qzInst-mini-list li{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+}
+.qzInst-mini{ font-size:12px; color:var(--muted); }
+.qzInst-link{ background:none; border:0; color:#5120d6; font-weight:800; cursor:pointer; }
+.qzInst-link.qzInst-danger{ color:#b01b1b; }
+
+/* Top back link */
+.qzInst-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin-bottom:6px;
+}
+
+.qzInst-back{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  color:black;
+  font-weight:800;
+  text-decoration:none;
+  line-height:1;
+}
+
+.qzInst-back .qzInst-chev{
+  font-size:23px;
+  line-height:1;
+  transform: translateY(-1px);
+}

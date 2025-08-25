@@ -1,217 +1,81 @@
-.curr-section {
-  margin: 60px 0;
-  margin-bottom: 300px;
-  padding: 0 24px;
+/* === LearningPaths (topics + courses collapsible) === */
+:root {
+  --primary: #4A0FAD;
+  --accent: #9C6FE4;
+  --accent60: rgba(156,111,228,0.6);
+  --card: #ffffff;
+  --text: #111111;
+  --muted: #666666;
+  --border: #e9e5f6;
 }
 
-/* switcher between the two curricula */
-.curr-switcher {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.curr-switch-btn {
-  background: none;
-  border: 2px solid #5b22d1;
-  color: #5b22d1;
-  padding: 6px 12px;
-  border-radius: 6px;
+/* container + section header */
+.le-content { padding: 22px; display: grid; gap: 18px; }
+.section-title { display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px; }
+.section-title h2 { margin: 0; font-size: 22px; }
+.sub { color: var(--muted); font-size: 13px; }
+
+/* blocks */
+.list { display:grid; gap: 10px; }
+.list-item { background: var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; }
+.row { display:flex; align-items:center; gap: 10px; flex-wrap: wrap; }
+
+/* badge */
+.badge { display:inline-flex; align-items:center; gap:6px; padding: 6px 10px; border-radius: 20px; font-size: 12px; border:1px solid var(--border); background:#fff; }
+.badge.purple { border-color:#E9D7FE; background:#F4EBFF; }
+
+/* collapsible (topics + courses) */
+details.list-item { padding: 12px; }
+details.list-item[open] { padding-bottom: 12px; }
+
+details.list-item > summary {
+  position: relative;
   cursor: pointer;
-}
-.curr-switch-btn.active {
-  background: #5b22d1;
-  color: white;
-}
-
-/* section title */
-.curr-title {
-  margin: 0 0 32px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #000;
-}
-
-/* labels row */
-.curr-labels {
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-  width: 1282px;
-  max-width: 100%;
-  margin: 0 auto 8px;
-  padding: 0; /* inset first/last labels slightly */
-  padding-left: 0px;
-}
-
-
-.curr-labels .curr-label:nth-child(5) {
-  padding-left: 10px; /* tweak this value to taste */
-}
-.curr-labels .curr-label:nth-child(6) {
-  padding-left: 30px; /* tweak this value to taste */
-}
-.curr-labels .curr-label:nth-child(7) {
-  padding-left: 20px; /* tweak this value to taste */
-}
-.curr-label {
-  font-size: 14px;
-  line-height: 1.2;
-  color: #5b22d1;
-  text-align: center;
-  width: 120px;
-  word-wrap: break-word;
-}
-
-/* timeline container */
-.curr-timeline {
+  user-select: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 1282px;
-  max-width: 100%;
-  margin: 0 auto 32px;
-  position: relative;
+  gap: 10px;
+  padding: 10px 12px 10px 28px; /* room for caret */
+  border-radius: 8px;
+  margin: -6px -6px 0;          /* stretch hover a bit */
 }
 
-/* connecting line */
-.curr-timeline::before {
-  content: '';
+details.list-item > summary:hover { background: #faf7ff; }
+details.list-item > summary::-webkit-details-marker { display: none; }
+
+/* custom caret */
+details.list-item > summary::before {
+  content: "▸";
   position: absolute;
+  left: 10px;
   top: 50%;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: #b8b1f0;
   transform: translateY(-50%);
-  border-radius: 3px;
+  font-size: 12px;
+  color: var(--primary);
+  transition: transform .2s ease;
+}
+details.list-item[open] > summary::before {
+  transform: translateY(-50%) rotate(90deg);
 }
 
-/* each point (circle) */
-.curr-point {
-  position: relative;
-  cursor: pointer;
-  z-index: 1; /* above the line */
+/* nesting polish */
+details.list-item.topic > .list {
+  margin-top: 8px;
+  border-left: 2px dashed #f0ecff;
+  padding-left: 10px;
 }
-.curr-circle {
-  width: 32px;
-  height: 32px;
-  background: #b8b1f0;
-  border-radius: 50%;
-}
-.curr-point.active .curr-circle {
-  background: #5b22d1;
+details.list-item.course > summary { padding-left: 34px; }
+details.list-item.course > summary::before { left: 16px; }
+details.list-item.course > .list {
+  margin-top: 8px;
+  padding-left: 6px;
 }
 
-/* details panel */
-.curr-details {
-  width: 1282px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: start;
-}
+/* gentle hover for non-summary rows (lessons) */
+.list-item .row:hover { background: #faf7ff; border-radius: 8px; }
 
-/* group title */
-.curr-group {
-  margin-bottom: 16px;
-}
-.curr-group-title {
-  position: relative;
-  padding-left: 16px;
-  font-weight: 500;
-  color: #5b22d1;
-}
-.curr-group-title::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 6px;
-  width: 8px;
-  height: 2px;
-  background: #5b22d1;
-}
-
-/* nested lesson list */
-.curr-lesson-list {
-  list-style: none;
-  margin: 8px 0 0 24px;
-  padding: 0;
-  border-left: 2px solid #5b22d1;
-}
-.curr-lesson {
-  position: relative;
-  padding: 4px 0 4px 16px;
-  color: #5b22d1;
-}
-.curr-lesson::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 8px;
-  height: 2px;
-  background: #5b22d1;
-  transform: translateY(-50%);
-}
-
-/* fallback if no details */
-.curr-no-details {
-  color: #666;
-  font-style: italic;
-}
-
-/* ============================= */
-/* STYLE ONLY the .curr-details MUI tree */
-/* ============================= */
-
-.curr-details {
-  /* center and constrain */
-  max-width: 500px;
-  margin: 16px auto;
-  padding: 0;
-}
-
-.curr-details .MuiTreeView-root {
-  /* take only the space you need */
-  width: fit-content;
-  background: transparent;  
-}
-
-.curr-details .MuiTreeItem-root {
-  margin-bottom: 4px;
-}
-
-.curr-details .MuiTreeItem-content {
-  padding: 4px 8px;
-  background: transparent;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.curr-details .MuiTreeItem-content:hover {
-  background-color: rgba(91, 34, 209, 0.08);
-}
-
-.curr-details .MuiTreeItem-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #5b22d1;
-}
-
-.curr-details .MuiTreeItem-group {
-  /* indent child lessons */
-  margin-left: 16px;
-  font: 500;
-  border-left: 2px dashed #b8b1f0;
-  padding-left: 8px;
-}
-
-.curr-details .MuiTreeItem-iconContainer,
-.curr-details .MuiSvgIcon-root {
-  color: #5b22d1;
-  font-size: 18px;
-}
-
-.curr-details .curr-lesson-item .MuiTreeItem-label {
-  font-weight: 500 !important;
-  font-size: 14px;
-}
+/* optional buttons (not used here, kept for consistency) */
+.btn { border:0; background: var(--primary); color:white; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight:700; }
+.btn.small { padding: 6px 10px; border-radius: 8px; font-size: 12px; }
+.btn.ghost { background: transparent; color: var(--primary); border: 1px solid var(--primary); }

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./SidebarLayout.css";
 import fullLogo from "../assets/fullLogo.png";
 import smallLogo from "../assets/simpleLogo.png";
@@ -7,6 +8,7 @@ import icCourse from "../assets/course.png";
 import icPerformance from "../assets/performance2.png";
 import icCurriculum from "../assets/curriculum.png";
 import icResources from "../assets/resources.png";
+import icProfile from "../assets/Profile.png";
 
 export default function SidebarLayout({
   collapsed = true,
@@ -19,6 +21,7 @@ export default function SidebarLayout({
     { key: "performance", icon: icPerformance, label: "Performance" },
     { key: "curriculum",  icon: icCurriculum,  label: "Curriculum" },
     { key: "resources",   icon: icResources,   label: "Resources" },
+    { key: "Profile",   icon: icProfile,   label: "Profile" },
   ];
 
   const handleEnter = () => { if (collapsed) onToggleCollapsed?.(); };
@@ -42,10 +45,17 @@ export default function SidebarLayout({
         <ul className="nav-main">
           {items.map((it) => (
             <li key={it.key} className={activeKey === it.key ? "active" : ""}>
+              {it.key === "Profile" ? (
+              <Link to="/ProfileSettings" className="nav-link">
+                <img className="nav-icon" src={it.icon} alt="" />
+                <span className="label">{it.label}</span>
+              </Link>
+            ) : (
               <button onClick={() => onNavigate(it.key)}>
                 <img className="nav-icon" src={it.icon} alt="" />
                 <span className="label">{it.label}</span>
               </button>
+            )}
             </li>
           ))}
         </ul>

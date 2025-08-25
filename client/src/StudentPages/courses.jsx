@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
-import { NavLink, Link } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; // ← single import
 import "./Courses.css";
 import cover from "../assets/quizpic.png";
-import brand from "../assets/simpleLogo.png";
+
 
 /* ---- demo data ---- */
 const DATA = [
@@ -14,49 +14,7 @@ const DATA = [
   { id: "c6", title: "Public Speaking Basics", desc: "Present with clarity.", author: "Shams Tabrez", lessons: 7,  quizzes: 4, category: "Speaking",   level: "Beginner",    cover, featured: true  },
 ];
 
-/* ---------- sidebar ---------- */
-const linkClass = ({ isActive }) => "sb-btn" + (isActive ? " active" : "");
-
-function Sidebar() {
-  return (
-    <aside className="qz-sb">
-      {/* Logo -> Personalized Path hub */}
-      <Link to="/personalized" className="sb-brand" aria-label="Home">
-        <img src={brand} alt="LearnEase" />
-      </Link>
-
-      <NavLink to="/personalized" className={linkClass} aria-label="Personalized Path">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M2 10l10-5 10 5-10 5L2 10z" stroke="currentColor" strokeWidth="2" />
-          <path d="M6 12v5c0 .6 3 3 6 3s6-2.4 6-3v-5" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </NavLink>
-
-      <NavLink to="/ideas" className={linkClass} aria-label="Ideas">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18h6M10 21h4M12 3a7 7 0 00-4 12c.7.7 1 1.5 1 3h6c0-1.5.3-2.3 1-3a7 7 0 00-4-12z" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </NavLink>
-
-      <NavLink to="/messages" className={linkClass} aria-label="Messages">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4v8z" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </NavLink>
-
-      <NavLink to="/live" className={linkClass} aria-label="Live">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M2 8a10 10 0 0120 0M5 10a7 7 0 0114 0M8 12a4 4 0 018 0" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </NavLink>
-
-      <div className="sb-spacer" />
-      <Link to="/profile" className="sb-user" aria-label="Profile">😊</Link>
-    </aside>
-  );
-}
-
-/* ---------- course card ---------- */
+/* ---- single course card ---- */
 function CourseCard({ item }) {
   return (
     <article className={`crs-card ${item.featured ? "dark" : ""}`}>
@@ -82,27 +40,26 @@ function CourseCard({ item }) {
           </div>
         </div>
 
-        <div className="crs-actions-row">
-          <button className="crs-btn ghost">Details</button>
-          <button className="crs-btn primary">Enroll</button>
-        </div>
+<div className="crs-actions-row">
+  <Link to="/CoursePlayer" className="crs-btn ghost">Details</Link>
+</div>
+
       </div>
     </article>
   );
 }
 
-/* ---------- page ---------- */
-export default function Courses({ embedded = false, onBack }) {
-  const [q, setQ] = useState("");
+/* ---- page ---- */
+export default function Courses() {
+  const navigate = useNavigate();
+  const [q, setQ]   = useState("");
   const [tag, setTag] = useState("All");
 
-  // Build tags safely (trim categories)
   const tags = useMemo(() => {
     const cats = Array.from(new Set(DATA.map(d => (d.category || "").trim())));
     return ["All", ...cats];
   }, []);
 
-  // Filter with trimmed category + search term
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
     return DATA.filter(d => {
@@ -116,61 +73,53 @@ export default function Courses({ embedded = false, onBack }) {
     });
   }, [q, tag]);
 
+  // stagger fade-up for cards
+  useEffect(() => {
+    document.querySelectorAll(".crs-card").forEach((el, i) => {
+      el.style.animationDelay = `${i * 60}ms`;
+    });
+  }, [list.length]);
+
   return (
-    <div className={embedded ? "crs-embedded" : "qz-layout"}>
-      {!embedded && <Sidebar />}
+    <div className="crs-page">
+      <header className="crs-head">
+        <div className="crs-head-left">
 
-      <div className="qz-content">
-        <div className="crs-page">
-          <header className="crs-head">
-            <div>
-              <h1>Course Catalog</h1>
-              <p className="crumbs">My Courses / catalog</p>
-            </div>
-
-            <div className="crs-actions">
-              {embedded && (
-                <button
-                  className="icon-btn back"
-                  aria-label="Back"
-                  onClick={() => onBack?.()}
-                  title="Back"
-                >
-                  ←
-                </button>
-              )}
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="search"
-                className="crs-search"
-              />
-              <button className="icon-btn" aria-label="Search">🔍</button>
-            </div>
-          </header>
-
-          <div className="crs-tags">
-            {tags.map((t) => (
-              <button
-                key={t}
-                className={`crs-tag ${tag === t ? "active" : ""}`}
-                onClick={() => setTag(t)}
-              >
-                {t}
-              </button>
-            ))}
+          <div className="crs-titlebox">
+            <h1>Course Catalog</h1>
+            <p className="crumbs">My Courses / catalog</p>
           </div>
-
-          <section className="crs-grid">
-            {list.map((item) => (
-              <CourseCard key={item.id} item={item} />
-            ))}
-            {!list.length && (
-              <div className="crs-empty">No courses match your search.</div>
-            )}
-          </section>
         </div>
+
+        <div className="crs-actions">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="search"
+            className="crs-search"
+          />
+          <button className="icon-btn" aria-label="Search">🔍</button>
+        </div>
+      </header>
+
+      <div className="crs-tags">
+        {tags.map((t) => (
+          <button
+            key={t}
+            className={`crs-tag ${tag === t ? "active" : ""}`}
+            onClick={() => setTag(t)}
+          >
+            {t}
+          </button>
+        ))}
       </div>
+
+      <section className="crs-grid">
+        {list.map((item) => (
+          <CourseCard key={item.id} item={item} />
+        ))}
+        {!list.length && <div className="crs-empty">No courses match your search.</div>}
+      </section>
     </div>
   );
 }

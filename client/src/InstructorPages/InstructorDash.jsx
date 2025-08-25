@@ -96,7 +96,7 @@ export default function InstructorDashboard() {
 
         <div className="improve-section">
           <h2 className="title-improvement">Improve yourself to get better results!</h2>
-          <button className="improve-btn">Teaching center</button>
+          <Link to="/teachingCenter" className="improve-btn">Teaching center</Link>
         </div>
       </div>
     );
@@ -104,18 +104,15 @@ export default function InstructorDashboard() {
 
   function CurriculumWrapper() {
     return (
-      <div className="perf-container" style={{ marginLeft: collapsed ? 94 : 370, paddingTop: 60 }}>
-        <Link to="/InstructorDash" className="dahsboard-back">‹ Dashboard</Link>
-        <CurriculumSection />
-      </div>
+      <Curriculum />
     );
   }
 
   function ResourcesSection() {
     const items = [
-      { title: "Teaching Center",       img: teachPic,  link: "/resources/teaching-center", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
-      { title: "Instructor Community",  img: community,  link: "/resources/instructor-community", paragraph: "Share your progress and ask other instructors questions in our community."},
-      { title: "Help and support",      img: feedbackSupport,    link: "/resources/help-support", paragraph: "Can’t find what you need? Our support team is happy to help." },
+      { title: "Teaching Center",       img: teachPic,  link: "/TeachingCenter", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
+      { title: "Instructor Community",  img: community,  link: "/InstructorCommunity", paragraph: "Share your progress and ask other instructors questions in our community."},
+      { title: "Help and support",      img: feedbackSupport,    link: "/HelpAndSupport", paragraph: "Can’t find what you need? Our support team is happy to help." },
     ];
 
     return (
@@ -143,7 +140,7 @@ export default function InstructorDashboard() {
         onNavigate={setActive}
       />
 
-      <main className="dash-home">
+      <main className={`dash-home ${active === "curriculum" ? "is-curriculum" : ""}`}>
         {active === "course" && (
           <div className="dash">
             <h1 className="dash-title">Welcome {name}, ready to teach?</h1>
@@ -151,7 +148,7 @@ export default function InstructorDashboard() {
             <div className="dash-row">
               <div className="jump-card">
                 <span className="jump-text">Jump Into Course Creation</span>
-                <Link to="/InstructorUpload" className="btn-primary">Create Your Course</Link>
+                <Link to="/InstructorUpload" className="InstructorDash-btn-primary">Create Your Course</Link>
               </div>
             </div>
 
@@ -171,7 +168,7 @@ export default function InstructorDashboard() {
                   follow on our platform — perfect for assessing
                   student progress quickly and effectively.
                 </p>
-                <button className="btn-primary sm">Generate</button>
+                <Link to="/ai-quiz" className="btn-primary sm">Generate</Link>
               </div>
             </div>
 
@@ -187,7 +184,9 @@ export default function InstructorDashboard() {
               <div className="mini-card">
                 <h4>Community & Support</h4>
                 <p>Ask questions, share tips, and connect with other instructors.</p>
-                <button className="btn-primary sm">Join Now</button>
+                <Link to="/InstructorCommunity" className="btn-primary sm">Join Now</Link>
+
+
               </div>
             </div>
 
@@ -197,13 +196,13 @@ export default function InstructorDashboard() {
               </h3>
 
               <div className="res-grid">
-                <Link to="/resources/test-video" className="res-item">
+                <Link to="/teachingCenter" className="res-item">
                   <img src={testPath} alt="Test Video" className="res-icon" />
                   <h5 className="res-title">Test Video</h5>
                   <p className="res-desc">See how your videos gets treated</p>
                 </Link>
 
-                <Link to="/resources/community" className="res-item">
+                <Link to="/InstructorCommunity" className="res-item">
                   <img src={community} alt="Community" className="res-icon" />
                   <h5 className="res-title">Community</h5>
                   <p className="res-desc">
@@ -211,7 +210,7 @@ export default function InstructorDashboard() {
                   </p>
                 </Link>
 
-                <Link to="/resources/how-to-teach" className="res-item">
+                <Link to="/teachingCenter" className="res-item">
                   <img src={teachPic} alt="How to teach" className="res-icon" />
                   <h5 className="res-title">How to teach in LearnEase</h5>
                   <p className="res-desc">
@@ -219,14 +218,14 @@ export default function InstructorDashboard() {
                   </p>
                 </Link>
 
-                <Link to="/resources/performance" className="res-item">
+                <Link to="/InstructorDash" className="res-item">
                   <img src={performanceIcon} alt="Performance" className="res-icon" />
                   <h5 className="res-title">Performance</h5>
                   <p className="res-desc">
                     See how students like your contents, quiz results analysis, and more.
                   </p>
                 </Link>
-                <Link to="/resources/feedback-support" className="res-item">
+                <Link to="/HelpAndSupport" className="res-item">
                   <img src={feedbackSupport} alt="Feedback & Support" className="res-icon" />
                   <h5 className="res-title">Feedback & Support</h5>
                   <p className="res-desc">Get feedback and support from students.</p>
@@ -242,7 +241,14 @@ export default function InstructorDashboard() {
         )}
 
         {active === "performance" && <PerformanceSection />}
-        {active === "curriculum" && <CurriculumSection />}
+        {active === "curriculum" && (
+          <div
+            className="curriculum-wrap"
+            style={{ marginLeft: collapsed ? 44 : 320 }}
+          >
+            <CurriculumSection />
+          </div>
+        )}
         {active === "resources"  && <ResourcesSection />}
       </main>
 

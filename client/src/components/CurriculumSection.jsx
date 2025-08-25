@@ -1,143 +1,130 @@
-import React, { useState } from 'react';
-import './CurriculumSection.css';
-import Box from '@mui/material/Box';
-import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
-import { TreeItem }       from '@mui/x-tree-view/TreeItem';
+import React from "react";
+import "./CurriculumSection.css";
 
-
-const curriculumData = [
+const USER_CURRICULUM = Object.freeze([
   {
-    key: 'autism',
-    title: 'General path for Autism students',
+    key: "autism",
+    title: "General path for Autism students",
     items: [
-      { label: 'Listening Skills',
-        subsections: [
-            {
-              title: 'Listening 1 – Understanding Emotions',
-              lessons: [
-                'Lesson 1 – Identifying Happy and Sad',
-                'Lesson 2 – Recognizing Angry and Calm Faces',
-                'Lesson 3 – Matching Emotions to Situations',
-                'Lesson 4 – Facial Expressions Practice',
-                'Lesson 5 – Responding to Emotions in Others',
-              ],
-            },
-            { title: 'Listening 2 – Asking for Help' },
-            { title: 'Listening 3 – Expressing Needs' },
-            { title: 'Listening 4 – Listening and Responding' },
-            { title: 'Listening 5 – Daily Conversations' },
-          ],
-      },
       {
-        label: 'Speaking & Communication',
+        label: "Listening Skills",
         subsections: [
           {
-            title: 'Communication 1 – Understanding Emotions',
+            title: "Listening 1 – Understanding Emotions",
             lessons: [
-              'Lesson 1 – Identifying Happy and Sad',
-              'Lesson 2 – Recognizing Angry and Calm Faces',
-              'Lesson 3 – Matching Emotions to Situations',
-              'Lesson 4 – Facial Expressions Practice',
-              'Lesson 5 – Responding to Emotions in Others',
+              "Lesson 1 – Identifying Happy and Sad",
+              "Lesson 2 – Recognizing Angry and Calm Faces",
+              "Lesson 3 – Matching Emotions to Situations",
+              "Lesson 4 – Facial Expressions Practice",
+              "Lesson 5 – Responding to Emotions in Others",
             ],
           },
-          { title: 'Communication 2 – Asking for Help' },
-          { title: 'Communication 3 – Expressing Needs' },
-          { title: 'Communication 4 – Listening and Responding' },
-          { title: 'Communication 5 – Daily Conversations' },
+          { title: "Listening 2 – Asking for Help" },
+          { title: "Listening 3 – Expressing Needs" },
+          { title: "Listening 4 – Listening and Responding" },
+          { title: "Listening 5 – Daily Conversations" },
         ],
       },
-      { label: 'Reading Comprehension' },
-      { label: 'Writing Practice' },
-      { label: 'Math Basics' },
-      { label: 'Daily Life Skills' },
-      { label: 'Social Interaction' },
-      { label: 'Emotional Recognition & Expression' },
+      {
+        label: "Speaking & Communication",
+        subsections: [
+          {
+            title: "Communication 1 – Understanding Emotions",
+            lessons: [
+              "Lesson 1 – Identifying Happy and Sad",
+              "Lesson 2 – Recognizing Angry and Calm Faces",
+              "Lesson 3 – Matching Emotions to Situations",
+              "Lesson 4 – Facial Expressions Practice",
+              "Lesson 5 – Responding to Emotions in Others",
+            ],
+          },
+          { title: "Communication 2 – Asking for Help" },
+          { title: "Communication 3 – Expressing Needs" },
+          { title: "Communication 4 – Listening and Responding" },
+          { title: "Communication 5 – Daily Conversations" },
+        ],
+      },
+      { label: "Reading Comprehension" },
+      { label: "Writing Practice" },
+      { label: "Math Basics" },
+      { label: "Daily Life Skills" },
+      { label: "Social Interaction" },
+      { label: "Emotional Recognition & Expression" },
+      { label: "How to talk to girls like a boss" },
     ],
   },
   {
-    key: 'down',
-    title: 'General path for Down syndrome students',
+    key: "down",
+    title: "General path for Down syndrome students",
     items: [
-      { label: 'Basic Communication Skills' },
-      { label: 'Reading and Phonics' },
-      { label: 'Writing and Drawing' },
-      { label: 'Number Recognition & Counting' },
-      { label: 'Personal Hygiene and Self-care' },
-      { label: 'Daily Routines & Independence' },
-      { label: 'Emotional Understanding' },
-      { label: 'Social Skills and Group Activities' },
+      { label: "Basic Communication Skills" },
+      { label: "Reading and Phonics" },
+      { label: "Writing and Drawing" },
+      { label: "Number Recognition & Counting" },
+      { label: "Personal Hygiene and Self-care" },
+      { label: "Daily Routines & Independence" },
+      { label: "Emotional Understanding" },
+      { label: "Social Skills and Group Activities" },
     ],
   },
-];
+]);
 
 export default function CurriculumSection() {
-  const [activeSectionKey, setActiveSectionKey] = useState('autism');
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const section = curriculumData.find((s) => s.key === activeSectionKey);
-
   return (
-    <div className="curr-section">
-      {/* toggle between the two paths */}
-      <div className="curr-switcher">
-        {curriculumData.map((s) => (
-          <button
-            key={s.key}
-            className={`curr-switch-btn ${
-              s.key === activeSectionKey ? 'active' : ''
-            }`}
-            onClick={() => {
-              setActiveSectionKey(s.key);
-              setActiveIndex(0);
-            }}
-          >
-            {s.key === 'autism' ? 'Autism path' : 'Down syndrome path'}
-          </button>
-        ))}
-      </div>
+    <div className="le-content">
+      <div className="section-title"><h2>Learning Paths</h2></div>
+      <div className="sub">Two paths: Autism and Down Syndrome.</div>
 
-      <h3 className="curr-title">{section.title}</h3>
+      <div className="list" style={{ marginTop: 12 }}>
+        {USER_CURRICULUM.map((path) => (
+          <div key={path.key} className="list-item">
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div className="row">
+                <span className="badge purple">{path.title}</span>
+              </div>
+              <span className="sub">{path.items.length} topics</span>
+            </div>
 
-      {/* timeline */}
-      <div className="curr-labels">
-            {section.items.map((it, i) => (
-            <div key={i} className="curr-label">{it.label}</div>
-            ))}
-        </div>
-      <div className="curr-timeline">
-        {section.items.map((it, i) => (
-          <div
-            key={i}
-            className={`curr-point ${activeIndex === i ? 'active' : ''}`}
-            onClick={() => setActiveIndex(i)}
-          >
-            <div className="curr-circle" />
+            <div className="list" style={{ marginTop: 10 }}>
+              {path.items.map((topic, ti) => (
+                <details key={ti} className="list-item topic" >
+                  <summary className="row" style={{ justifyContent: "space-between" }}>
+                    <div className="row"><strong>{topic.label}</strong></div>
+                    <span className="sub">
+                      {topic.subsections ? `${topic.subsections.length} courses` : "No courses"}
+                    </span>
+                  </summary>
+
+                  {topic.subsections && (
+                    <div className="list" style={{ marginTop: 8 }}>
+                      {topic.subsections.map((course, ci) => (
+                        <details key={ci} className="list-item course" >
+                          <summary className="row" style={{ justifyContent: "space-between" }}>
+                            <div className="row"><b>{course.title}</b></div>
+                            <span className="sub">
+                              {course.lessons ? `${course.lessons.length} lessons` : "No lessons"}
+                            </span>
+                          </summary>
+
+                          {course.lessons && (
+                            <div className="list" style={{ marginTop: 8 }}>
+                              {course.lessons.map((lesson, li) => (
+                                <div key={li} className="row" style={{ justifyContent: "space-between" }}>
+                                  <span>{lesson}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </details>
+                      ))}
+                    </div>
+                  )}
+                </details>
+              ))}
+            </div>
           </div>
         ))}
-        
-        </div>
-
-        {activeIndex !== null && section.items[activeIndex].subsections && (
-        <Box className="curr-details" sx={{ minWidth: 550 }}>
-            <SimpleTreeView>
-            {section.items[activeIndex].subsections.map((sub, j) => (
-                <TreeItem key={j} itemId={`sub-${j}`} label={sub.title}>
-                {sub.lessons?.map((lesson, k) => (
-                    <TreeItem
-                        key={k}
-                        itemId={`les-${j}-${k}`}
-                        label={lesson}
-                        className="curr-lesson-item"
-                    />
-                    ))}
-
-                </TreeItem>
-            ))}
-            </SimpleTreeView>
-        </Box>
-        )}
-
+      </div>
     </div>
   );
 }

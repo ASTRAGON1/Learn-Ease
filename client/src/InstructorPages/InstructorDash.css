@@ -52,7 +52,7 @@
 .dash-root .jump-text{ font-size: 20px; font-weight: 500; color: #1a1a1f; }
 
 /* Primary button */
-.dash-root .btn-primary{
+.dash-root .InstructorDash-btn-primary{
   background: #5b22d1;
   color: #fff;
   border: 0;
@@ -65,8 +65,8 @@
   box-shadow: 0 8px 22px rgba(91,34,209,.18);
   transition: background .15s ease;
 }
-.dash-root .btn-primary:hover{ background: #4a17b8; }
-.dash-root .btn-primary.sm{ width:auto; height:auto; padding:10px 18px; border-radius:8px; }
+.dash-root .InstructorDash-btn-primary:hover{ background: #4a17b8; }
+.dash-root .InstructorDash-btn-primary.sm{ width:auto; height:auto; padding:10px 18px; border-radius:8px; }
 
 /* Helper line */
 .dash-root .hint{
@@ -186,10 +186,37 @@ border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; curso
 
 /* Improve section */
 .dash-root .improve-section { text-align:center; padding:80px 0; }
-.dash-root .title-improvement { color:black; margin:0 auto; font-size:28px; font-weight:700; line-height:1.2; }
-.dash-root .improve-btn {
+.dash-root .title-improvement { color:#000; margin:0 auto; font-size:28px; font-weight:700; line-height:1.2; }
+.improve-btn, .improve-btn:visited {
+  display: inline-flex;            /* makes width/height work on <a> */
+  align-items: center;
+  justify-content: center;
+  width: 366px;
+  height: 64px;
+  background: #9C6FE4;
+  color: #fff;
+  text-decoration: none;           /* remove underline on <a> */
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0,0,0,.06);
+  transition: background-color .2s;
+}
+.improve-btn {
   margin-top:32px; width:366px; height:64px; background-color:#9C6FE4; color:#fff; border:none; border-radius:12px;
   font-size:18px; font-weight:600; cursor:pointer; box-shadow:0 6px 24px rgba(0,0,0,0.06); transition:background-color .2s;
+}
+.improve-btn:link,
+.improve-btn:visited,
+.improve-btn:hover,
+.improve-btn:active,
+.improve-btn:focus {
+  background:#9C6FE4;   /* same color = no overlay */
+  color:#fff;
+  text-decoration:none;
+  outline:0;
 }
 .dash-root .improve-btn:hover { background-color:#4a17b8; }
 
@@ -225,3 +252,6 @@ border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; curso
   background: #c7bdf3; border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
 }
 .dash-root ::-webkit-scrollbar-thumb:hover { background: #a996f0; background-clip: content-box; }
+/* Only for curriculum view */
+.dash-home.is-curriculum { padding-left: 0 !important; }  /* cancel global pad */
+.dash-home .curriculum-wrap { transition: margin-left .2s ease; display:block; }
