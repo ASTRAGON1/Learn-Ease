@@ -8,13 +8,14 @@ import StudentSignUp from "./StudentPages/StudentSignUp";
 import StudentDashboard from "./StudentPages/StudentDashboard";
 import Courses from "./StudentPages/courses";
 import QuizzApp from "./StudentPages/QuizzApp";
-import PersonalizedPath, { Sidebar as StudentSidebar } from "./StudentPages/PersonalizedPath";
+import PersonalizedPath from "./StudentPages/PersonalizedPath";
 import MessagesPage from "./StudentPages/messages";
 import MessageThread from "./StudentPages/MessageThread";
 import CoursePlayer from "./StudentPages/CoursePlayer";
 import AchievementPage from "./StudentPages/AchievementPage";
 import QuizInformationPage from "./StudentPages/QuizInformation";
 import StudentProfile from "./StudentPages/StudentProfile";
+import StudentShell from "./StudentPages/StudentShell";   // student-only sidebar wrapper
 
 // Instructor
 import InstructorDashboard from "./InstructorPages/InstructorDash";
@@ -51,16 +52,6 @@ function DevAuth() {
   return null;
 }
 
-/** Shell to reuse the student sidebar */
-function StudentShell({ children }) {
-  return (
-    <div className="pp-layout">
-      <StudentSidebar />
-      <div className="pp-content">{children}</div>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <Router>
@@ -70,37 +61,24 @@ export default function App() {
         {/* Public / Landing */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Student */}
+        {/* Student (no shell) */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<StudentSignUp />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/courses" element={<Courses />} />
         <Route path="/quiz" element={<QuizzApp />} />
-        <Route path="/personalized" element={<PersonalizedPath />} />
         <Route path="/course/:id" element={<CoursePlayer />} />
         <Route path="/achievements" element={<AchievementPage />} />
         <Route path="/quiz-information" element={<QuizInformationPage />} />
         <Route path="/CoursePlayer" element={<CoursePlayer />} />
         <Route path="/StudentProfile" element={<StudentProfile />} />
 
-
-        {/* Messages with sidebar */}
-        <Route
-          path="/messages"
-          element={
-            <StudentShell>
-              <MessagesPage />
-            </StudentShell>
-          }
-        />
-        <Route
-          path="/messages/:id"
-          element={
-            <StudentShell>
-              <MessageThread />
-            </StudentShell>
-          }
-        />
+        {/* Student pages WITH student-only sidebar */}
+        <Route element={<StudentShell />}>
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/personalized" element={<PersonalizedPath />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/messages/:id" element={<MessageThread />} />
+        </Route>
 
         {/* Instructor */}
         <Route path="/InstructorLogin" element={<InstructorLogin />} />
