@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; // ← single import
 import "./Courses.css";
 import cover from "../assets/quizpic.png";
+
 
 /* ---- demo data ---- */
 const DATA = [
@@ -39,10 +40,10 @@ function CourseCard({ item }) {
           </div>
         </div>
 
-        <div className="crs-actions-row">
-          <button className="crs-btn ghost">Details</button>
-          <button className="crs-btn primary">Enroll</button>
-        </div>
+<div className="crs-actions-row">
+  <Link to="/CoursePlayer" className="crs-btn ghost">Details</Link>
+</div>
+
       </div>
     </article>
   );
@@ -51,16 +52,14 @@ function CourseCard({ item }) {
 /* ---- page ---- */
 export default function Courses() {
   const navigate = useNavigate();
-  const [q, setQ] = useState("");
+  const [q, setQ]   = useState("");
   const [tag, setTag] = useState("All");
 
-  // build filter tags
   const tags = useMemo(() => {
     const cats = Array.from(new Set(DATA.map(d => (d.category || "").trim())));
     return ["All", ...cats];
   }, []);
 
-  // filtered list
   const list = useMemo(() => {
     const term = q.trim().toLowerCase();
     return DATA.filter(d => {
@@ -74,19 +73,17 @@ export default function Courses() {
     });
   }, [q, tag]);
 
+  // stagger fade-up for cards
+  useEffect(() => {
+    document.querySelectorAll(".crs-card").forEach((el, i) => {
+      el.style.animationDelay = `${i * 60}ms`;
+    });
+  }, [list.length]);
+
   return (
     <div className="crs-page">
-      {/* Header with LEFT purple back arrow (no box) */}
       <header className="crs-head">
         <div className="crs-head-left">
-          <button
-            className="crs-back-link"
-            aria-label="Back to Personalized Path"
-            onClick={() => navigate("/personalized")}
-            title="Back"
-          >
-            ←
-          </button>
 
           <div className="crs-titlebox">
             <h1>Course Catalog</h1>
@@ -121,9 +118,7 @@ export default function Courses() {
         {list.map((item) => (
           <CourseCard key={item.id} item={item} />
         ))}
-        {!list.length && (
-          <div className="crs-empty">No courses match your search.</div>
-        )}
+        {!list.length && <div className="crs-empty">No courses match your search.</div>}
       </section>
     </div>
   );

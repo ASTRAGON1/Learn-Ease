@@ -128,21 +128,21 @@ export default function StudentProfile() {
   return (
     <div className="sp-page">
       {/* Header */}
-      <header className="sp-header">
-        <button className="sp-back" aria-label="Back" onClick={() => window.history.back()}>
-          ←
-        </button>
- <div className="sp-brand">
-    <img src={ProfileLogo} alt="NeuroLearn logo" className="sp-logo-img" loading="lazy" />
-    <div className="sp-brand-text">
-      
+<header className="sp-header">
+  <div className="sp-header-inner">
+    <button className="sp-back" aria-label="Back" onClick={() => window.history.back()}>←</button>
+
+    <div className="sp-brand">
+      <img src={ProfileLogo} alt="NeuroLearn logo" className="sp-logo-img" loading="lazy" />
+      <div className="sp-brand-text"></div>
+    </div>
+
+    <div className="sp-header-actions">
+      <button className="sp-btn ghost" onClick={() => alert("Notify guardian (demo)")}>Notify</button>
+      <button className="sp-btn" onClick={() => setTab(Tab.Settings)}>Settings</button>
     </div>
   </div>
-        <div className="sp-header-actions">
-          <button className="sp-btn ghost" onClick={() => alert("Notify guardian (demo)")}>Notify</button>
-          <button className="sp-btn" onClick={() => setTab(Tab.Settings)}>Settings</button>
-        </div>
-      </header>
+</header>
 
       {/* Layout */}
       <main className="sp-container">

@@ -86,10 +86,37 @@ export default function StudentDashboard() {
               <Link to="/personalized" className="sd-nav-link">Personalized path</Link>
             </nav>
 
-            <div className="sd-nav-right">
-              <button className="sd-nav-bell" aria-label="Notifications">🔔</button>
-              <Link to="/StudentProfile" className="sd-nav-avatar-link"><div className="sd-nav-avatar" /></Link>
-            </div>
+<div className="sd-nav-right">
+  {/* Hover popover */}
+  <div className="sd-bell-wrap">
+    <button className="sd-nav-bell" aria-label="Notifications" type="button">🔔</button>
+
+    <div className="sd-bell-pop" role="status">
+      <div className="sd-bell-pop-head">Notifications</div>
+      <ul className="sd-bell-list">
+        <li className="t-quiz">
+          <span className="dot" />
+          <div>
+            <div className="t">Quiz alert: Speaking Quiz starts soon</div>
+            <div className="s">Today • 10:00</div>
+          </div>
+        </li>
+        <li className="t-course">
+          <span className="dot" />
+          <div>
+            <div className="t">Course reminder: finish “Emotion Recognition”</div>
+            <div className="s">Due tomorrow</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <Link to="/StudentProfile" className="sd-nav-avatar-link">
+    <div className="sd-nav-avatar" />
+  </Link>
+</div>
+
           </div>
         </header>
 
