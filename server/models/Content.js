@@ -1,11 +1,15 @@
 const mongoose = require("mongoose");
+const { stringifyCookie } = require("next/dist/compiled/@edge-runtime/cookies");
 
 const contentSchema = new mongoose.Schema({
   contentTitle: String,
-  teacher_id: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
-  course_id: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
-  contentType: String, // e.g., "video", "pdf", "audio"
-  fileURL: String
+  title: String,
+  type: String,
+  fileUrl: String,
+  CourseId: String,
+  TeacherId: String,
+  testField: String
 });
 
-module.exports = mongoose.model("Content", contentSchema);
+
+module.exports = mongoose.model("Content", contentSchema, "Contents");

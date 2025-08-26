@@ -8,9 +8,7 @@ const router = express.Router();
 router.get('/getContent', async (req, res) => {
   try {
     const contents = await contentModel.find({});
-
     res.json(contents);
-    
   } catch (err) {
     console.log(err);
     process.exit(1)
