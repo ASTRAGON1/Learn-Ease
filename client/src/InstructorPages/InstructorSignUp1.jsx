@@ -1,38 +1,35 @@
-// src/pages/InstructorSignUp1.jsx
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo         from "../assets/logo.png";
-import illustration from "../assets/InstructorLogin.png";
 import "./InstructorSignUp1.css";
 
-// Stubbed API call – replace with your real endpoint
+/* Fake signup handler (replace with backend later) */
 async function performSignUp({ fullName, email, password }) {
-  const res = await fetch("/api/instructor/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fullName, email, password }),
-  });
-  return res;
+  await new Promise((r) => setTimeout(r, 800));
+  if (email === "instructor@demo.com") {
+    return { ok: false, status: 409 }; // already exists
+  }
+  return { ok: true };
 }
 
 export default function InstructorSignUp1() {
-  const navigate = useNavigate();
-
-  const [fullName, setFullName]   = useState("");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
-  const [confirm, setConfirm]     = useState("");
-  const [errors, setErrors]       = useState({});
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [agree, setAgree] = useState(false);
+  const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
-  const [loading, setLoading]     = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleSignUp = async () => {
     const errs = {};
-    if (!fullName.trim())       errs.fullName = "Please enter your full name";
-    if (!email.trim())          errs.email    = "Please enter your email";
-    if (!password)              errs.password = "Please enter a password";
-    if (password !== confirm)   errs.confirm  = "Passwords must match";
+    if (!fullName.trim()) errs.fullName = "Please enter your full name";
+    if (!email.trim()) errs.email = "Please enter your email";
+    if (!password) errs.password = "Please enter a password";
+    if (password !== confirm) errs.confirm = "Passwords must match";
+    if (!agree) errs.agree = "You must accept the Terms & Privacy";
 
     setErrors(errs);
     if (Object.keys(errs).length !== 0) return;
@@ -56,100 +53,61 @@ export default function InstructorSignUp1() {
   };
 
   return (
-    <div className="signup-page">
-      <div className="signup-container">
-        <div className="signup-left">
-          <Link to="/" className="go-back">
-            ‹ Go Back
-          </Link>
-          <img src={logo} alt="LearnEase" className="signup-logo" />
-          <h2 className="signup-title">Create Account</h2>
+    <div className="signupInst1-wrap">
+      <div className="signupInst1-card">
+        <Link to="/" className="signupInst1-back">‹ Go Back</Link>
+        <h1 className="signupInst1-title">Create Instructor Account</h1>
+        <p className="signupInst1-subtitle">Sign up to manage your courses and students.</p>
 
-          {generalError && (
-            <div className="signup-error-text">{generalError}</div>
-          )}
+        {generalError && <div className="signupInst1-alert">{generalError}</div>}
 
-          {errors.fullName && (
-            <div className="signup-error-text">{errors.fullName}</div>
-          )}
-          <input
-            type="text"
-            placeholder="Full Name*"
-            className="signup-input"
-            value={fullName}
-            onChange={e => setFullName(e.target.value)}
-          />
+        <div className="signupInst1-form">
+          <div className="signupInst1-field">
+            <label>Full Name</label>
+            <input value={fullName} onChange={(e)=>setFullName(e.target.value)} />
+            {errors.fullName && <small className="signupInst1-error">{errors.fullName}</small>}
+          </div>
 
-          {errors.email && (
-            <div className="signup-error-text">{errors.email}</div>
-          )}
-          <input
-            type="email"
-            placeholder="Email*"
-            className="signup-input"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
+          <div className="signupInst1-field">
+            <label>Email</label>
+            <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+            {errors.email && <small className="signupInst1-error">{errors.email}</small>}
+          </div>
 
-          {errors.password && (
-            <div className="signup-error-text">{errors.password}</div>
-          )}
-          <input
-            type="password"
-            placeholder="Password*"
-            className="signup-input"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
+          <div className="signupInst1-field">
+            <label>Password</label>
+            <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+            {errors.password && <small className="signupInst1-error">{errors.password}</small>}
+          </div>
 
-          {errors.confirm && (
-            <div className="signup-error-text">{errors.confirm}</div>
-          )}
-          <input
-            type="password"
-            placeholder="Confirm Password*"
-            className="signup-input"
-            value={confirm}
-            onChange={e => setConfirm(e.target.value)}
-          />
+          <div className="signupInst1-field">
+            <label>Confirm Password</label>
+            <input type="password" value={confirm} onChange={(e)=>setConfirm(e.target.value)} />
+            {errors.confirm && <small className="signupInst1-error">{errors.confirm}</small>}
+          </div>
 
-          <label className="signup-checkbox">
-            <input type="checkbox" />
-            I agree to the Terms Of Services and privacy policy
+          <label className="signupInst1-terms">
+            <input type="checkbox" checked={agree} onChange={(e)=>setAgree(e.target.checked)} />
+            <span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a></span>
           </label>
+          {errors.agree && <small className="signupInst1-error">{errors.agree}</small>}
 
           <button
-            className="signup-button"
+            className="signupInst1-btn"
             onClick={handleSignUp}
             disabled={loading}
           >
             {loading ? "Creating…" : "Create"}
           </button>
 
-          <div className="signup-or">
-            <span>Or</span>
-          </div>
-
-          <button className="signup-google">
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              className="signup-google-icon"
-            />
+          <button className="signupInst1-google" type="button">
             Sign up with Google
           </button>
-
-          <p className="signup-footer">
-            Already a member? <a href="/InstructorLogin">Login</a>
-          </p>
         </div>
 
-        <div className="signup-right">
-          <img
-            src={illustration}
-            alt="Illustration"
-            className="signup-illustration"
-          />
+        <div className="signupInst1-foot">
+          <span>Already have an account?</span>
+          <Link to="/InstructorLogin" className="signupInst1-link">Log in</Link>
         </div>
       </div>
     </div>

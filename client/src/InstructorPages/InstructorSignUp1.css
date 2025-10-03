@@ -1,208 +1,68 @@
-/* InstructorSignUp1.css */
-
-/* full-page background + centering */
-.signup-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #D9CAF3;
+/* === InstructorSignUp1 (fixed) === */
+.signupInst1-wrap{
+  min-height:100vh; display:grid; place-items:center;
+  padding:24px; background:#f7f7fb;
 }
 
-/* the 1280×770 card */
-.signup-container {
-  position: relative;        /* ← make container the containing block for the back link */
-  width: 1280px;
-  height: 770px;
-  display: flex;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  background: #fff;
+/* Card constraints (prevents full-width inputs) */
+.signupInst1-card{
+  width:100%; max-width:520px; margin:0 auto;
+  background:#fff; border:1px solid #e2e8f0; border-radius:16px;
+  padding:28px; box-shadow:0 12px 30px rgba(2,6,23,.08);
 }
 
-/* ← LEFT PANEL */
-.signup-left {
-  width: 640px;
-  padding: 60px 92px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  box-sizing: border-box;
+/* Header */
+.signupInst1-back{display:inline-flex; gap:6px; color:#0f172a; text-decoration:none; font-weight:600}
+.signupInst1-back:hover{text-decoration:underline}
+.signupInst1-title{margin:10px 0 4px; font-size:28px; font-weight:800; text-align:center}
+.signupInst1-subtitle{margin:0 0 16px; font-size:14px; color:#64748b; text-align:center}
+
+/* Form layout + spacing */
+.signupInst1-form{
+  display:grid; gap:14px;
+  align-items:stretch; justify-items:stretch;   /* no centering */
+  text-align:left;                               /* avoid inherited center */
 }
 
-/* back link */
-.go-back {
-  position: absolute;       /* ← absolutely position it inside the container */
-  top: 20px;
-  left: 20px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 16px;
-  color: #000;
-  text-decoration: none;
-  cursor: pointer;
-  margin-bottom: 0;         /* remove extra bottom margin */
-  z-index: 1;
+/* Fields */
+.signupInst1-field{display:flex; flex-direction:column}
+.signupInst1-field label{
+  display:block; font-weight:600; font-size:14px; margin:0 0 6px 4px; text-align:left;
 }
-.go-back::before {
-  content: "";
-  margin-right: 8px;
+.signupInst1-field input{
+  width:100%; height:46px; padding:12px 14px;
+  border:1px solid #e2e8f0; border-radius:10px; outline:none;
 }
-.go-back:hover {
-  text-decoration: none;
+.signupInst1-field input:focus{
+  border-color:#6d28d9; box-shadow:0 0 0 3px rgba(109,40,217,.2);
 }
+.signupInst1-error{color:#e11d48; font-size:12px; margin-top:6px}
 
-/* Logo */
-.signup-logo {
-  width: 120px;
-  margin-bottom: 40px;
-  align-self: center;
+/* Terms row (checkbox + text aligned with inputs) */
+.signupInst1-terms{
+  display:flex; align-items:center; justify-content:flex-start;
+  gap:10px; text-align:left; padding-left:2px;
 }
+.signupInst1-terms input[type="checkbox"]{
+  width:18px; height:18px; margin:0; flex:0 0 auto; transform:translateY(-1px);
+}
+.signupInst1-terms a{color:#6d28d9; text-decoration:none}
+.signupInst1-terms a:hover{text-decoration:underline}
 
-/* Title */
-.signup-title {
-  font-size: 28px;
-  font-weight: 500;
-  color: #4C0FAD !important;
-  margin-bottom: 17px;
-  align-self: center;
+/* Buttons */
+.signupInst1-btn{
+  width:100%; height:44px; border:none; border-radius:12px;
+  background:#6d28d9; color:#fff; font-weight:700; cursor:pointer;
+  box-shadow:0 6px 16px rgba(109,40,217,.25); margin-top:6px;
 }
-
-/* Error text */
-.signup-error-text {
-  width: 456px;
-  color: #E03E3E;
-  font-size: 14px;
-  margin: 0 0 8px;
-  text-align: left;
+.signupInst1-btn:disabled{opacity:.7; cursor:not-allowed}
+.signupInst1-google{
+  margin-top:10px; width:100%; height:44px;
+  border-radius:12px; border:1px solid #e2e8f0; background:#fff; font-weight:600; cursor:pointer;
 }
-
-/* Inputs */
-.signup-input {
-  width: 456px;
-  height: 53px;
-  margin: 0 0 8px;
-  padding: 0 16px;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
-  text-align: left !important;
-}
-.signup-input::placeholder {
-  color: #999;
-  font-size: 14px;
-  text-align: left !important;
-}
-.signup-input:focus {
-  text-align: left;
-  letter-spacing: normal;
-}
-
-/* Checkbox */
-.signup-checkbox {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #000;
-  margin: 0 0 17px;
-}
-.signup-checkbox input[type="checkbox"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border: 1px solid #000;
-  border-radius: 2px;
-  background-color: #fff;
-  position: relative;
-  margin-right: 8px;
-  cursor: pointer;
-}
-.signup-checkbox input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 2px;
-  width: 5px;
-  height: 9px;
-  border: solid #000;
-  border-width: 0 3px 3px 0;
-  transform: rotate(45deg);
-}
-
-/* Create button */
-.signup-button {
-  width: 456px;
-  height: 56px;
-  background: #4C0FAD;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  cursor: pointer;
-  margin-bottom: 17px;
-}
-
-/* Or separator */
-.signup-or {
-  width: 456px;
-  text-align: center;
-  font-size: 14px;
-  color: #9CA3AF;
-  border-bottom: 1px solid #E5E7EB;
-  line-height: 0.1em;
-  margin: 17px 0;
-  position: relative;
-}
-.signup-or span {
-  background: #fff;
-  padding: 0 16px;
-  position: relative;
-  z-index: 1;
-}
-
-/* Google button */
-.signup-google {
-  width: 456px;
-  height: 56px;
-  background: #F9FAFB;
-  border: 1px solid #6C46FF;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #4A2145;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-bottom: 17px;
-}
-.signup-google-icon {
-  width: 20px;
-  margin-right: 12px;
-}
+.signupInst1-google:hover{background:#f1f5f9}
 
 /* Footer */
-.signup-footer {
-  font-size: 14px;
-  color: #000;
-  margin-bottom: 0;
-}
-.signup-footer a {
-  color: #4C0FAD;
-  text-decoration: none;
-}
-
-/* → RIGHT PANEL */
-.signup-right {
-  width: 640px;
-  background: #E4DBFD;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.signup-illustration {
-  max-width: 100%;
-  max-height: 100%;
-}
+.signupInst1-foot{margin-top:14px; display:flex; justify-content:center; gap:6px; font-size:14px; color:#64748b}
+.signupInst1-link{color:#6d28d9; text-decoration:none}
+.signupInst1-link:hover{text-decoration:underline}
