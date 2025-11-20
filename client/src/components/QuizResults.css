@@ -67,12 +67,12 @@ margin-bottom: 4px;
 }
 
 .quiz-row:nth-child(odd) {
-background: rgba(156, 111, 228, 0.27);  /* purple */
+background: #3b3b3b2d;  /* purple */
 color: #1a1a1f;
 }
 
 .quiz-row:nth-child(even) {
-background-color: rgba(76, 15, 173, 0.33);  /* light blue */
+background-color: #3b3b3b17;  /* light blue */
 color: #1a1a1f;
 }
 
@@ -97,21 +97,22 @@ margin-right: 8px;
 }
 
 .status-btn {
-background: #FFFFFF80; /* semi-transparent white */
-border: none;
-border-radius: 12px;
-padding: 4px 12px;
-font-size: 14px;
-cursor: default;
-}
-
-/* even rows get blue */
-.quiz-row:nth-of-type(even) .status-btn {
-background-color: #9C6FE4;
-color: #4C0FAD;
-}
-/* odd rows get purple */
-.quiz-row:nth-of-type(odd) .status-btn {
-background-color: #FFFFFF80;
-color: #4C0FAD;
-}
+    background: #FFFFFF80; /* default semi-transparent white */
+    border: none;
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 14px;
+    cursor: default;
+  }
+  
+  /* Completed status - green text with light green background */
+  .status-btn.completed {
+    background-color: #D1FAE5 !important; /* light green */
+    color: #059669 !important; /* dark green */
+  }
+  
+  /* Paused status - dark yellow text with light yellow background */
+  .status-btn.paused {
+    background-color: #FEF3C7 !important; /* light yellow */
+    color: #D97706 !important; /* dark yellow/orange */
+  }

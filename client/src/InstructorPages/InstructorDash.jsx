@@ -20,12 +20,12 @@ import "./InstructorDash.css";
 export default function InstructorDashboard() {
   const [collapsed, setCollapsed] = useState(true);
   const [active, setActive]     = useState("course");
-  const name                    = "Adolf"; // placeholder
+  const name = "Adolf";
 
   const sampleMetrics = [
     { label: "Content views",  value: "2,315", change: "+11.01%" },
-    { label: "Profile visits", value: "1,032", change: "+1.01%" },
-    { label: "Followers",      value: "300",   change: "+15.01%" },
+    { label: "Likes given", value: "1,032", change: "+1.01%" },
+    { label: "Favorites given",      value: "300",   change: "+15.01%" },
     { label: "Engagement",     value: "600",   change: "-12.01%" },
   ];
   const sampleNotifs = [
@@ -101,13 +101,6 @@ export default function InstructorDashboard() {
       </div>
     );
   }
-
-  function CurriculumWrapper() {
-    return (
-      <Curriculum />
-    );
-  }
-
   function ResourcesSection() {
     const items = [
       { title: "Teaching Center",       img: teachPic,  link: "/TeachingCenter", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
@@ -168,7 +161,7 @@ export default function InstructorDashboard() {
                   follow on our platform — perfect for assessing
                   student progress quickly and effectively.
                 </p>
-                <Link to="/ai-quiz" className="btn-primary sm">Generate</Link>
+                <Link to="/ai-quiz" className="InstructorDash-btn-primary sm">Generate</Link>
               </div>
             </div>
 
@@ -184,7 +177,7 @@ export default function InstructorDashboard() {
               <div className="mini-card">
                 <h4>Community & Support</h4>
                 <p>Ask questions, share tips, and connect with other instructors.</p>
-                <Link to="/InstructorCommunity" className="btn-primary sm">Join Now</Link>
+                <Link to="/InstructorCommunity" className="InstructorDash-btn-primary sm">Join Now</Link>
 
 
               </div>

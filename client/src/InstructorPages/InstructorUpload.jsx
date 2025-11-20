@@ -164,7 +164,7 @@ export default function InstructorUpload() {
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             hidden
           />
-          <p>
+          <p className="upl-upload-text">
             Drag & Drop or{" "}
             <label htmlFor="upl-file" className="upl-link">Choose file</label>{" "}
             to upload

@@ -35,24 +35,6 @@ export default function RankingTagsPanel({ instructors, categories }) {
           })}
         </div>
       </div>
-
-      {/* RIGHT: Tags / Categories */}
-      <div className="rtp-tags">
-        <h3 className="rtp-title">Tags/Categories</h3>
-        <div className="rtp-tags-list">
-          {categories.map((t, i) => (
-            <div key={i} className="rtp-tag">
-              <span className="rtp-tag-label">{t.tag}</span>
-              <div className="rtp-bar-outer">
-                <div
-                  className="rtp-bar-fill"
-                  style={{ width: `${t.pct}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

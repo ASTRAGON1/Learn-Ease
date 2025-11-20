@@ -43,7 +43,6 @@ label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
 .landPage-brand img{height:32px;width:auto}
 .landPage-nav-links{margin-left:auto;display:flex;gap:18px;align-items:center}
 .landPage-nav-links a{padding:10px 12px;border-radius:10px}
-.landPage-nav-links a:hover{background:rgba(2,6,23,.05)}
 
 /* Hero */
 .landPage-hero{padding:96px 0 64px;background:linear-gradient(180deg,#faf8ff,transparent)}

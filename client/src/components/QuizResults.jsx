@@ -69,7 +69,12 @@ export default function QuizResults({ data = sampleData }) {
         <div className="col date-col">{row.date}</div>
         <div className="col grade-col">{row.grade}</div>
         <div className="col status-col">
-          <button className={`status-btn ${row.status.toLowerCase()}`}>
+          <button 
+            className={`status-btn ${
+              row.status.toLowerCase().includes('complete') ? 'completed' : 
+              row.status.toLowerCase().includes('pause') ? 'paused' : ''
+            }`}
+          >
             {row.status}
           </button>
         </div>

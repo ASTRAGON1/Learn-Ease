@@ -74,13 +74,20 @@
   /* each instructor row */
   .rtp-item {
     height: 45px;
-    background: #bda9dd;
+    background: #3b3b3b2d;
     border-radius: 22px;
     display: flex;
     align-items: center;
     padding: 0 16px;
     box-sizing: border-box;
     flex-shrink: 0;
+  }
+
+  .rtp-item:nth-child(even) {
+    background: #3b3b3b17;
+  }
+  .rtp-item:nth-child(odd) {
+    background: #3b3b3b2d;
   }
   
   .rtp-student {
