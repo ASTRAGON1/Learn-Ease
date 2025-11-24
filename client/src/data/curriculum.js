@@ -203,7 +203,7 @@ export const USER_CURRICULUM = Object.freeze([
   },
 
   {
-    GeneralPath: "down",
+    GeneralPath: "Down Syndrome",
     CoursesTitle: "General path for Down syndrome students",
     Topics: [
       {
