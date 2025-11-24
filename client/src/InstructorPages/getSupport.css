@@ -11,31 +11,31 @@ html,body{
   max-width:100%; overflow-x:hidden;
   /* Firefox */
   scrollbar-width: thin;
-  scrollbar-color: #b19ff3 #e9e9f2;   /* thumb | track */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* WebKit (Chrome/Edge) */
 ::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: #e9e9f2; border-radius: 5px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 5px; }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #cfc2f5, #ad8eeb);
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
-  border: 2px solid #e9e9f2; /* creates a gap around thumb */
+  border: 2px solid transparent;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #bba9f5, #ae8ef1);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ---------- Tighter scrollbars inside panels (chat, tickets) ---------- */
 .sp-chat, .sp-tickets {
   scrollbar-width: thin;                 /* Firefox */
-  scrollbar-color: #cfc6fb transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 .sp-chat::-webkit-scrollbar,
 .sp-tickets::-webkit-scrollbar { width: 8px; }
 .sp-chat::-webkit-scrollbar-thumb,
 .sp-tickets::-webkit-scrollbar-thumb {
-  background: #cfc6fb;
+  background: var(--scrollbar-thumb);
   border-radius: 8px;
   border: 2px solid transparent;
 }

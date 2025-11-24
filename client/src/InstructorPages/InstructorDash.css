@@ -9,16 +9,19 @@
 .dash-root { --container-max: 1200px; --gutter: 24px; }
 
 .dash-root .dash{
-  padding-top: 90px;
-  padding-left: 190px;
-  padding-right: 24px;
+  width:min(1200px, 100%);
+  margin:0 auto;
+  padding:90px clamp(20px, 6vw, 60px) 60px;
   color: #0f0f10;
   font-family: 'Poppins', Helvetica, Arial, sans-serif;
+  display:flex;
+  flex-direction:column;
+  gap:56px;
 }
 
 /* Title */
 .dash-root h1.dash-title{
-  width: 583px;
+  max-width: 640px;
   margin: 0;
   font-size: 36px;
   font-weight: 800;
@@ -27,9 +30,8 @@
 
 /* Working width rows */
 .dash-root .dash-row{
-  width: 1454px;
-  max-width: 100%;
-  margin-top: 56px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .dash-root .mt-100{ margin-top:100px !important; }
@@ -37,9 +39,7 @@
 
 /* Jump card */
 .dash-root .jump-card{
-  width: 1454px;
-  max-width: 100%;
-  height: 167px;
+  width: 100%;
   background: #fff;
   border: 1px solid #E5E5EE;
   border-radius: 6px;
@@ -47,7 +47,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px 0 60px;
+  padding: clamp(18px,3vw,36px) clamp(24px,4vw,60px);
+  flex-wrap: wrap;
+  gap: 20px;
 }
 .dash-root .jump-text{ font-size: 20px; font-weight: 500; color: #1a1a1f; }
 
@@ -82,18 +84,17 @@
 
 /* AI card */
 .dash-root .ai-card{
-  width:1454px; max-width:100%;
   background:#fff; border:1px solid #E5E5EE; border-radius:6px;
   box-shadow:0 6px 24px rgba(0,0,0,.06);
-  text-align:center; padding:34px 60px 40px;
+  text-align:center; padding:34px clamp(20px,5vw,60px) 40px;
 }
 .dash-root .ai-title{ margin:0 0 16px; color:#5b22d1; font-weight:700; }
 .dash-root .ai-desc{  margin:0 0 18px; color:#1f1f22; line-height:1.6; }
 
 /* Two-card row */
 .dash-root .dash-grid{
-  width:1454px; max-width:100%;
-  display:grid; grid-template-columns:702px 702px; column-gap:50px;
+  width:100%; max-width:100%;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); column-gap:clamp(24px,4vw,40px); row-gap:clamp(24px,4vw,40px);
   margin-top:50px;
 }
 .dash-root .mini-card{
@@ -112,10 +113,8 @@
 
 /* Resources heading */
 .dash-root .resources-heading{
-  width: 770px;
-  max-width: 100%;
-  margin: 100px auto;
-  margin-left: 350px;
+  max-width: 780px;
+  margin: 100px auto 60px auto;
   text-align: center;
   font-size: 22px;
   font-weight: 400;
@@ -124,12 +123,13 @@
 
 /* Resources grid */
 .dash-root .res-grid{
-  width: 1454px;
+  width: 100%;
   max-width: 100%;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  column-gap: 80px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  column-gap: clamp(24px,4vw,48px);
+  row-gap: clamp(24px,4vw,48px);
   justify-items: center;
   align-items: start;
 }
@@ -145,13 +145,28 @@
 /* Final CTA */
 .dash-root .final-cta{ margin-top:100px; text-align:center; }
 .dash-root .ready-text{
-  width:250px; height:30px; margin-left:600px; margin-bottom:20px;
+  width:auto; height:auto; margin:0 auto 20px;
   font-size:20px; font-weight:400; line-height:30px; color:#1b1b1f;
 }
 
 .dash-root .final-cta button.btn4,
 .dash-root .final-cta a.btn4{ width:366px; height:56px; display:inline-flex; align-items:center; justify-content:center; background-color:#4a17b8; color:#fff; border:0;
-border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; cursor:pointer; margin:10px 0 120px; margin-right:180px; position:relative; left:20px;
+border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; cursor:pointer; margin:10px auto 120px; position:relative;
+}
+
+/* Responsive tweaks */
+@media (max-width: 1024px){
+  .dash-root h1.dash-title{ font-size: 30px; }
+  .dash-root .jump-card{ flex-direction: column; align-items: flex-start; }
+  .dash-root .InstructorDash-btn-primary{ width: 100%; max-width: 320px; text-align:center; }
+}
+
+@media (max-width: 720px){
+  .dash-root h1.dash-title{ font-size: 26px; }
+  .dash-root .hint{ font-size: 18px; }
+  .dash-root .resources-heading{ font-size: 18px; line-height: 30px; }
+  .dash-root .final-cta a.btn4,
+  .dash-root .final-cta button.btn4{ width: 100%; }
 }
 /* PERFORMANCE */
 .dash-root .perf-container { display:flex; flex-direction:column; gap:60px; }
@@ -274,14 +289,6 @@ border-radius:12px; font-size:18px; font-weight:700; text-decoration:none; curso
   color:#000; /* Changed to black */
 }
 
-/* Scope scrollbars to dashboard only */
-.dash-root * { scrollbar-width: thin; scrollbar-color: #b0afb4 transparent; }
-.dash-root ::-webkit-scrollbar { width: 10px; }
-.dash-root ::-webkit-scrollbar-track { background: transparent; }
-.dash-root ::-webkit-scrollbar-thumb {
-  background: #c7bdf3; border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
-}
-.dash-root ::-webkit-scrollbar-thumb:hover { background: #a996f0; background-clip: content-box; }
 /* Only for curriculum view */
 .dash-home.is-curriculum { padding-left: 0 !important; }
 .dash-home .curriculum-wrap { transition: margin-left .2s ease; display:block; }

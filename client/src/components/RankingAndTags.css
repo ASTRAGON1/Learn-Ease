@@ -58,7 +58,7 @@
   /* quiz-style scrollbar */
   .rtp-list {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,0.2) transparent;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
   .rtp-list::-webkit-scrollbar {
     width: 8px;
@@ -67,8 +67,12 @@
     background: transparent;
   }
   .rtp-list::-webkit-scrollbar-thumb {
-    background-color: rgba(0,0,0,0.2);
+    background-color: var(--scrollbar-thumb);
     border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  .rtp-list::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
   }
   
   /* each instructor row */

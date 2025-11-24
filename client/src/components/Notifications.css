@@ -66,12 +66,16 @@
   background: transparent;
 }
 .notifications-list::-webkit-scrollbar-thumb {
-  background-color: #9C6FE4; /* your purple */
+  background-color: var(--scrollbar-thumb);
   border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+.notifications-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 /* Firefox */
 .notifications-list {
   scrollbar-width: thin;
-  scrollbar-color: #9C6FE4 transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
