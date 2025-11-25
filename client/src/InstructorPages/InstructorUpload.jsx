@@ -10,9 +10,6 @@ const ALL_TAGS = [
   "picture"
 ];
 
-const COURSES = ["Communication 1", "Communication 2", "Numbers", "Letters"];
-const LESSONS  = ["Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"];
-
 const DEFAULT_ROWS = [
   { title:"Listening Class N24: How to Help Children with Down Syndrome Improve...", category:"Down Syndrome", status:"Published" },
   { title:"Math Session N15: Supporting Early Number Recognition for Kids...", category:"Autism", status:"Draft" },
@@ -27,8 +24,8 @@ export default function InstructorUpload() {
   const [tags, setTags] = useState([]);
   const [showTagList, setShowTagList] = useState(false);
   const [category, setCategory] = useState("Autism");
-  const [topic, setTopic] = useState("");
   const [course, setCourse] = useState("");
+  const [topic, setTopic] = useState("");
   const [lesson, setLesson] = useState("");
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
@@ -36,45 +33,45 @@ export default function InstructorUpload() {
 
   // Get current path based on category
   const currentPath = useMemo(() => {
-    const pathKey = category === "Autism" ? "autism" : "down";
+    const pathKey = category === "Autism" ? "autism" : "Down Syndrome";
     return USER_CURRICULUM.find(p => p.GeneralPath === pathKey);
   }, [category]);
 
-  // Get available topics for current category
-  const availableTopics = useMemo(() => {
-    return currentPath?.Topics || [];
+  // Get available courses for current category
+  const availableCourses = useMemo(() => {
+    return currentPath?.Courses || [];
   }, [currentPath]);
 
-  // Get available courses for selected topic
-  const availableCourses = useMemo(() => {
-    if (!topic || !currentPath) return [];
-    const selectedTopic = currentPath.Topics.find(t => t.TopicName === topic);
-    return selectedTopic?.Courses || [];
-  }, [topic, currentPath]);
+  // Get available topics for selected course
+  const availableTopics = useMemo(() => {
+    if (!course || !currentPath) return [];
+    const selectedCourse = currentPath.Courses.find(c => c.CoursesTitle === course);
+    return selectedCourse?.Topics || [];
+  }, [course, currentPath]);
 
-  // Get available lessons for selected course
+  // Get available lessons for selected topic
   const availableLessons = useMemo(() => {
-    if (!course || !availableCourses.length) return [];
-    const selectedCourse = availableCourses.find(c => c.CoursesTitle === course);
-    return selectedCourse?.lessons || [];
-  }, [course, availableCourses]);
+    if (!topic || !availableTopics.length) return [];
+    const selectedTopic = availableTopics.find(t => t.TopicsTitle === topic);
+    return selectedTopic?.lessons || [];
+  }, [topic, availableTopics]);
 
-  // Reset dependent selections when category or topic changes
+  // Reset dependent selections when category or course changes
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
+    setCourse("");
     setTopic("");
-    setCourse("");
-    setLesson("");
-  };
-
-  const handleTopicChange = (newTopic) => {
-    setTopic(newTopic);
-    setCourse("");
     setLesson("");
   };
 
   const handleCourseChange = (newCourse) => {
     setCourse(newCourse);
+    setTopic("");
+    setLesson("");
+  };
+
+  const handleTopicChange = (newTopic) => {
+    setTopic(newTopic);
     setLesson("");
   };
 
@@ -85,52 +82,52 @@ export default function InstructorUpload() {
   // Quiz
   const [quizTitle, setQuizTitle] = useState("");
   const [quizCategory, setQuizCategory] = useState("Autism");
-  const [quizTopic, setQuizTopic] = useState("");
   const [quizCourse, setQuizCourse] = useState("");
+  const [quizTopic, setQuizTopic] = useState("");
   const [quizLesson, setQuizLesson] = useState("");
   const [pairs, setPairs] = useState([{ q: "", a: "" }]);
 
   // Get current path for quiz based on quiz category
   const quizCurrentPath = useMemo(() => {
-    const pathKey = quizCategory === "Autism" ? "autism" : "down";
+    const pathKey = quizCategory === "Autism" ? "autism" : "Down Syndrome";
     return USER_CURRICULUM.find(p => p.GeneralPath === pathKey);
   }, [quizCategory]);
 
-  // Get available topics for quiz category
-  const quizAvailableTopics = useMemo(() => {
-    return quizCurrentPath?.Topics || [];
+  // Get available courses for quiz category
+  const quizAvailableCourses = useMemo(() => {
+    return quizCurrentPath?.Courses || [];
   }, [quizCurrentPath]);
 
-  // Get available courses for selected quiz topic
-  const quizAvailableCourses = useMemo(() => {
-    if (!quizTopic || !quizCurrentPath) return [];
-    const selectedTopic = quizCurrentPath.Topics.find(t => t.TopicName === quizTopic);
-    return selectedTopic?.Courses || [];
-  }, [quizTopic, quizCurrentPath]);
+  // Get available topics for selected quiz course
+  const quizAvailableTopics = useMemo(() => {
+    if (!quizCourse || !quizCurrentPath) return [];
+    const selectedCourse = quizCurrentPath.Courses.find(c => c.CoursesTitle === quizCourse);
+    return selectedCourse?.Topics || [];
+  }, [quizCourse, quizCurrentPath]);
 
-  // Get available lessons for selected quiz course
+  // Get available lessons for selected quiz topic
   const quizAvailableLessons = useMemo(() => {
-    if (!quizCourse || !quizAvailableCourses.length) return [];
-    const selectedCourse = quizAvailableCourses.find(c => c.CoursesTitle === quizCourse);
-    return selectedCourse?.lessons || [];
-  }, [quizCourse, quizAvailableCourses]);
+    if (!quizTopic || !quizAvailableTopics.length) return [];
+    const selectedTopic = quizAvailableTopics.find(t => t.TopicsTitle === quizTopic);
+    return selectedTopic?.lessons || [];
+  }, [quizTopic, quizAvailableTopics]);
 
-  // Reset dependent selections when quiz category or topic changes
+  // Reset dependent selections when quiz category or course changes
   const handleQuizCategoryChange = (newCategory) => {
     setQuizCategory(newCategory);
+    setQuizCourse("");
     setQuizTopic("");
-    setQuizCourse("");
-    setQuizLesson("");
-  };
-
-  const handleQuizTopicChange = (newTopic) => {
-    setQuizTopic(newTopic);
-    setQuizCourse("");
     setQuizLesson("");
   };
 
   const handleQuizCourseChange = (newCourse) => {
     setQuizCourse(newCourse);
+    setQuizTopic("");
+    setQuizLesson("");
+  };
+
+  const handleQuizTopicChange = (newTopic) => {
+    setQuizTopic(newTopic);
     setQuizLesson("");
   };
 
@@ -274,31 +271,31 @@ export default function InstructorUpload() {
         </div>
 
         <div className="upl-field">
-          <label>Select Topic:</label>
-          <select 
-            className="upl-input" 
-            value={topic} 
-            onChange={(e) => handleTopicChange(e.target.value)}
-            disabled={!availableTopics.length}
-          >
-            <option value="" disabled>Choose a topic</option>
-            {availableTopics.map(t => (
-              <option key={t.TopicName} value={t.TopicName}>{t.TopicName}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="upl-field">
           <label>Select Course:</label>
           <select 
             className="upl-input" 
             value={course} 
             onChange={(e) => handleCourseChange(e.target.value)}
-            disabled={!topic || !availableCourses.length}
+            disabled={!availableCourses.length}
           >
             <option value="" disabled>Choose a course</option>
             {availableCourses.map(c => (
               <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="upl-field">
+          <label>Select Topic:</label>
+          <select 
+            className="upl-input" 
+            value={topic} 
+            onChange={(e) => handleTopicChange(e.target.value)}
+            disabled={!course || !availableTopics.length}
+          >
+            <option value="" disabled>Choose a topic</option>
+            {availableTopics.map(t => (
+              <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
             ))}
           </select>
         </div>
@@ -309,7 +306,7 @@ export default function InstructorUpload() {
             className="upl-input" 
             value={lesson} 
             onChange={(e) => setLesson(e.target.value)}
-            disabled={!course || !availableLessons.length}
+            disabled={!topic || !availableLessons.length}
           >
             <option value="" disabled>Choose a lesson</option>
             {availableLessons.map(l => (
@@ -369,24 +366,13 @@ export default function InstructorUpload() {
           </div>
         </div>
 
-        <div className="upl-quiz-note">Choose the topic, course and the lesson this quiz will be associated</div>
+        <div className="upl-quiz-note">Choose the course, topic and the lesson this quiz will be associated</div>
         <div className="upl-quiz-selects">
-          <select 
-            className="upl-input upl-quiz-select" 
-            value={quizTopic} 
-            onChange={(e) => handleQuizTopicChange(e.target.value)}
-            disabled={!quizAvailableTopics.length}
-          >
-            <option value="" disabled>Topic</option>
-            {quizAvailableTopics.map(t => (
-              <option key={t.TopicName} value={t.TopicName}>{t.TopicName}</option>
-            ))}
-          </select>
           <select 
             className="upl-input upl-quiz-select" 
             value={quizCourse} 
             onChange={(e) => handleQuizCourseChange(e.target.value)}
-            disabled={!quizTopic || !quizAvailableCourses.length}
+            disabled={!quizAvailableCourses.length}
           >
             <option value="" disabled>Course</option>
             {quizAvailableCourses.map(c => (
@@ -395,9 +381,20 @@ export default function InstructorUpload() {
           </select>
           <select 
             className="upl-input upl-quiz-select" 
+            value={quizTopic} 
+            onChange={(e) => handleQuizTopicChange(e.target.value)}
+            disabled={!quizCourse || !quizAvailableTopics.length}
+          >
+            <option value="" disabled>Topic</option>
+            {quizAvailableTopics.map(t => (
+              <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
+            ))}
+          </select>
+          <select 
+            className="upl-input upl-quiz-select" 
             value={quizLesson} 
             onChange={(e) => setQuizLesson(e.target.value)}
-            disabled={!quizCourse || !quizAvailableLessons.length}
+            disabled={!quizTopic || !quizAvailableLessons.length}
           >
             <option value="" disabled>Lesson</option>
             {quizAvailableLessons.map(l => (

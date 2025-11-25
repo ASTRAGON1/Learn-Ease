@@ -1,13 +1,13 @@
 export const USER_CURRICULUM = Object.freeze([
   {
     GeneralPath: "autism",
-    CoursesTitle: "General path for Autism students",
-    Topics: [
+    pathTitle: "General path for Autism students",
+    Courses: [
       {
-        TopicName: "Listening Skills",
-        Courses: [
+        CoursesTitle: "Listening Skills",
+        Topics: [
           {
-            CoursesTitle: "Listening 1 – Understanding Emotions",
+            TopicsTitle: "Listening 1 – Understanding Emotions",
             lessons: [
               "Lesson 1 – Identifying Happy and Sad",
               "Lesson 2 – Recognizing Angry and Calm Faces",
@@ -17,7 +17,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Listening 2 – Social Listening",
+            TopicsTitle: "Listening 2 – Social Listening",
             lessons: [
               "Lesson 1 – Listening During Conversations",
               "Lesson 2 – Taking Turns When Listening",
@@ -26,7 +26,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Listening 3 – Asking for Help",
+            TopicsTitle: "Listening 3 – Asking for Help",
             lessons: [
               "Lesson 1 – Identifying When You Need Help",
               "Lesson 2 – Phrases to Ask for Help",
@@ -34,7 +34,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Listening 4 – Expressing Needs",
+            TopicsTitle: "Listening 4 – Expressing Needs",
             lessons: [
               "Lesson 1 – Using Words to Explain Feelings",
               "Lesson 2 – Communicating Discomfort",
@@ -42,7 +42,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Listening 5 – Daily Conversations",
+            TopicsTitle: "Listening 5 – Daily Conversations",
             lessons: [
               "Lesson 1 – Greeting Others",
               "Lesson 2 – Asking Simple Questions",
@@ -52,10 +52,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Speaking & Communication",
-        Courses: [
+        CoursesTitle: "Speaking & Communication",
+        Topics: [
           {
-            CoursesTitle: "Communication 1 – Building Basic Speech",
+            TopicsTitle: "Communication 1 – Building Basic Speech",
             lessons: [
               "Lesson 1 – Using Simple Words",
               "Lesson 2 – Sentence Building",
@@ -64,7 +64,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Communication 2 – Asking for Help",
+            TopicsTitle: "Communication 2 – Asking for Help",
             lessons: [
               "Lesson 1 – Asking for Assistance",
               "Lesson 2 – Recognizing Help Options",
@@ -72,7 +72,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Communication 3 – Expressing Needs",
+            TopicsTitle: "Communication 3 – Expressing Needs",
             lessons: [
               "Lesson 1 – Identifying Needs",
               "Lesson 2 – Using Clear Phrases",
@@ -80,7 +80,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Communication 4 – Listening and Responding",
+            TopicsTitle: "Communication 4 – Listening and Responding",
             lessons: [
               "Lesson 1 – Responding to Questions",
               "Lesson 2 – Following Simple Directions",
@@ -88,7 +88,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Communication 5 – Daily Conversations",
+            TopicsTitle: "Communication 5 – Daily Conversations",
             lessons: [
               "Lesson 1 – Greeting Practice",
               "Lesson 2 – Small Talk for Children",
@@ -98,10 +98,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Reading Comprehension",
-        Courses: [
+        CoursesTitle: "Reading Comprehension",
+        Topics: [
           {
-            CoursesTitle: "Reading 1 – Letter & Word Recognition",
+            TopicsTitle: "Reading 1 – Letter & Word Recognition",
             lessons: [
               "Lesson 1 – Alphabet Recognition",
               "Lesson 2 – Matching Words to Pictures",
@@ -109,7 +109,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Reading 2 – Understanding Stories",
+            TopicsTitle: "Reading 2 – Understanding Stories",
             lessons: [
               "Lesson 1 – Identifying Characters",
               "Lesson 2 – Recognizing Settings",
@@ -119,10 +119,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Writing Practice",
-        Courses: [
+        CoursesTitle: "Writing Practice",
+        Topics: [
           {
-            CoursesTitle: "Writing 1 – Motor Skills",
+            TopicsTitle: "Writing 1 – Motor Skills",
             lessons: [
               "Lesson 1 – Tracing Lines",
               "Lesson 2 – Copying Shapes",
@@ -130,7 +130,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Writing 2 – Forming Letters",
+            TopicsTitle: "Writing 2 – Forming Letters",
             lessons: [
               "Lesson 1 – Writing Uppercase Letters",
               "Lesson 2 – Writing Lowercase Letters",
@@ -140,10 +140,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Math Basics",
-        Courses: [
+        CoursesTitle: "Math Basics",
+        Topics: [
           {
-            CoursesTitle: "Math 1 – Number Recognition",
+            TopicsTitle: "Math 1 – Number Recognition",
             lessons: [
               "Lesson 1 – Numbers 1–10",
               "Lesson 2 – Matching Numbers to Quantities",
@@ -151,7 +151,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Math 2 – Basic Operations",
+            TopicsTitle: "Math 2 – Basic Operations",
             lessons: [
               "Lesson 1 – Simple Addition",
               "Lesson 2 – Simple Subtraction",
@@ -161,10 +161,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Daily Life Skills",
-        Courses: [
+        CoursesTitle: "Daily Life Skills",
+        Topics: [
           {
-            CoursesTitle: "Life Skills 1 – Personal Hygiene",
+            TopicsTitle: "Life Skills 1 – Personal Hygiene",
             lessons: [
               "Lesson 1 – Hand Washing Steps",
               "Lesson 2 – Brushing Teeth",
@@ -174,10 +174,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Social Interaction",
-        Courses: [
+        CoursesTitle: "Social Interaction",
+        Topics: [
           {
-            CoursesTitle: "Social 1 – Making Friends",
+            TopicsTitle: "Social 1 – Making Friends",
             lessons: [
               "Lesson 1 – Introducing Yourself",
               "Lesson 2 – Sharing and Turn-Taking",
@@ -187,10 +187,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Emotional Recognition & Expression",
-        Courses: [
+        CoursesTitle: "Emotional Recognition & Expression",
+        Topics: [
           {
-            CoursesTitle: "Emotions 1 – Identifying Feelings",
+            TopicsTitle: "Emotions 1 – Identifying Feelings",
             lessons: [
               "Lesson 1 – Basic Emotions",
               "Lesson 2 – Body Language Cues",
@@ -204,13 +204,13 @@ export const USER_CURRICULUM = Object.freeze([
 
   {
     GeneralPath: "Down Syndrome",
-    CoursesTitle: "General path for Down syndrome students",
-    Topics: [
+    pathTitle: "General path for Down syndrome students",
+    Courses: [
       {
-        TopicName: "Basic Communication Skills",
-        Courses: [
+        CoursesTitle: "Basic Communication Skills",
+        Topics: [
           {
-            CoursesTitle: "Communication Basics",
+            TopicsTitle: "Communication Basics",
             lessons: [
               "Lesson 1 – Naming Objects",
               "Lesson 2 – Following Simple Instructions",
@@ -220,10 +220,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Reading and Phonics",
-        Courses: [
+        CoursesTitle: "Reading and Phonics",
+        Topics: [
           {
-            CoursesTitle: "Reading Foundations",
+            TopicsTitle: "Reading Foundations",
             lessons: [
               "Lesson 1 – Recognizing Letters",
               "Lesson 2 – Beginning Phonics",
@@ -233,10 +233,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Writing and Drawing",
-        Courses: [
+        CoursesTitle: "Writing and Drawing",
+        Topics: [
           {
-            CoursesTitle: "Fine Motor Development",
+            TopicsTitle: "Fine Motor Development",
             lessons: [
               "Lesson 1 – Tracing Shapes",
               "Lesson 2 – Drawing Lines and Curves",
@@ -246,10 +246,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Number Recognition & Counting",
-        Courses: [
+        CoursesTitle: "Number Recognition & Counting",
+        Topics: [
           {
-            CoursesTitle: "Math Foundations",
+            TopicsTitle: "Math Foundations",
             lessons: [
               "Lesson 1 – Numbers 1–10",
               "Lesson 2 – Counting Objects",
@@ -257,7 +257,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Tech 2 – Safe Technology Use",
+            TopicsTitle: "Tech 2 – Safe Technology Use",
             lessons: [
               "Lesson 1 – Asking Before Using Devices",
               "Lesson 2 – Safe Video Watching",
@@ -267,10 +267,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Personal Hygiene and Self-care",
-        Courses: [
+        CoursesTitle: "Personal Hygiene and Self-care",
+        Topics: [
           {
-            CoursesTitle: "Self-Care Basics",
+            TopicsTitle: "Self-Care Basics",
             lessons: [
               "Lesson 1 – Washing Hands",
               "Lesson 2 – Dressing Skills",
@@ -280,10 +280,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Daily Routines & Independence",
-        Courses: [
+        CoursesTitle: "Daily Routines & Independence",
+        Topics: [
           {
-            CoursesTitle: "Routine Building",
+            TopicsTitle: "Routine Building",
             lessons: [
               "Lesson 1 – Morning Routine",
               "Lesson 2 – School Preparation",
@@ -291,7 +291,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Health 1 – Knowing Your Body",
+            TopicsTitle: "Health 1 – Knowing Your Body",
             lessons: [
               "Lesson 1 – Naming Body Parts",
               "Lesson 2 – Safe Touch vs Unsafe Touch",
@@ -299,7 +299,7 @@ export const USER_CURRICULUM = Object.freeze([
             ],
           },
           {
-            CoursesTitle: "Health 2 – Healthy Habits",
+            TopicsTitle: "Health 2 – Healthy Habits",
             lessons: [
               "Lesson 1 – Eating Healthy Foods",
               "Lesson 2 – Drinking Water",
@@ -310,10 +310,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Emotional Understanding",
-        Courses: [
+        CoursesTitle: "Emotional Understanding",
+        Topics: [
           {
-            CoursesTitle: "Emotions Basics",
+            TopicsTitle: "Emotions Basics",
             lessons: [
               "Lesson 1 – Identifying Feelings",
               "Lesson 2 – Safe Emotional Expression",
@@ -322,10 +322,10 @@ export const USER_CURRICULUM = Object.freeze([
         ],
       },
       {
-        TopicName: "Social Skills and Group Activities",
-        Courses: [
+        CoursesTitle: "Social Skills and Group Activities",
+        Topics: [
           {
-            CoursesTitle: "Group Interaction",
+            TopicsTitle: "Group Interaction",
             lessons: [
               "Lesson 1 – Sharing and Taking Turns",
               "Lesson 2 – Cooperative Play",
@@ -337,4 +337,3 @@ export const USER_CURRICULUM = Object.freeze([
     ],
   },
 ]);
-

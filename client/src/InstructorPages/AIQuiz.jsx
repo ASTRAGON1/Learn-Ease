@@ -12,8 +12,8 @@ export default function AIQuiz() {
   // form
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Autism");
-  const [topic, setTopic] = useState("");
   const [course, setCourse] = useState("");
+  const [topic, setTopic] = useState("");
   const [lesson, setLesson] = useState("");
   const [numQ, setNumQ] = useState(8);
   const [answersPerQ, setAnswersPerQ] = useState(3);
@@ -24,39 +24,39 @@ export default function AIQuiz() {
     return USER_CURRICULUM.find((p) => normalizeKey(p.GeneralPath) === pathKey);
   }, [category]);
 
-  // Get available topics for current category
-  const availableTopics = useMemo(() => currentPath?.Topics || [], [currentPath]);
+  // Get available courses for current category
+  const availableCourses = useMemo(() => currentPath?.Courses || [], [currentPath]);
 
-  // Get available courses for selected topic
-  const availableCourses = useMemo(() => {
-    if (!topic || !currentPath) return [];
-    const selectedTopic = currentPath.Topics.find((t) => t.TopicName === topic);
-    return selectedTopic?.Courses || [];
-  }, [topic, currentPath]);
+  // Get available topics for selected course
+  const availableTopics = useMemo(() => {
+    if (!course || !currentPath) return [];
+    const selectedCourse = currentPath.Courses.find((c) => c.CoursesTitle === course);
+    return selectedCourse?.Topics || [];
+  }, [course, currentPath]);
 
-  // Get available lessons for selected course
+  // Get available lessons for selected topic
   const availableLessons = useMemo(() => {
-    if (!course || !availableCourses.length) return [];
-    const selectedCourse = availableCourses.find((c) => c.CoursesTitle === course);
-    return selectedCourse?.lessons || [];
-  }, [course, availableCourses]);
+    if (!topic || !availableTopics.length) return [];
+    const selectedTopic = availableTopics.find((t) => t.TopicsTitle === topic);
+    return selectedTopic?.lessons || [];
+  }, [topic, availableTopics]);
 
-  // Reset dependent selections when category or topic changes
+  // Reset dependent selections when category or course changes
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
+    setCourse("");
     setTopic("");
-    setCourse("");
-    setLesson("");
-  };
-
-  const handleTopicChange = (newTopic) => {
-    setTopic(newTopic);
-    setCourse("");
     setLesson("");
   };
 
   const handleCourseChange = (newCourse) => {
     setCourse(newCourse);
+    setTopic("");
+    setLesson("");
+  };
+
+  const handleTopicChange = (newTopic) => {
+    setTopic(newTopic);
     setLesson("");
   };
 
@@ -78,8 +78,8 @@ export default function AIQuiz() {
   }, []);
 
   const canGenerate = useMemo(
-    () => title.trim() && topic && course && lesson && Number(numQ) > 0 && Number(answersPerQ) >= 3,
-    [title, topic, course, lesson, numQ, answersPerQ]
+    () => title.trim() && course && topic && lesson && Number(numQ) > 0 && Number(answersPerQ) >= 3,
+    [title, course, topic, lesson, numQ, answersPerQ]
   );
 
   // --- helpers ---
@@ -110,7 +110,7 @@ export default function AIQuiz() {
   const clearGenerated = () => setItems([]);
 
   const pkg = () => ({
-    meta: { title, category, topic, course, lesson, numQ, answersPerQ, createdAt: new Date().toISOString() },
+    meta: { title, category, course, topic, lesson, numQ, answersPerQ, createdAt: new Date().toISOString() },
     items,
   });
 
@@ -166,28 +166,13 @@ export default function AIQuiz() {
               />
             </div>
 
-            <div className="qzInst-smallmuted">Choose the topic, course and the lesson this quiz will be associated</div>
+            <div className="qzInst-smallmuted">Choose the course, topic and the lesson this quiz will be associated</div>
             <div className="qzInst-row">
-              <select
-                className="qzInst-input"
-                value={topic}
-                onChange={(e) => handleTopicChange(e.target.value)}
-                disabled={!availableTopics.length}
-              >
-                <option value="" disabled>
-                  Topic
-                </option>
-                {availableTopics.map((t) => (
-                  <option key={t.TopicName} value={t.TopicName}>
-                    {t.TopicName}
-                  </option>
-                ))}
-              </select>
               <select
                 className="qzInst-input"
                 value={course}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                disabled={!topic || !availableCourses.length}
+                disabled={!availableCourses.length}
               >
                 <option value="" disabled>
                   Course
@@ -200,9 +185,24 @@ export default function AIQuiz() {
               </select>
               <select
                 className="qzInst-input"
+                value={topic}
+                onChange={(e) => handleTopicChange(e.target.value)}
+                disabled={!course || !availableTopics.length}
+              >
+                <option value="" disabled>
+                  Topic
+                </option>
+                {availableTopics.map((t) => (
+                  <option key={t.TopicsTitle} value={t.TopicsTitle}>
+                    {t.TopicsTitle}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="qzInst-input"
                 value={lesson}
                 onChange={(e) => setLesson(e.target.value)}
-                disabled={!course || !availableLessons.length}
+                disabled={!topic || !availableLessons.length}
               >
                 <option value="" disabled>
                   Lesson
@@ -271,7 +271,7 @@ export default function AIQuiz() {
           <div className="qzInst-results-head">
             <h3>AI Generated Quiz</h3>
             <div className="qzInst-meta">
-              <span>{category}</span> | <span>{topic} / {course} / {lesson}</span>
+              <span>{category}</span> | <span>{course} / {topic} / {lesson}</span>
             </div>
           </div>
 
@@ -323,8 +323,8 @@ export default function AIQuiz() {
                     <div>
                       <strong>{d.meta.title}</strong>
                       <div className="qzInst-mini">
-                        {d.meta.topic ? `${d.meta.topic} / ` : ""}
-                        {d.meta.course} / {d.meta.lesson} | {d.meta.category} | {d.meta.numQ}Q
+                        {d.meta.course ? `${d.meta.course} / ` : ""}
+                        {d.meta.topic} / {d.meta.lesson} | {d.meta.category} | {d.meta.numQ}Q
                       </div>
                     </div>
                     <button className="qzInst-link qzInst-danger" onClick={() => delDraft(i)}>
@@ -345,8 +345,8 @@ export default function AIQuiz() {
                     <div>
                       <strong>{d.meta.title}</strong>
                       <div className="qzInst-mini">
-                        {d.meta.topic ? `${d.meta.topic} / ` : ""}
-                        {d.meta.course} / {d.meta.lesson} | {d.meta.category} | {d.meta.numQ}Q
+                        {d.meta.course ? `${d.meta.course} / ` : ""}
+                        {d.meta.topic} / {d.meta.lesson} | {d.meta.category} | {d.meta.numQ}Q
                       </div>
                     </div>
                     <button className="qzInst-link qzInst-danger" onClick={() => delPub(i)}>

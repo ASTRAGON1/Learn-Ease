@@ -14,35 +14,35 @@ export default function CurriculumSection() {
           <div key={path.GeneralPath} className="list-item">
             <div className="row" style={{ justifyContent: "space-between" }}>
               <div className="row">
-                <span className="badge purple">{path.CoursesTitle}</span>
+                <span className="badge purple">{path.pathTitle}</span>
               </div>
-              <span className="sub">{path.Topics.length} topics</span>
+              <span className="sub">{path.Courses.length} courses</span>
             </div>
 
             <div className="list" style={{ marginTop: 10 }}>
-              {path.Topics.map((topic, ti) => (
-                <details key={ti} className="list-item topic" >
+              {path.Courses.map((course, ci) => (
+                <details key={ci} className="list-item topic" >
                   <summary className="row" style={{ justifyContent: "space-between" }}>
-                    <div className="row"><strong>{topic.TopicName}</strong></div>
+                    <div className="row"><strong>{course.CoursesTitle}</strong></div>
                     <span className="sub">
-                      {topic.Courses ? `${topic.Courses.length} courses` : "No courses"}
+                      {course.Topics ? `${course.Topics.length} topics` : "No topics"}
                     </span>
                   </summary>
 
-                  {topic.Courses && (
+                  {course.Topics && (
                     <div className="list" style={{ marginTop: 8 }}>
-                      {topic.Courses.map((course, ci) => (
-                        <details key={ci} className="list-item course" >
+                      {course.Topics.map((topic, ti) => (
+                        <details key={ti} className="list-item course" >
                           <summary className="row" style={{ justifyContent: "space-between" }}>
-                            <div className="row"><b>{course.CoursesTitle}</b></div>
+                            <div className="row"><b>{topic.TopicsTitle}</b></div>
                             <span className="sub">
-                              {course.lessons ? `${course.lessons.length} lessons` : "No lessons"}
+                              {topic.lessons ? `${topic.lessons.length} lessons` : "No lessons"}
                             </span>
                           </summary>
 
-                          {course.lessons && (
+                          {topic.lessons && (
                             <div className="list" style={{ marginTop: 8 }}>
-                              {course.lessons.map((lesson, li) => (
+                              {topic.lessons.map((lesson, li) => (
                                 <div key={li} className="row" style={{ justifyContent: "space-between" }}>
                                   <span>{lesson}</span>
                                 </div>

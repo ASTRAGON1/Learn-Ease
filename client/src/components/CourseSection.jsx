@@ -100,7 +100,7 @@ export default function CourseSection({ name }) {
 
       <div className="final-cta">
         <p className="ready-text">Are You Ready to Begin?</p>
-        <Link to="/InstructorUpload" className="btn4">Create Your Course</Link>
+        <Link to="/InstructorUpload" className="btn4">Upload Your Content</Link>
       </div>
     </div>
   );
