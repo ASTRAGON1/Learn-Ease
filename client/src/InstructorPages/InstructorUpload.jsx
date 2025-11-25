@@ -16,7 +16,7 @@ const LESSONS  = ["Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"];
 const DEFAULT_ROWS = [
   { title:"Listening Class N24: How to Help Children with Down Syndrome Improve...", category:"Down Syndrome", status:"Published" },
   { title:"Math Session N15: Supporting Early Number Recognition for Kids...", category:"Autism", status:"Draft" },
-  { title:"Reading Class N10: Building Vocabulary Step-by-Step for Children...", category:"Down Syndrome", status:"scheduled publish" },
+  { title:"Reading Class N10: Building Vocabulary Step-by-Step for Children...", category:"Down Syndrome", status:"Draft" },
   { title:"Listening Exercise N21: Teaching Active Listening Techniques to A...", category:"Autism", status:"Published" },
   { title:"Math Skills N18: Practical Counting Strategies for Down Syndrome...", category:"Down Syndrome", status:"Published" },
 ];
@@ -163,21 +163,6 @@ export default function InstructorUpload() {
   const addPair = () => setPairs([...pairs, { q: "", a: "" }]);
   const removePair = (idx) => { if (pairs.length === 1) return; setPairs(pairs.filter((_, i) => i !== idx)); };
   const onPublishQuiz = () => { alert("Quiz published!"); };
-
-  const deleteContent = (idx) => setContentRows(rows => rows.filter((_, i) => i !== idx));
-
-  // replace your archiveContent with this
-  const archiveContent = (idx) => {
-    const row = contentRows[idx];
-    if (!row) return;
-
-    // 1) push to archive
-    setArchivedRows(a => [{ ...row, status: "Archived" }, ...a]);
-
-    // 2) remove from content (pure updater)
-    setContentRows(rows => rows.filter((_, i) => i !== idx));
-  };
-
 
   return (
     <div className="upl-page">
@@ -501,8 +486,8 @@ export default function InstructorUpload() {
                 </div>
 
                 <div className="upl-content-actions">
-                  <button className="upl-btn-arch" onClick={()=>archiveContent(idx)}>Archive</button>
-                  <button className="upl-btn-del"  onClick={()=>deleteContent(idx)}>Delete</button>
+                  <button type="button" className="upl-btn-arch" onClick={()=>{}}>Archive</button>
+                  <button type="button" className="upl-btn-del"  onClick={()=>{}}>Delete</button>
                 </div>
               </div>
             ))
