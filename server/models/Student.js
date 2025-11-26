@@ -1,11 +1,55 @@
 const mongoose = require('mongoose');
-const StudentSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String,
-    enrolledCourses: [String], // Array of Course IDs
-    age: Number,
-    avatar: String
+
+const studentSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
+  },
+  pass: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters']
+  },
+  type: {
+    type: String,
+    enum: ['autism', 'downSyndrome', 'other'],
+    required: [true, 'Student type is required']
+  },
+  avatar: {
+    type: String,
+    default: 'default-avatar.png'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
+  suspended: {
+    type: Boolean,
+    default: false
+  },
+  assignedPath: {
+    type: String,
+    trim: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date. now
+  }
+}, {
+  timestamps: false,
+  collection: 'Student'
 });
 
-module.exports =  mongoose.model('student', StudentSchema, 'Students');
+const Student = mongoose.model('Student', studentSchema);
+
+module.exports = Student;

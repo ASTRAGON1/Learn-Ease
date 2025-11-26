@@ -1,28 +1,36 @@
-// Connections
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
-const app = express();
-app.use(cors());
-app.use(express.json());
 const connectDB = require('./config/db');
-const router = require('./routes/contentRoutes');
+//  Debug: Check if .env is loaded
+console.log('🔍 MONGO_URI:', process.env. MONGO_URI ?  '✅ Found' : '❌ Not found');
+console.log('🔍 First 50 chars:', process.env.MONGO_URI?.substring(0, 50));
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express. json());
+
+// Connect to MongoDB
 connectDB();
 
-app.get('/', (req, res) => {
-  res.send('Our learning ecosystem is under development');
+// Routes
+const testRoutes = require('./routes/testRoutes');
+
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: '✅ Server is running!' });
 });
 
-app.use('/api', router)
+// API routes
+app.use('/api/test', testRoutes);
 
-app.listen(process.env.PORT || 5000, () => {
-  console.log('Server running...');
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-
-
-
-
 
 
 
