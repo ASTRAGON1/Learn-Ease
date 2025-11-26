@@ -42,19 +42,20 @@ background: transparent;
 }
 
 .quiz-list::-webkit-scrollbar-thumb {
-background-color: rgba(156, 111, 228, 0.5);
-border-radius: 4px;
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
 .quiz-list::-webkit-scrollbar-thumb:hover {
-background-color: rgba(156, 111, 228, 0.8);
+  background-color: var(--scrollbar-thumb-hover);
 }
 .quiz-list {
-flex: 1 1 auto;
-overflow-y: auto;
-scrollbar-width: thin;
-margin-top: 8px; /* gap below header */
-scrollbar-color: #9C6FE4 transparent;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  margin-top: 8px; /* gap below header */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* qui settings */
@@ -74,6 +75,27 @@ color: #1a1a1f;
 .quiz-row:nth-child(even) {
 background-color: #3b3b3b17;  /* light blue */
 color: #1a1a1f;
+}
+
+.quiz-empty-state{
+  padding:40px 20px;
+  text-align:center;
+  color:#4a4a4a;
+}
+.quiz-empty-icon{
+  font-size:48px;
+  margin-bottom:12px;
+  opacity:0.7;
+}
+.quiz-empty-text{
+  margin:0;
+  font-weight:600;
+  font-size:16px;
+}
+.quiz-empty-subtext{
+  margin:4px 0 0 0;
+  font-size:13px;
+  color:#7a7a7a;
 }
 
 .col {

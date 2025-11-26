@@ -324,7 +324,7 @@
   justify-content:center;
 }
 .sd-rec-row::-webkit-scrollbar{ height:10px; }
-.sd-rec-row::-webkit-scrollbar-thumb{ background:#e7dcff; border-radius:8px; }
+.sd-rec-row::-webkit-scrollbar-thumb{ background:var(--scrollbar-thumb); border-radius:8px; }
 
 /* ⬆️ cards slightly larger, with taller thumbnail */
 .sd-rec-card{

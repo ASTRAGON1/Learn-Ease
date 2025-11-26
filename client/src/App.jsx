@@ -81,7 +81,7 @@ export default function App() {
         </Route>
 
         {/* Instructor */}
-        <Route path="/InstructorLogin" element={<InstructorLogin />} />
+        <Route path="/InstructorLogin" element={<InstructorLogin />} /> 
         <Route path="/InstructorDash" element={<InstructorDashboard />} />
         <Route path="/InstructorSignUp1" element={<InstructorSignUp1 />} />
         <Route path="/InstructorSignUp2" element={<InstructorSignUp2 />} />

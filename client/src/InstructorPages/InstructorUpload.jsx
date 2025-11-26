@@ -1,22 +1,19 @@
 // src/pages/InstructorUpload.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import "./InstructorUpload.css";
+import { USER_CURRICULUM } from "../data/curriculum";
 
 const ALL_TAGS = [
-  "Communication","Emotions","Social Skills","Routines","Self-Care",
-  "Fine Motor","Gross Motor","Sensory","Visual Aids","AAC",
-  "Behavior","Safety","Numbers","Letters","Reading",
-  "Writing","Life Skills","Transitions","Play Skills","Community"
+  "video",
+  "file document",
+  "picture"
 ];
-
-const COURSES = ["Communication 1", "Communication 2", "Numbers", "Letters"];
-const LESSONS  = ["Lesson 1", "Lesson 2", "Lesson 3", "Lesson 4"];
 
 const DEFAULT_ROWS = [
   { title:"Listening Class N24: How to Help Children with Down Syndrome Improve...", category:"Down Syndrome", status:"Published" },
   { title:"Math Session N15: Supporting Early Number Recognition for Kids...", category:"Autism", status:"Draft" },
-  { title:"Reading Class N10: Building Vocabulary Step-by-Step for Children...", category:"Down Syndrome", status:"scheduled pub" },
+  { title:"Reading Class N10: Building Vocabulary Step-by-Step for Children...", category:"Down Syndrome", status:"Draft" },
   { title:"Listening Exercise N21: Teaching Active Listening Techniques to A...", category:"Autism", status:"Published" },
   { title:"Math Skills N18: Practical Counting Strategies for Down Syndrome...", category:"Down Syndrome", status:"Published" },
 ];
@@ -27,9 +24,56 @@ export default function InstructorUpload() {
   const [tags, setTags] = useState([]);
   const [showTagList, setShowTagList] = useState(false);
   const [category, setCategory] = useState("Autism");
+  const [course, setCourse] = useState("");
+  const [topic, setTopic] = useState("");
+  const [lesson, setLesson] = useState("");
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // Get current path based on category
+  const currentPath = useMemo(() => {
+    const pathKey = category === "Autism" ? "autism" : "Down Syndrome";
+    return USER_CURRICULUM.find(p => p.GeneralPath === pathKey);
+  }, [category]);
+
+  // Get available courses for current category
+  const availableCourses = useMemo(() => {
+    return currentPath?.Courses || [];
+  }, [currentPath]);
+
+  // Get available topics for selected course
+  const availableTopics = useMemo(() => {
+    if (!course || !currentPath) return [];
+    const selectedCourse = currentPath.Courses.find(c => c.CoursesTitle === course);
+    return selectedCourse?.Topics || [];
+  }, [course, currentPath]);
+
+  // Get available lessons for selected topic
+  const availableLessons = useMemo(() => {
+    if (!topic || !availableTopics.length) return [];
+    const selectedTopic = availableTopics.find(t => t.TopicsTitle === topic);
+    return selectedTopic?.lessons || [];
+  }, [topic, availableTopics]);
+
+  // Reset dependent selections when category or course changes
+  const handleCategoryChange = (newCategory) => {
+    setCategory(newCategory);
+    setCourse("");
+    setTopic("");
+    setLesson("");
+  };
+
+  const handleCourseChange = (newCourse) => {
+    setCourse(newCourse);
+    setTopic("");
+    setLesson("");
+  };
+
+  const handleTopicChange = (newTopic) => {
+    setTopic(newTopic);
+    setLesson("");
+  };
 
   // Tables
   const [contentRows, setContentRows] = useState(DEFAULT_ROWS);
@@ -39,12 +83,62 @@ export default function InstructorUpload() {
   const [quizTitle, setQuizTitle] = useState("");
   const [quizCategory, setQuizCategory] = useState("Autism");
   const [quizCourse, setQuizCourse] = useState("");
+  const [quizTopic, setQuizTopic] = useState("");
   const [quizLesson, setQuizLesson] = useState("");
-  const [pairs, setPairs] = useState([{ q: "", a: "" }, { q: "", a: "" }]);
+  const [pairs, setPairs] = useState([{ q: "", a: "" }]);
+
+  // Get current path for quiz based on quiz category
+  const quizCurrentPath = useMemo(() => {
+    const pathKey = quizCategory === "Autism" ? "autism" : "Down Syndrome";
+    return USER_CURRICULUM.find(p => p.GeneralPath === pathKey);
+  }, [quizCategory]);
+
+  // Get available courses for quiz category
+  const quizAvailableCourses = useMemo(() => {
+    return quizCurrentPath?.Courses || [];
+  }, [quizCurrentPath]);
+
+  // Get available topics for selected quiz course
+  const quizAvailableTopics = useMemo(() => {
+    if (!quizCourse || !quizCurrentPath) return [];
+    const selectedCourse = quizCurrentPath.Courses.find(c => c.CoursesTitle === quizCourse);
+    return selectedCourse?.Topics || [];
+  }, [quizCourse, quizCurrentPath]);
+
+  // Get available lessons for selected quiz topic
+  const quizAvailableLessons = useMemo(() => {
+    if (!quizTopic || !quizAvailableTopics.length) return [];
+    const selectedTopic = quizAvailableTopics.find(t => t.TopicsTitle === quizTopic);
+    return selectedTopic?.lessons || [];
+  }, [quizTopic, quizAvailableTopics]);
+
+  // Reset dependent selections when quiz category or course changes
+  const handleQuizCategoryChange = (newCategory) => {
+    setQuizCategory(newCategory);
+    setQuizCourse("");
+    setQuizTopic("");
+    setQuizLesson("");
+  };
+
+  const handleQuizCourseChange = (newCourse) => {
+    setQuizCourse(newCourse);
+    setQuizTopic("");
+    setQuizLesson("");
+  };
+
+  const handleQuizTopicChange = (newTopic) => {
+    setQuizTopic(newTopic);
+    setQuizLesson("");
+  };
 
   const toggleTag = (t) => {
-    if (tags.includes(t)) setTags(tags.filter(x => x !== t));
-    else if (tags.length < 3) setTags([...tags, t]);
+    if (tags.includes(t)) {
+      // Deselect if clicking the same tag
+      setTags([]);
+    } else {
+      // For file type tags, only allow one selection
+      setTags([t]);
+    }
   };
 
   const validate = () => {
@@ -66,21 +160,6 @@ export default function InstructorUpload() {
   const addPair = () => setPairs([...pairs, { q: "", a: "" }]);
   const removePair = (idx) => { if (pairs.length === 1) return; setPairs(pairs.filter((_, i) => i !== idx)); };
   const onPublishQuiz = () => { alert("Quiz published!"); };
-
-  const deleteContent = (idx) => setContentRows(rows => rows.filter((_, i) => i !== idx));
-
-  // replace your archiveContent with this
-  const archiveContent = (idx) => {
-    const row = contentRows[idx];
-    if (!row) return;
-
-    // 1) push to archive
-    setArchivedRows(a => [{ ...row, status: "Archived" }, ...a]);
-
-    // 2) remove from content (pure updater)
-    setContentRows(rows => rows.filter((_, i) => i !== idx));
-  };
-
 
   return (
     <div className="upl-page">
@@ -104,7 +183,7 @@ export default function InstructorUpload() {
           </div>
 
           <div className="upl-field">
-            <label>Choose tags for your content*:</label>
+            <label>Choose a tag for your content*:</label>
             <div
               className="upl-tagbox"
               onClick={() => setShowTagList((s) => !s)}
@@ -112,7 +191,7 @@ export default function InstructorUpload() {
               tabIndex={0}
             >
               {tags.length === 0 ? (
-                <span className="upl-placeholder">you can only choose 3 tags max</span>
+                <span className="upl-placeholder">choose file type</span>
               ) : (
                 <div className="upl-chips">
                   {tags.map((t) => (
@@ -130,7 +209,7 @@ export default function InstructorUpload() {
             </div>
 
             {showTagList && (
-              <ul className="upl-taglist" role="listbox" aria-multiselectable="true">
+              <ul className="upl-taglist" role="listbox" aria-multiselectable="false">
                 {ALL_TAGS.map((t) => (
                   <li key={t}>
                     <button
@@ -178,17 +257,62 @@ export default function InstructorUpload() {
           <button
             type="button"
             className={`upl-catbtn ${category === "Down Syndrome" ? "active" : ""}`}
-            onClick={() => setCategory("Down Syndrome")}
+            onClick={() => handleCategoryChange("Down Syndrome")}
           >
             Down Syndrome
           </button>
           <button
             type="button"
             className={`upl-catbtn ${category === "Autism" ? "active" : ""}`}
-            onClick={() => setCategory("Autism")}
+            onClick={() => handleCategoryChange("Autism")}
           >
             Autism
           </button>
+        </div>
+
+        <div className="upl-field">
+          <label>Select Course:</label>
+          <select 
+            className="upl-input" 
+            value={course} 
+            onChange={(e) => handleCourseChange(e.target.value)}
+            disabled={!availableCourses.length}
+          >
+            <option value="" disabled>Choose a course</option>
+            {availableCourses.map(c => (
+              <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="upl-field">
+          <label>Select Topic:</label>
+          <select 
+            className="upl-input" 
+            value={topic} 
+            onChange={(e) => handleTopicChange(e.target.value)}
+            disabled={!course || !availableTopics.length}
+          >
+            <option value="" disabled>Choose a topic</option>
+            {availableTopics.map(t => (
+              <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="upl-field">
+          <label>Select Lesson:</label>
+          <select 
+            className="upl-input" 
+            value={lesson} 
+            onChange={(e) => setLesson(e.target.value)}
+            disabled={!topic || !availableLessons.length}
+          >
+            <option value="" disabled>Choose a lesson</option>
+            {availableLessons.map(l => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
         </div>
 
         <div className="upl-field">
@@ -227,14 +351,14 @@ export default function InstructorUpload() {
               <button
                 type="button"
                 className={`upl-catbtn ${quizCategory === "Down Syndrome" ? "active" : ""}`}
-                onClick={() => setQuizCategory("Down Syndrome")}
+                onClick={() => handleQuizCategoryChange("Down Syndrome")}
               >
                 Down Syndrome
               </button>
               <button
                 type="button"
                 className={`upl-catbtn ${quizCategory === "Autism" ? "active" : ""}`}
-                onClick={() => setQuizCategory("Autism")}
+                onClick={() => handleQuizCategoryChange("Autism")}
               >
                 Autism
               </button>
@@ -242,15 +366,40 @@ export default function InstructorUpload() {
           </div>
         </div>
 
-        <div className="upl-quiz-note">Choose the course and the lesson this quiz will be associated</div>
+        <div className="upl-quiz-note">Choose the course, topic and the lesson this quiz will be associated</div>
         <div className="upl-quiz-selects">
-          <select className="upl-input upl-quiz-select" value={quizCourse} onChange={(e)=>setQuizCourse(e.target.value)}>
+          <select 
+            className="upl-input upl-quiz-select" 
+            value={quizCourse} 
+            onChange={(e) => handleQuizCourseChange(e.target.value)}
+            disabled={!quizAvailableCourses.length}
+          >
             <option value="" disabled>Course</option>
-            {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+            {quizAvailableCourses.map(c => (
+              <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
+            ))}
           </select>
-          <select className="upl-input upl-quiz-select" value={quizLesson} onChange={(e)=>setQuizLesson(e.target.value)}>
+          <select 
+            className="upl-input upl-quiz-select" 
+            value={quizTopic} 
+            onChange={(e) => handleQuizTopicChange(e.target.value)}
+            disabled={!quizCourse || !quizAvailableTopics.length}
+          >
+            <option value="" disabled>Topic</option>
+            {quizAvailableTopics.map(t => (
+              <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
+            ))}
+          </select>
+          <select 
+            className="upl-input upl-quiz-select" 
+            value={quizLesson} 
+            onChange={(e) => setQuizLesson(e.target.value)}
+            disabled={!quizTopic || !quizAvailableLessons.length}
+          >
             <option value="" disabled>Lesson</option>
-            {LESSONS.map(l => <option key={l} value={l}>{l}</option>)}
+            {quizAvailableLessons.map(l => (
+              <option key={l} value={l}>{l}</option>
+            ))}
           </select>
         </div>
 
@@ -279,15 +428,17 @@ export default function InstructorUpload() {
               />
             </div>
 
-            <button
-              type="button"
-              className="upl-quiz-remove"
-              onClick={()=>removePair(i)}
-              title="Remove this Q/A"
-              style={{marginLeft:8, padding:"0 10px"}}
-            >
-              −
-            </button>
+            {pairs.length > 1 && (
+              <button
+                type="button"
+                className="upl-quiz-remove"
+                onClick={()=>removePair(i)}
+                title="Remove this Q/A"
+                style={{marginLeft:8, padding:"0 10px"}}
+              >
+                −
+              </button>
+            )}
 
             {i === pairs.length-1 && (
               <button type="button" className="upl-quiz-add" onClick={addPair}>+</button>
@@ -311,57 +462,74 @@ export default function InstructorUpload() {
         </div>
 
         <div className="upl-content-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
-          {contentRows.map((row, idx) => (
-            <div key={idx} className="upl-content-row">
-              <div className="upl-content-title" title={row.title}>{row.title}</div>
-
-              <div className="upl-pill upl-pill-gray">{row.category}</div>
-
-              <div className={`upl-status-pill ${
-                row.status === "Published" ? "upl-status-green" :
-                row.status === "Draft" ? "upl-status-red" : "upl-status-yellow"
-              }`}>
-                {row.status}
-              </div>
-
-              <div className="upl-content-actions">
-                <button className="upl-btn-arch" onClick={()=>archiveContent(idx)}>Archive</button>
-                <button className="upl-btn-del"  onClick={()=>deleteContent(idx)}>Delete</button>
-              </div>
+          {contentRows.length === 0 ? (
+            <div className="upl-empty-archive">
+              <div className="upl-empty-icon">📄</div>
+              <p className="upl-empty-text">No content yet</p>
+              <p className="upl-empty-subtext">Create and publish your first content to see it here</p>
             </div>
-          ))}
+          ) : (
+            contentRows.map((row, idx) => (
+              <div key={idx} className="upl-content-row">
+                <div className="upl-content-title" title={row.title}>{row.title}</div>
+
+                <div className="upl-pill upl-pill-gray">{row.category}</div>
+
+                <div className={`upl-status-pill ${
+                  row.status === "Published" ? "upl-status-green" :
+                  row.status === "Draft" ? "upl-status-red" : "upl-status-yellow"
+                }`}>
+                  {row.status}
+                </div>
+
+                <div className="upl-content-actions">
+                  <button type="button" className="upl-btn-arch" onClick={()=>{}}>Archive</button>
+                  <button type="button" className="upl-btn-del"  onClick={()=>{}}>Delete</button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       {/* Archive */}
       <h2 className="upl-section-title">Archive</h2>
-      <div className="upl-content-card upl-section">
-        <div className="upl-content-head">
+      <div className="upl-content-card upl-archive-card upl-section">
+        <div className="upl-content-head upl-archive-head">
           <span>Content title</span>
           <span>Category</span>
-          <span>Status</span>
-          <span className="upl-actions-col" />
+          <span className="upl-actions-col">Actions</span>
         </div>
 
-        <div className="upl-content-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
+        <div className="upl-content-rows upl-archive-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
           {archivedRows.length === 0 ? (
-            <div style={{ padding: "12px", fontSize: "14px", color: "#666" }}>
-              No archived content
+            <div className="upl-empty-archive">
+              <div className="upl-empty-icon">📦</div>
+              <p className="upl-empty-text">No archived content</p>
+              <p className="upl-empty-subtext">Archived items will appear here</p>
             </div>
           ) : (
             archivedRows.map((row, idx) => (
-              <div key={idx} className="upl-content-row">
-                <div className="upl-content-title" title={row.title}>
+              <div key={idx} className="upl-content-row upl-archive-row">
+                <div className="upl-content-title upl-archive-title" title={row.title}>
                   {row.title}
                 </div>
 
-                <div className="upl-pill upl-pill-gray">{row.category}</div>
+                <div className="upl-pill upl-pill-archive">{row.category}</div>
 
-                <div className="upl-status-pill upl-status-yellow">Archived</div>
-
-                <div className="upl-content-actions">
-                  <button className="upl-btn-arch" onClick={() => console.log("show", idx)}>Show</button>
-                  <button className="upl-btn-del" onClick={() => setArchivedRows(a => a.filter((_, i) => i !== idx))}>
+                <div className="upl-content-actions upl-archive-actions">
+                  <button 
+                    className="upl-btn-arch upl-btn-restore" 
+                    onClick={() => console.log("show", idx)}
+                    title="Restore content"
+                  >
+                    Restore
+                  </button>
+                  <button 
+                    className="upl-btn-del upl-btn-delete-arch" 
+                    onClick={() => setArchivedRows(a => a.filter((_, i) => i !== idx))}
+                    title="Permanently delete"
+                  >
                     Delete
                   </button>
                 </div>

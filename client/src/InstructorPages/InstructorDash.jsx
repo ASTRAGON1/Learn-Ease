@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import SidebarLayout from "../components/SidebarLayout";
-import MetricsRow from "../components/MetricsRow";
-import Notifications from "../components/Notifications";
-import RainfallChart from "../components/RainfallChart";
 import Footer from "../components/Footer";
-import QuizResults from "../components/QuizResults";
-import RankingAndTags from "../components/RankingAndTags";
 import CurriculumSection from "../components/CurriculumSection";
-
-import testPath from "../assets/testPath.png";
-import community from "../assets/community.png";
-import teachPic from "../assets/teachPic.png";
-import performanceIcon from "../assets/performance.png";
-import feedbackSupport from "../assets/feedback&support.png";
+import CourseSection from "../components/CourseSection";
+import PerformanceSection from "../components/PerformanceSection";
+import ResourcesSection from "../components/ResourcesSection";
 
 import "./InstructorDash.css";
 
@@ -62,67 +53,6 @@ export default function InstructorDashboard() {
     { tag:"Memorizing", pct:50 },
   ];
 
-  function PerformanceSection() {
-    return (
-      <div
-        className="perf-container"
-        style={{ marginLeft: collapsed ? 0 : 0, paddingTop: 60 }}
-      >
-        <div className="perf-header">
-          <Link to="/InstructorDash" className="dahsboard-back">‹ Dashboard</Link>
-        </div>
-
-        <div className="perf-metrics-row">
-          {sampleMetrics.map((m, i) => (
-            <div key={i} className="metric-card">
-              <span className="metric-label">{m.label}</span>
-              <span className="metric-value">{m.value}</span>
-              <span className="metric-change">{m.change}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="perf-main-row">
-          <div className="perf-graph-section">
-            <div className="graph-card">
-              <RainfallChart tickPlacement="middle" tickLabelPlacement="middle" />
-            </div>
-          </div>
-          <Notifications items={sampleNotifs} />
-        </div>
-
-        <QuizResults />
-        <RankingAndTags instructors={instructors} categories={categories} />
-
-        <div className="improve-section">
-          <h2 className="title-improvement">Improve yourself to get better results!</h2>
-          <Link to="/teachingCenter" className="improve-btn">Teaching center</Link>
-        </div>
-      </div>
-    );
-  }
-  function ResourcesSection() {
-    const items = [
-      { title: "Teaching Center",       img: teachPic,  link: "/TeachingCenter", paragraph: "Find articles on LearnEase teaching — from course creation to marketing."},
-      { title: "Instructor Community",  img: community,  link: "/InstructorCommunity", paragraph: "Share your progress and ask other instructors questions in our community."},
-      { title: "Help and support",      img: feedbackSupport,    link: "/HelpAndSupport", paragraph: "Can’t find what you need? Our support team is happy to help." },
-    ];
-
-    return (
-      <div className="res-section">
-        <h2 className="res-section-title">Resources</h2>
-        <div className="res-cards">
-          {items.map((it) => (
-            <Link key={it.title} to={it.link} className="res-card">
-              <img src={it.img} alt={it.title} className="res-card-img" />
-              <h4 className="res-card-title">{it.title}</h4>
-              <p className="res-card-paragraph">{it.paragraph}</p>
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="dash-root">
@@ -134,106 +64,16 @@ export default function InstructorDashboard() {
       />
 
       <main className={`dash-home ${active === "curriculum" ? "is-curriculum" : ""}`}>
-        {active === "course" && (
-          <div className="dash">
-            <h1 className="dash-title">Welcome {name}, ready to teach?</h1>
-
-            <div className="dash-row">
-              <div className="jump-card">
-                <span className="jump-text">Jump Into Course Creation</span>
-                <Link to="/InstructorUpload" className="InstructorDash-btn-primary">Create Your Course</Link>
-              </div>
-            </div>
-
-            <div className="dash-row">
-              <p className="hint">
-                Based on the data gathered, we think those resources
-                will be helpful.
-              </p>
-            </div>
-
-            <div className="dash-row mt-50">
-              <div className="ai-card">
-                <h3 className="ai-title">Generate quizzes using AI</h3>
-                <p className="ai-desc">
-                  Our AI-powered quiz tool helps you generate
-                  personalized quizzes based on the curriculum you
-                  follow on our platform — perfect for assessing
-                  student progress quickly and effectively.
-                </p>
-                <Link to="/ai-quiz" className="InstructorDash-btn-primary sm">Generate</Link>
-              </div>
-            </div>
-
-            <div className="dash-grid">
-              <div className="mini-card">
-                <h4>Tip of the day</h4>
-                <p>
-                  Boost your teaching with daily strategies
-                  tailored for students with autism and Down
-                  syndrome. Practical, short, and easy to apply.
-                </p>
-              </div>
-              <div className="mini-card">
-                <h4>Community & Support</h4>
-                <p>Ask questions, share tips, and connect with other instructors.</p>
-                <Link to="/InstructorCommunity" className="InstructorDash-btn-primary sm">Join Now</Link>
-
-
-              </div>
-            </div>
-
-            <div className="resources">
-              <h3 className="resources-heading">
-                Have questions? Here are our most popular instructor resources.
-              </h3>
-
-              <div className="res-grid">
-                <Link to="/teachingCenter" className="res-item">
-                  <img src={testPath} alt="Test Video" className="res-icon" />
-                  <h5 className="res-title">Test Video</h5>
-                  <p className="res-desc">See how your videos gets treated</p>
-                </Link>
-
-                <Link to="/InstructorCommunity" className="res-item">
-                  <img src={community} alt="Community" className="res-icon" />
-                  <h5 className="res-title">Community</h5>
-                  <p className="res-desc">
-                    Communicate with other instructors. Ask questions, have discussions, and more.
-                  </p>
-                </Link>
-
-                <Link to="/teachingCenter" className="res-item">
-                  <img src={teachPic} alt="How to teach" className="res-icon" />
-                  <h5 className="res-title">How to teach in LearnEase</h5>
-                  <p className="res-desc">
-                    Learn how to use our platform to get the best results and satisfy the students.
-                  </p>
-                </Link>
-
-                <Link to="/InstructorDash" className="res-item">
-                  <img src={performanceIcon} alt="Performance" className="res-icon" />
-                  <h5 className="res-title">Performance</h5>
-                  <p className="res-desc">
-                    See how students like your contents, quiz results analysis, and more.
-                  </p>
-                </Link>
-                <Link to="/HelpAndSupport" className="res-item">
-                  <img src={feedbackSupport} alt="Feedback & Support" className="res-icon" />
-                  <h5 className="res-title">Feedback & Support</h5>
-                  <p className="res-desc">Get feedback and support from students.</p>
-                </Link>
-              </div>
-            </div>
-
-            <div className="final-cta">
-              <p className="ready-text">Are You Ready to Begin?</p>
-              <Link to="/InstructorUpload" className="btn4">Create Your Course</Link>
-            </div>
-          </div>
+        {active === "course" && <CourseSection name={name} />}
+        {active === "performance" && (
+          <PerformanceSection 
+            collapsed={collapsed}
+            sampleMetrics={sampleMetrics}
+            sampleNotifs={sampleNotifs}
+            instructors={instructors}
+            categories={categories}
+          />
         )}
-
-        {active === "performance" && <PerformanceSection />}
         {active === "curriculum" && (
           <div
             className="curriculum-wrap"
@@ -242,7 +82,7 @@ export default function InstructorDashboard() {
             <CurriculumSection />
           </div>
         )}
-        {active === "resources"  && <ResourcesSection />}
+        {active === "resources" && <ResourcesSection />}
       </main>
 
       <Footer />
