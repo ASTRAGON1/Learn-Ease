@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const quizResultSchema = new mongoose.Schema({
   quiz: {
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Quiz',
     required: [true, 'Quiz reference is required']
   },
@@ -24,7 +24,7 @@ const quizResultSchema = new mongoose.Schema({
   },
   releaseDate: {
     type: Date,
-    default: Date. now
+    default: Date.now
   }
 }, {
   timestamps: true,

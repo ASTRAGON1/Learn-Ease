@@ -7,7 +7,7 @@ const contentFeedbackSchema = new mongoose.Schema({
     required: [true, 'Content is required']
   },
   student: {
-    type: mongoose.Schema.Types. ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
     required: [true, 'Student is required']
   },

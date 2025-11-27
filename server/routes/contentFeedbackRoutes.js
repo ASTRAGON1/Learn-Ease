@@ -9,15 +9,15 @@ const router = express.Router();
  */
 router.post('/', auth(['student']), async (req, res) => {
   try {
-    const { contentId, rating, comment, isLiked } = req.body;
-    if (!contentId || !rating) {
-      return res.status(400).json({ error: 'contentId and rating are required' });
+    const { content, comment, liked } = req.body;
+    if (!content) {
+      return res.status(400).json({ error: 'content (contentId) is required' });
     }
 
     // one feedback per (student, content). Use upsert.
     const doc = await ContentFeedback.findOneAndUpdate(
-      { contentId, studentId: req.user.sub },
-      { contentId, studentId: req.user.sub, rating, comment: comment || '', isLiked: !!isLiked, date: new Date() },
+      { content, student: req.user.sub },
+      { content, student: req.user.sub, comment: comment || '', liked: !!liked },
       { new: true, upsert: true }
     );
 
@@ -40,19 +40,19 @@ router.get('/content/:contentId', auth(['student', 'teacher']), async (req, res)
     const skip = (page - 1) * limit;
 
     const [items, total, agg] = await Promise.all([
-      ContentFeedback.find({ contentId }).sort({ date: -1 }).skip(skip).limit(limit),
-      ContentFeedback.countDocuments({ contentId }),
+      ContentFeedback.find({ content: contentId }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      ContentFeedback.countDocuments({ content: contentId }),
       ContentFeedback.aggregate([
-        { $match: { contentId } },
-        { $group: { _id: '$contentId', avgRating: { $avg: '$rating' }, likes: { $sum: { $cond: ['$isLiked', 1, 0] } }, count: { $sum: 1 } } }
+        { $match: { content: contentId } },
+        { $group: { _id: '$content', likes: { $sum: { $cond: ['$liked', 1, 0] } }, count: { $sum: 1 } } }
       ])
     ]);
 
-    const summary = agg[0] || { avgRating: 0, likes: 0, count: 0 };
+    const summary = agg[0] || { likes: 0, count: 0 };
 
     res.json({
       data: items,
-      summary: { average: Number(summary.avgRating?.toFixed?.(2) || 0), likes: summary.likes, count: summary.count },
+      summary: { likes: summary.likes, count: summary.count },
       pagination: { total, page, limit }
     });
   } catch (e) {
@@ -65,7 +65,7 @@ router.get('/content/:contentId', auth(['student', 'teacher']), async (req, res)
  * Get my feedbacks (student only).
  */
 router.get('/me', auth(['student']), async (req, res) => {
-  const rows = await ContentFeedback.find({ studentId: req.user.sub }).sort({ date: -1 });
+  const rows = await ContentFeedback.find({ student: req.user.sub }).sort({ createdAt: -1 });
   res.json({ data: rows });
 });
 
@@ -75,12 +75,12 @@ router.get('/me', auth(['student']), async (req, res) => {
  */
 router.patch('/:id', auth(['student']), async (req, res) => {
   try {
-    const allowed = ['rating', 'comment', 'isLiked'];
+    const allowed = ['comment', 'liked'];
     const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
 
     const out = await ContentFeedback.findOneAndUpdate(
-      { _id: req.params.id, studentId: req.user.sub },
-      { ...update, date: new Date() },
+      { _id: req.params.id, student: req.user.sub },
+      update,
       { new: true }
     );
     if (!out) return res.status(404).json({ error: 'Feedback not found or not yours' });
@@ -96,7 +96,7 @@ router.patch('/:id', auth(['student']), async (req, res) => {
  */
 router.delete('/:id', auth(['student']), async (req, res) => {
   try {
-    const del = await ContentFeedback.findOneAndDelete({ _id: req.params.id, studentId: req.user.sub });
+    const del = await ContentFeedback.findOneAndDelete({ _id: req.params.id, student: req.user.sub });
     if (!del) return res.status(404).json({ error: 'Feedback not found or not yours' });
     res.json({ msg: 'Feedback deleted' });
   } catch (e) {

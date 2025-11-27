@@ -12,7 +12,7 @@ const lessonSchema = new mongoose.Schema({
     trim: true
   },
   topic: {
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Topic',
     required: [true, 'Topic reference is required']
   },

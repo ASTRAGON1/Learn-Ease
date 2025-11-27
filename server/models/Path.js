@@ -12,7 +12,7 @@ const pathSchema = new mongoose.Schema({
     trim: true
   },
   courses: [{
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Course'
   }],
   difficulty: {

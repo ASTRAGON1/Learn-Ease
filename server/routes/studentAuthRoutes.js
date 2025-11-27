@@ -12,7 +12,7 @@ router.post('/auth/register', async (req, res) => {
     if (exists) return res.status(409).json({ error: 'Email already used' });
 
     const hash = await bcrypt.hash(password, 10);
-    const doc = await Student.create({ name, email, password: hash, age, avatar, enrolledCourses: [] });
+    const doc = await Student.create({ name, email, pass: hash, type: 'other' });
 
     res.status(201).json({ 
       data: { id: doc._id, name: doc.name, email: doc.email } 
@@ -29,7 +29,7 @@ router.post('/auth/login', async (req, res) => {
     const stu = await Student.findOne({ email });
     if (!stu) return res.status(404).json({ error: 'Student not found' });
 
-    const ok = await bcrypt.compare(password, stu.password);
+    const ok = await bcrypt.compare(password, stu.pass);
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ sub: stu._id, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -43,7 +43,7 @@ router.post('/auth/login', async (req, res) => {
 
 // GET /api/students/auth/me
 router.get('/auth/me', require('../middleware/auth')(['student']), async (req, res) => {
-  const me = await Student.findById(req.user.sub).select('-password');
+  const me = await Student.findById(req.user.sub).select('-pass');
   if (!me) return res.status(404).json({ error: 'Not found' });
   res.json({ data: me });
 });

@@ -71,7 +71,7 @@ const teacherSchema = new mongoose.Schema({
 });
 
 // Indexes for faster queries
-teacherSchema. index({ ranking: -1 });
+teacherSchema.index({ ranking: -1 });
 
 const Teacher = mongoose.model('Teacher', teacherSchema);
 

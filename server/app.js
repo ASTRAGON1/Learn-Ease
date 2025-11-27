@@ -3,13 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 //  Debug: Check if .env is loaded
-console.log('🔍 MONGO_URI:', process.env. MONGO_URI ?  '✅ Found' : '❌ Not found');
+console.log('🔍 MONGO_URI:', process.env.MONGO_URI ?  '✅ Found' : '❌ Not found');
 console.log('🔍 First 50 chars:', process.env.MONGO_URI?.substring(0, 50));
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express. json());
+app.use(express.json());
 
 // Connect to MongoDB
 connectDB();

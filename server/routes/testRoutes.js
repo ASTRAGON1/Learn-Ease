@@ -20,13 +20,13 @@ const {
 router.get('/courses', async (req, res) => {
   try {
     const courses = await Course.find();
-    res. json({
+    res.json({
       success: true,
       count: courses.length,
       data: courses
     });
   } catch (error) {
-    res.status(500). json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -36,7 +36,7 @@ router.get('/lessons', async (req, res) => {
     const lessons = await Lesson.find();
     res.json({
       success: true,
-      count: lessons. length,
+      count: lessons.length,
       data: lessons
     });
   } catch (error) {
@@ -82,7 +82,7 @@ router.get('/students', async (req, res) => {
       data: students
     });
   } catch (error) {
-    res. status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -106,7 +106,7 @@ router.get('/admins', async (req, res) => {
     const admins = await Admin.find();
     res.json({
       success: true,
-      count: admins. length,
+      count: admins.length,
       data: admins
     });
   } catch (error) {
@@ -124,7 +124,7 @@ router.get('/content', async (req, res) => {
       data: content
     });
   } catch (error) {
-    res. status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -146,23 +146,23 @@ router.get('/quizzes', async (req, res) => {
 router.get('/quizresults', async (req, res) => {
   try {
     const quizResults = await QuizResult.find();
-    res. json({
+    res.json({
       success: true,
-      count: quizResults. length,
+      count: quizResults.length,
       data: quizResults
     });
   } catch (error) {
-    res. status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // Test: Get all content feedback
-router. get('/contentfeedback', async (req, res) => {
+router.get('/contentfeedback', async (req, res) => {
   try {
     const contentFeedback = await ContentFeedback.find();
     res.json({
       success: true,
-      count: contentFeedback. length,
+      count: contentFeedback.length,
       data: contentFeedback
     });
   } catch (error) {

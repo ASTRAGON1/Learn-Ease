@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const topicSchema = new mongoose. Schema({
+const topicSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Topic title is required'],
@@ -12,7 +12,7 @@ const topicSchema = new mongoose. Schema({
     trim: true
   },
   course: {
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',
     required: [true, 'Course reference is required']
   },

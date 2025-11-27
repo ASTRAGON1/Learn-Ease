@@ -7,7 +7,7 @@
  */
 const generateLessonId = async (Lesson) => {
     try {
-      const lastLesson = await Lesson. findOne().sort({ _id: -1 }). select('_id');
+      const lastLesson = await Lesson.findOne().sort({ _id: -1 }).select('_id');
       
       if (!lastLesson) {
         return 'L001'; // First lesson
@@ -72,7 +72,7 @@ const generateLessonId = async (Lesson) => {
       const exists = await Path.findById(pathId);
       if (exists) {
         // If you want multiple paths per type, use numbering
-        const pathsOfType = await Path.find({ _id: new RegExp(`^PATH_${typeUpper}`) }). sort({ _id: -1 });
+        const pathsOfType = await Path.find({ _id: new RegExp(`^PATH_${typeUpper}`) }).sort({ _id: -1 });
         const nextNum = pathsOfType.length + 1;
         return `PATH_${typeUpper}_${nextNum}`;
       }

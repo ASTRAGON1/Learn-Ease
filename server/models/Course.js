@@ -13,12 +13,12 @@ const courseSchema = new mongoose.Schema({
     trim: true
   },
   teacher: {
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Teacher',
     required: false
   },
   topics: [{
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Topic'
   }],
   enrolledStudents: [{

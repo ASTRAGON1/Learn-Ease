@@ -7,17 +7,32 @@ const router = express.Router();
 // POST /api/teachers/auth/register
 router.post('/auth/register', async (req, res) => {
   try {
-    const { name, email, password, cv, age, avatar, bio } = req.body;
+    const { firstName, lastName, email, password, cv, profilePic, bio } = req.body;
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: 'firstName and lastName are required' });
+    }
     const exists = await Teacher.findOne({ email });
     if (exists) return res.status(409).json({ error: 'Email already used' });
 
     const hash = await bcrypt.hash(password, 10);
     const doc = await Teacher.create({
-      name, email, password: hash, cv: cv || '', uploadedContent: [],
-      age, avatar, bio
+      firstName,
+      lastName,
+      email,
+      password: hash,
+      cv: cv || '',
+      profilePic: profilePic || '',
+      bio: bio || ''
     });
 
-    res.status(201).json({ data: { id: doc._id, name: doc.name, email: doc.email } });
+    res.status(201).json({ 
+      data: { 
+        id: doc._id, 
+        firstName: doc.firstName, 
+        lastName: doc.lastName, 
+        email: doc.email 
+      } 
+    });
   } catch {
     res.status(500).json({ error: 'Server error' });
   }
@@ -34,7 +49,18 @@ router.post('/auth/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ sub: t._id, role: 'teacher' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ data: { token, teacher: { id: t._id, name: t.name, email: t.email, avatar: t.avatar } } });
+    res.json({ 
+      data: { 
+        token, 
+        teacher: { 
+          id: t._id, 
+          firstName: t.firstName, 
+          lastName: t.lastName, 
+          email: t.email, 
+          profilePic: t.profilePic 
+        } 
+      } 
+    });
   } catch {
     res.status(500).json({ error: 'Server error' });
   }

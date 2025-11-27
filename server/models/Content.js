@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-const contentSchema = new mongoose. Schema({
+const contentSchema = new mongoose.Schema({
   teacher: {
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Teacher',
     required: [true, 'Teacher is required']
   },
@@ -51,7 +51,7 @@ const contentSchema = new mongoose. Schema({
   },
   releaseDate: {
     type: Date,
-    default: Date. now
+    default: Date.now
   },
   views: {
     type: Number,

@@ -45,7 +45,7 @@ const createLesson = async (req, res) => {
  */
 const getAllLessons = async (req, res) => {
   try {
-    const lessons = await Lesson.find(). sort({ _id: 1 });
+    const lessons = await Lesson.find().sort({ _id: 1 });
     
     res.status(200).json({
       success: true,
@@ -67,10 +67,10 @@ const getAllLessons = async (req, res) => {
  */
 const getLessonById = async (req, res) => {
   try {
-    const lesson = await Lesson.findById(req.params. id);
+    const lesson = await Lesson.findById(req.params.id);
     
-    if (! lesson) {
-      return res. status(404).json({ 
+    if (!lesson) {
+      return res.status(404).json({ 
         success: false,
         error: 'Lesson not found' 
       });
@@ -98,7 +98,7 @@ const updateLesson = async (req, res) => {
     const { title } = req.body;
     
     const lesson = await Lesson.findByIdAndUpdate(
-      req. params.id,
+      req.params.id,
       { title: title.trim() },
       { new: true, runValidators: true }
     );
@@ -110,14 +110,14 @@ const updateLesson = async (req, res) => {
       });
     }
     
-    res.status(200). json({
+    res.status(200).json({
       success: true,
       message: 'Lesson updated successfully',
       data: lesson
     });
   } catch (error) {
     console.error('Error updating lesson:', error);
-    res. status(500).json({ 
+    res.status(500).json({ 
       success: false,
       error: error.message 
     });
