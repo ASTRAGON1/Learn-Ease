@@ -1,14 +1,40 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './InformationGathering3.css';
 
 export default function InformationGathering3({ onSubmit, onBack }) {
-    const navigate = useNavigate();
-  return (
-    <div className="info3-page">
-      <div className="info3-content">
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
-        <h1 className="info3-title">Submit your information</h1>
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      if (typeof onSubmit === 'function') {
+        await onSubmit();
+      }
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      navigate('/InstructorDash');
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Failed to submit. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (typeof onBack === 'function') {
+      onBack();
+    }
+    navigate('/InformationGathering2');
+  };
+
+  return (
+    <div className="info3-wrap">
+      <div className="info3-card">
+        <h1 className="info3-title">Submit Your Information</h1>
+        <p className="info3-subtitle">Review your information before submitting</p>
 
         <div className="info3-note">
           <strong>Note before submitting:</strong>
@@ -31,14 +57,22 @@ export default function InformationGathering3({ onSubmit, onBack }) {
         </div>
 
         <div className="info3-actions">
-          <Link to="/InformationGathering2" className="info3-back" onClick={onBack}>
+          <button
+            type="button"
+            className="info3-back"
+            onClick={handleBack}
+          >
             ‹ Back
-          </Link>
-          <Link to="/InstructorDash" className="info3-submit" onClick={onSubmit}>
-            Submit
-          </Link>
+          </button>
+          <button
+            type="button"
+            className="info3-submit"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? 'Submitting…' : 'Submit'}
+          </button>
         </div>
-
       </div>
     </div>
   );

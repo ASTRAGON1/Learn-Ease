@@ -1,26 +1,22 @@
-// src/pages/InstructorSignUp2.jsx
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import illustration from '../assets/InstructorLogin.png';
 import './InstructorSignUp2.css';
 
 // Stub – replace with your real API call
 async function performConfirm(code) {
-  const res = await fetch('/api/instructor/confirm-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
-  });
-  return res;
+  await new Promise((r) => setTimeout(r, 800));
+  if (code.length < 6) {
+    return { ok: false, status: 400 };
+  }
+  return { ok: true };
 }
 
 export default function InstructorSignUp2() {
   const navigate = useNavigate();
-  const [code, setCode]             = useState('');
-  const [error, setError]           = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
   const [generalError, setGeneralError] = useState('');
-  const [loading, setLoading]       = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
     if (!code.trim() || code.length < 6) {
@@ -36,7 +32,7 @@ export default function InstructorSignUp2() {
       const res = await performConfirm(code);
 
       if (res.ok) {
-        navigate('/InstructorDash');
+        navigate('/InformationGathering1');
       } else if (res.status === 400) {
         setGeneralError('Invalid verification code.');
       } else {
@@ -51,62 +47,78 @@ export default function InstructorSignUp2() {
   };
 
   return (
-    <div className="signup-page-2">
-      <div className="signup-container-2">
+    <div className="signupInst2-wrap">
+      <div className="signupInst2-card">
+        <Link to="/InstructorSignUp1" className="signupInst2-back">
+          ‹ Go Back
+        </Link>
 
-        {/* ← LEFT PANEL: image */}
-        <div className="signup-left-2">
-          <img
-            src={illustration}
-            alt="Illustration"
-            className="signup-illustration-2"
-          />
-        </div>
+        <h1 className="signupInst2-title">Confirm Your Email</h1>
+        <p className="signupInst2-subtitle">
+          A 6-digit code has been sent to your email address. Please enter it below to verify your account.
+        </p>
 
-        {/* → RIGHT PANEL: form */}
-        <div className="signup-right-2">
-          <Link to="/InstructorSignUp1" className="go-back-2">
-            Back
-          </Link>
+        {(generalError || error) && (
+          <div className="signupInst2-alert" role="alert">
+            {generalError || error}
+          </div>
+        )}
 
-          <h2 className="signup-title-2">Confirm Your Email</h2>
-          <p className="signup-subtitle-2">
-            A 6-digit code is sent to your email
-          </p>
-
-          {generalError && (
-            <div className="signup-error-text-2">{generalError}</div>
-          )}
-          {error && <div className="signup-error-text-2">{error}</div>}
-
-          <input
-            type="text"
-            placeholder="__ __ __ __ __ __"
-            className="signup-input-2"
-            value={code}
-            maxLength={6}
-            onChange={e => {
-              const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-              setCode(val);
-              setError('');
-              setGeneralError('');
-            }}
-          />
+        <div className="signupInst2-form">
+          <div className="signupInst2-field">
+            <label htmlFor="code">Verification Code</label>
+            <input
+              id="code"
+              type="text"
+              placeholder="Enter code"
+              className="signupInst2-input"
+              value={code}
+              maxLength={6}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setCode(val);
+                setError('');
+                setGeneralError('');
+              }}
+              style={{
+                textAlign: 'center',
+                letterSpacing: '8px',
+                fontSize: '20px',
+                fontWeight: '600',
+              }}
+            />
+            <small className="signupInst2-hint">Enter the 6-digit code sent to your email</small>
+          </div>
 
           <button
-            className="signup-button-2"
+            className="signupInst2-btn"
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={loading || code.length < 6}
+            type="button"
           >
             {loading ? 'Confirming…' : 'Confirm'}
           </button>
 
-          <p className="signup-resend-2">
-            Didn’t receive it yet?{' '}
-            <Link to="/InstructorSignUp2" className="resend-link-2">
-              Send again
-            </Link>
+          <p className="signupInst2-resend">
+            Didn't receive the code?{' '}
+            <button
+              type="button"
+              className="signupInst2-link"
+              onClick={() => {
+                // Resend logic here
+                alert('Verification code resent to your email');
+              }}
+            >
+              Resend code
+            </button>
           </p>
+        </div>
+
+        <div className="signupInst2-foot">
+          <span>Need help?</span>
+          <Link to="/contact" className="signupInst2-link">
+            Contact support
+          </Link>
         </div>
       </div>
     </div>

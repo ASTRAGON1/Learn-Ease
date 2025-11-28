@@ -1,12 +1,12 @@
 /* === LearningPaths (topics + courses collapsible) === */
 :root {
-  --primary: #4A0FAD;
-  --accent: #9C6FE4;
-  --accent60: rgba(156,111,228,0.6);
+  --primary: #475569;
+  --accent: #64748b;
+  --accent60: rgba(71,85,105,0.6);
   --card: #ffffff;
   --text: #111111;
   --muted: #666666;
-  --border: #e9e5f6;
+  --border: #e2e8f0;
 }
 
 /* container + section header */
@@ -22,7 +22,7 @@
 
 /* badge */
 .badge { display:inline-flex; align-items:center; gap:6px; padding: 6px 10px; border-radius: 20px; font-size: 12px; border:1px solid var(--border); background:#fff; }
-.badge.purple { border-color:#E9D7FE; background:#F4EBFF; }
+.badge.purple { border-color:#cbd5e1; background:#f1f5f9; color:#475569; }
 
 /* collapsible (topics + courses) */
 details.list-item { padding: 12px; }
@@ -41,7 +41,7 @@ details.list-item > summary {
   margin: -6px -6px 0;          /* stretch hover a bit */
 }
 
-details.list-item > summary:hover { background: #faf7ff; }
+details.list-item > summary:hover { background: #f8f9fa; }
 details.list-item > summary::-webkit-details-marker { display: none; }
 
 /* custom caret */
@@ -62,7 +62,7 @@ details.list-item[open] > summary::before {
 /* nesting polish */
 details.list-item.topic > .list {
   margin-top: 8px;
-  border-left: 2px dashed #f0ecff;
+  border-left: 2px dashed #e2e8f0;
   padding-left: 10px;
 }
 details.list-item.course > summary { padding-left: 34px; }
@@ -73,7 +73,7 @@ details.list-item.course > .list {
 }
 
 /* gentle hover for non-summary rows (lessons) */
-.list-item .row:hover { background: #faf7ff; border-radius: 8px; }
+.list-item .row:hover { background: #f8f9fa; border-radius: 8px; }
 
 /* optional buttons (not used here, kept for consistency) */
 .btn { border:0; background: var(--primary); color:white; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight:700; }

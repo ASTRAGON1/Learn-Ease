@@ -52,10 +52,14 @@ export default function InstructorSignUp1() {
     }
   };
 
+  const handleBack = () => {
+    navigate("/");
+  };
+
   return (
     <div className="signupInst1-wrap">
       <div className="signupInst1-card">
-        <Link to="/" className="signupInst1-back">‹ Go Back</Link>
+        <button type="button" className="signupInst1-back" onClick={handleBack}>‹ Go Back</button>
         <h1 className="signupInst1-title">Create Instructor Account</h1>
         <p className="signupInst1-subtitle">Sign up to manage your courses and students.</p>
 

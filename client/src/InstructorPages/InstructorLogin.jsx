@@ -79,7 +79,14 @@ export default function InstructorLogin({
       
 
       <div className="instructorLogin-card">
-        <a className="instructorLogin-back" href={backHref} aria-label="Back to landing">‹ Back</a>
+        <button 
+          type="button"
+          className="instructorLogin-back" 
+          onClick={() => window.location.href = backHref}
+          aria-label="Back to landing"
+        >
+          ‹ Back
+        </button>
         <h1 className="instructorLogin-title">Instructor Login</h1>
         <p className="instructorLogin-subtitle">Access your dashboard to manage courses and students.</p>
 

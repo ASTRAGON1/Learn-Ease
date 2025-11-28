@@ -12,14 +12,28 @@
 }
 
 /* Header */
-.signupInst1-back{display: inline-flex;
-  align-self: flex-start;
+.signupInst1-back{
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  margin: 0 0 10px 6px;   
+  margin: 0 0 16px 0;
+  padding: 0;
   color: #0f172a;
-  text-decoration: none;
-  font-weight: 600;}
-.signupInst1-back:hover{text-decoration: none; transform: translateX(-2px); }
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: transform 0.2s ease;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
+}
+.signupInst1-back:hover{
+  transform: translateX(-2px);
+  color: #0f172a;
+}
 .signupInst1-title{margin:10px 0 4px; font-size:28px; font-weight:800; text-align:center}
 .signupInst1-subtitle{margin:0 0 16px; font-size:14px; color:#64748b; text-align:center}
 
@@ -40,7 +54,7 @@
   border:1px solid #e2e8f0; border-radius:10px; outline:none;
 }
 .signupInst1-field input:focus{
-  border-color:#6d28d9; box-shadow:0 0 0 3px rgba(109,40,217,.2);
+  border-color:#475569; box-shadow:0 0 0 3px rgba(71,85,105,.2);
 }
 .signupInst1-error{color:#e11d48; font-size:12px; margin-top:6px}
 
@@ -62,11 +76,11 @@
   box-shadow:none;
 }
 
-/* Only show a purple checkmark when checked (no fill) */
+/* Only show a grey checkmark when checked (no fill) */
 .signupInst1-terms input[type="checkbox"]:checked{
   background:#fff;                       /* keep white */
-  border-color:#6d28d9;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%236d28d9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  border-color:#475569;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:center;
   background-size:12px 12px;             /* fits the 16px box */
@@ -74,15 +88,15 @@
 
 /* Focus ring (optional) */
 .signupInst1-terms input[type="checkbox"]:focus-visible{
-  outline:none; box-shadow:0 0 0 3px rgba(109,40,217,.18);
+  outline:none; box-shadow:0 0 0 3px rgba(71,85,105,.18);
 }
 
 
 /* Buttons */
 .signupInst1-btn{
   width:100%; height:44px; border:none; border-radius:12px;
-  background:#6d28d9; color:#fff; font-weight:700; cursor:pointer;
-  box-shadow:0 6px 16px rgba(109,40,217,.25); margin-top:6px;
+  background:#475569; color:#fff; font-weight:700; cursor:pointer;
+  box-shadow:0 6px 16px rgba(71,85,105,.25); margin-top:6px;
 }
 .signupInst1-btn:disabled{opacity:.7; cursor:not-allowed}
 .signupInst1-google{
@@ -93,5 +107,5 @@
 
 /* Footer */
 .signupInst1-foot{margin-top:14px; display:flex; justify-content:center; gap:6px; font-size:14px; color:#64748b}
-.signupInst1-link{color:#6d28d9; text-decoration:none}
+.signupInst1-link{color:#475569; text-decoration:none}
 .signupInst1-link:hover{text-decoration:underline}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import SidebarLayout from "../components/SidebarLayout";
-import Footer from "../components/Footer";
 import CurriculumSection from "../components/CurriculumSection";
 import CourseSection from "../components/CourseSection";
 import PerformanceSection from "../components/PerformanceSection";
@@ -84,8 +83,6 @@ export default function InstructorDashboard() {
         )}
         {active === "resources" && <ResourcesSection />}
       </main>
-
-      <Footer />
     </div>
   );
 }

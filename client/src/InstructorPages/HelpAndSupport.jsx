@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./HelpAndSupport.css";
-import Footer from "../components/Footer";
 
 const REPORT_TOPICS = [
   "Login or account issues","uploading","Content","Stats or analytics","Navigation",
@@ -11,10 +10,15 @@ const FEEDBACK_TOPICS = [
 ];
 
 export default function HelpAndSupport() {
+  const navigate = useNavigate();
   const [section, setSection] = useState("report");
   const [topic, setTopic] = useState(REPORT_TOPICS[0]);
   const [text, setText] = useState("");
   const MAX = 250;
+
+  const handleBack = () => {
+    navigate("/InstructorDash");
+  };
 
   const topics = section === "report" ? REPORT_TOPICS : FEEDBACK_TOPICS;
 
@@ -31,15 +35,15 @@ export default function HelpAndSupport() {
 
   return (
     <div className="sup-page">
-      <div className="sup-topline">
-        <Link to="/InstructorDash" className="sup-back">
+      <div className="sup-header-row">
+        <button type="button" className="sup-back" onClick={handleBack}>
           <span className="sup-chev">‹</span> Dashboard
-        </Link>
+        </button>
+        <h1 className="sup-title">
+          {section === "report" ? "Help and support" : "Feedback and support"}
+        </h1>
+        <span aria-hidden />
       </div>
-
-      <h1 className="sup-title">
-        {section === "report" ? "Help and support" : "Feedback and support"}
-      </h1>
 
       <div className="sup-cards">
         <button
@@ -64,12 +68,16 @@ export default function HelpAndSupport() {
           <div className="sup-plus">+</div>
         </button>
 
-        <Link to="/getSupport" className="sup-card sup-link">
+        <button
+          type="button"
+          className="sup-card sup-link"
+          onClick={() => navigate("/getSupport")}
+        >
           <div className="sup-emoji">🤝</div>
           <h3>Get support</h3>
-          <p>Need help with something? Contact our support team and we’ll assist you shortly.</p>
+          <p>Need help with something? Contact our support team and we'll assist you shortly.</p>
           <div className="sup-plus">+</div>
-        </Link>
+        </button>
       </div>
 
       <section className="sup-card sup-form">
@@ -115,7 +123,6 @@ export default function HelpAndSupport() {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 }

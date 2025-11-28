@@ -1,13 +1,18 @@
 // AIQuiz.jsx
 import React, { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./AIQuiz.css";
 import { USER_CURRICULUM } from "../data/curriculum";
 
 const CATS = ["Down Syndrome", "Autism"];
 
 export default function AIQuiz() {
+  const navigate = useNavigate();
   const normalizeKey = (str = "") => str.toLowerCase().replace(/\s+/g, " ").trim();
+
+  const handleBack = () => {
+    navigate("/InstructorDash");
+  };
 
   // form
   const [title, setTitle] = useState("");
@@ -144,9 +149,9 @@ export default function AIQuiz() {
   return (
     <div className="qzInst-page">
       <div className="qzInst-topbar">
-        <Link to="/InstructorDash" className="qzInst-back">
-          <span className="qzInst-chev">&lt;</span> Dashboard
-        </Link>
+        <button type="button" className="qzInst-back" onClick={handleBack}>
+          <span className="qzInst-chev">‹</span> Dashboard
+        </button>
       </div>
       <h1 className="qzInst-title">Generate Quizzes using AI</h1>
 

@@ -1,7 +1,7 @@
 /* AIQuiz.css */
 :root{
-  --purple:#5b22d1;
-  --purple2:#4a17b8;
+  --purple:#475569;
+  --purple2:#475569;
   --ink:#12131a;
   --muted:#6e7280;
   --bg:#f7f7fb;
@@ -16,6 +16,18 @@
 *{ box-sizing:border-box; }
 html,body{ max-width:100%; overflow-x:hidden; }
 body{ background:var(--bg); }
+
+/* Remove all outlines on hover and focus */
+button:hover,
+button:focus,
+input:hover,
+input:focus,
+select:hover,
+select:focus,
+textarea:hover,
+textarea:focus {
+  outline:none !important;
+}
 
 .qzInst-page{
   max-width:1180px; margin:0 auto; padding:32px 18px 80px;
@@ -43,27 +55,59 @@ body{ background:var(--bg); }
   height:40px; padding:0 12px; background:#fff; border:1px solid var(--border);
   border-radius:10px; outline:none; font-size:14px; color:black;
 }
-.qzInst-input:focus{ border-color:#b7a8ff; box-shadow:0 0 0 3px rgba(91,34,209,.12); }
+.qzInst-input:hover {
+  outline:none;
+}
+.qzInst-input:focus{ 
+  border-color:#475569; 
+  box-shadow:0 0 0 3px rgba(71,85,105,.12); 
+  outline:none;
+}
 
 .qzInst-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
 .qzInst-pills{ display:flex; gap:10px; flex-wrap:wrap; }
 .qzInst-pill{
-  padding:8px 14px; border-radius:999px; border:1px solid #eadfff;
-  background:#f3ecff; color:var(--purple2); font-weight:700; cursor:pointer;
+  padding:8px 14px; border-radius:999px; border:1px solid #cbd5e1;
+  background:#f1f5f9; color:#475569; font-weight:700; cursor:pointer;
+  outline:none;
 }
-.qzInst-pill.qzInst-active{ background:var(--purple); color:#fff; border-color:transparent; }
+.qzInst-pill:hover {
+  outline:none;
+}
+.qzInst-pill:focus {
+  outline:none;
+}
+.qzInst-pill.qzInst-active{ background:#475569; color:#fff; border-color:transparent; }
 
 .qzInst-form-actions{
   display:flex; justify-content:flex-end; gap:8px; margin-top:12px;
 }
 .qzInst-primary{
   height:40px; padding:0 16px; border-radius:10px; border:0;
-  background:linear-gradient(90deg,var(--purple),#7b57e6); color:#fff; font-weight:800; cursor:pointer;
+  background:#475569; color:#fff; font-weight:800; cursor:pointer;
+  outline:none;
+  transition: background 0.2s ease;
+}
+.qzInst-primary:hover {
+  background:#334155;
+  outline:none;
+}
+.qzInst-primary:focus {
+  outline:none;
 }
 .qzInst-secondary{
-  height:40px; padding:0 16px; border-radius:10px; border:1px solid #e3defe;
-  background:#f1eefc; color:#3f22a6; font-weight:700; cursor:pointer;
+  height:40px; padding:0 16px; border-radius:10px; border:1px solid #e6e6e9;
+  background:#f2f2f4; color:#475569; font-weight:700; cursor:pointer;
+  outline:none;
+  transition: background 0.2s ease;
+}
+.qzInst-secondary:hover {
+  background:#e2e8f0;
+  outline:none;
+}
+.qzInst-secondary:focus {
+  outline:none;
 }
 
 .qzInst-results-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
@@ -96,7 +140,20 @@ body{ background:var(--bg); }
   background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px;
 }
 .qzInst-mini{ font-size:12px; color:var(--muted); }
-.qzInst-link{ background:none; border:0; color:#5120d6; font-weight:800; cursor:pointer; }
+.qzInst-link{ 
+  background:none; 
+  border:0; 
+  color:#475569; 
+  font-weight:800; 
+  cursor:pointer;
+  outline:none;
+}
+.qzInst-link:hover {
+  outline:none;
+}
+.qzInst-link:focus {
+  outline:none;
+}
 .qzInst-link.qzInst-danger{ color:#b01b1b; }
 
 /* Top back link */
@@ -108,18 +165,30 @@ body{ background:var(--bg); }
 }
 
 .qzInst-back{
+  background:none;
+  border:0;
+  cursor:pointer;
+  font-weight:700;
+  font-size:24px;
+  line-height:1;
+  color:#000;
+  font-family:inherit;
+  padding:0;
   display:inline-flex;
   align-items:center;
   gap:6px;
-  padding:8px 12px;
-  color:black;
-  font-weight:800;
-  text-decoration:none;
-  line-height:1;
+  transition:transform 0.2s ease;
+  outline:none;
 }
-
+.qzInst-back:hover {
+  transform:translateX(-2px);
+  outline:none;
+}
+.qzInst-back:focus {
+  outline:none;
+}
 .qzInst-back .qzInst-chev{
-  font-size:23px;
+  font-size:28px;
+  font-weight:800;
   line-height:1;
-  transform: translateY(-1px);
 }
