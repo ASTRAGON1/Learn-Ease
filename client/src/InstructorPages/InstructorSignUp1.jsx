@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./InstructorSignUp1.css";
 
 /* Fake signup handler (replace with backend later) */
@@ -104,14 +104,28 @@ export default function InstructorSignUp1() {
             {loading ? "Creating…" : "Create"}
           </button>
 
-          <button className="signupInst1-google" type="button">
+          <button 
+            className="signupInst1-google" 
+            type="button"
+            disabled={loading}
+          >
+            <img
+              src="https://img.icons8.com/color/16/000000/google-logo.png"
+              alt="Google"
+            />
             Sign up with Google
           </button>
         </div>
 
         <div className="signupInst1-foot">
           <span>Already have an account?</span>
-          <Link to="/InstructorLogin" className="signupInst1-link">Log in</Link>
+          <button
+            type="button"
+            className="signupInst1-link-btn"
+            onClick={() => navigate("/InstructorLogin")}
+          >
+            Log in
+          </button>
         </div>
       </div>
     </div>

@@ -293,44 +293,301 @@ body {
 .editable { border:1px dashed var(--border); padding:6px 8px; border-radius:8px; }
 
 /* -------- Login -------- */
-.login { 
-  min-height: 100vh; 
-  display:grid; 
-  place-items:center; 
-  background: linear-gradient(135deg, #5a5a65 0%, #6a6a75 100%); 
+/* ===== Admin Login Styles ===== */
+.adminLogin-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #5a5a65 0%, #4a4a55 50%, #6a6a75 100%);
+  position: relative;
 }
-.login-card { 
-  width: 380px; 
-  background: var(--card); 
-  border:1px solid var(--border); 
-  border-radius:16px; 
-  padding: 18px; 
-  display:grid; 
-  gap:10px; 
+
+.adminLogin-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.adminLogin-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adminLogin-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.adminLogin-logo-badge {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(90, 90, 101, 0.3);
+}
+
+.adminLogin-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.adminLogin-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.adminLogin-alert {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.adminLogin-form {
+  display: grid;
+  gap: 18px;
+}
+
+.adminLogin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adminLogin-field label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-left: 4px;
+}
+
+.adminLogin-input {
+  width: 100%;
+  height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #fff;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.adminLogin-input::placeholder {
+  color: #9ca3af;
+}
+
+.adminLogin-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(90, 90, 101, 0.15);
+}
+
+.adminLogin-input-group {
+  position: relative;
+  display: grid;
+}
+
+.adminLogin-input-group .adminLogin-input {
+  padding-right: 50px;
+}
+
+.adminLogin-eye {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 36px;
+  width: 36px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.adminLogin-eye:hover {
+  background: #f9fafb;
+  border-color: var(--primary);
+}
+
+.adminLogin-eye svg {
+  stroke: var(--muted);
+  fill: none;
+}
+
+.adminLogin-eye:hover svg {
+  stroke: var(--primary);
+}
+
+.adminLogin-invalid,
+.adminLogin-input-group.adminLogin-invalid .adminLogin-input {
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+.adminLogin-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.adminLogin-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  margin-left: 4px;
+}
+
+.adminLogin-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(90, 90, 101, 0.3);
+  margin-top: 4px;
+  outline: none;
+}
+
+.adminLogin-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(90, 90, 101, 0.4);
+  filter: brightness(1.05);
+  outline: none;
+}
+
+.adminLogin-btn:focus {
+  outline: none;
+}
+
+.adminLogin-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.adminLogin-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.adminLogin-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: adminLogin-spin 0.8s linear infinite;
+}
+
+@keyframes adminLogin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.adminLogin-footer {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.adminLogin-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  padding: 12px;
+  background: rgba(90, 90, 101, 0.05);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .adminLogin-card {
+    padding: 24px;
+    border-radius: 16px;
+  }
+
+  .adminLogin-title {
+    font-size: 24px;
+  }
+
+  .adminLogin-logo {
+    font-size: 18px;
+  }
+
+  .adminLogin-logo-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* Legacy support - keep old .login class for backward compatibility */
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #5a5a65 0%, #6a6a75 100%);
+}
+
+.login-card {
+  width: 380px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.login h1 { margin: 0 0 8px; letter-spacing:-0.02em; font-size: 24px; font-weight: 800; }
-
-/* Dark inputs ONLY on login card */
-.login-card .input {
-  background: #111 !important;
-  color: #fff !important;
-  border: 1px solid #2b2b36;
-  border-radius: 10px;
-  caret-color: #fff;
-  padding: 12px;
-}
-
-.login-card .input::placeholder { color: #a3a3b2; }
-.login-card .input:focus { border-color: #7d66d9; box-shadow: 0 0 0 3px rgba(124,104,238,.25); }
-.login-card input:-webkit-autofill,
-.login-card input:-webkit-autofill:hover,
-.login-card input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #fff;
-  -webkit-box-shadow: 0 0 0 1000px #111 inset !important;
-  box-shadow: 0 0 0 1000px #111 inset !important;
-  caret-color: #fff;
+.login h1 {
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+  font-size: 24px;
+  font-weight: 800;
 }
 
 /* -------- App-wide Form Controls (white inputs, black text) -------- */

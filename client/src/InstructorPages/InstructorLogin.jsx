@@ -1,20 +1,47 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./InstructorLogin.css";
 
-/* Demo auth stub (swap with your backend later) */
-const DEMO_INSTRUCTOR = {
-  id: "inst-demo-1",
-  name: "Demo Instructor",
-  email: "instructor@demo.com",
-  password: "Teach123!",
-};
-
+// MongoDB authentication API call
 async function loginInstructor({ email, password }) {
-  await new Promise((r) => setTimeout(r, 600));
-  if (email === DEMO_INSTRUCTOR.email && password === DEMO_INSTRUCTOR.password) {
-    return { ok: true, token: "demo.jwt.token", user: { id: DEMO_INSTRUCTOR.id, name: DEMO_INSTRUCTOR.name, email } };
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Handle errors from API
+      if (response.status === 404) {
+        return { ok: false, error: 'Teacher not found. Please check your email.' };
+      } else if (response.status === 401) {
+        return { ok: false, error: 'Invalid email or password.' };
+      } else {
+        return { ok: false, error: data.error || 'Login failed. Please try again.' };
+      }
+    }
+
+    // Login successful
+    return {
+      ok: true,
+      token: data.data.token,
+      user: {
+        id: data.data.teacher.id,
+        name: `${data.data.teacher.firstName} ${data.data.teacher.lastName}`,
+        email: data.data.teacher.email
+      }
+    };
+  } catch (error) {
+    console.error('Login error:', error);
+    return { ok: false, error: 'Network error. Please check your connection and try again.' };
   }
-  return { ok: false, error: "Invalid email or password." };
 }
 
 /* Icons */
@@ -39,6 +66,7 @@ export default function InstructorLogin({
   redirectTo = "/InstructorDash",
   backHref = "/",
 }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -66,10 +94,19 @@ export default function InstructorLogin({
     setLoading(false);
     if (!res.ok) return setServerError(res.error || "Login failed.");
 
+    // Store authentication data
     const storage = remember ? window.localStorage : window.sessionStorage;
-    if (res.token) storage.setItem("le_instructor_token", res.token);
-    storage.setItem("le_instructor_name", res.user?.name || "Instructor");
-    storage.setItem("le_instructor_id", res.user?.id || "");
+    if (res.token) {
+      storage.setItem("token", res.token);
+      storage.setItem("le_instructor_token", res.token); // Keep for compatibility
+    }
+    storage.setItem("role", "teacher");
+    storage.setItem("userId", res.user?.id || "");
+    storage.setItem("le_instructor_id", res.user?.id || ""); // Keep for compatibility
+    storage.setItem("userName", res.user?.name || "Instructor");
+    storage.setItem("le_instructor_name", res.user?.name || "Instructor"); // Keep for compatibility
+    storage.setItem("userEmail", res.user?.email || "");
+    
     if (typeof onSuccess === "function") onSuccess(res);
     else window.location.assign(redirectTo);
   };
@@ -148,17 +185,34 @@ export default function InstructorLogin({
               <span className="instructorLogin-switch-track" aria-hidden="true"></span>
               <span className="instructorLogin-switch-label">Remember me</span>
             </label>
-            <a className="instructorLogin-link" href="/instructor/forgot-password">Forgot password?</a>
+            <button
+              type="button"
+              className="instructorLogin-link-btn"
+              onClick={() => navigate("/InstructorForgotPassword")}
+            >
+              Forgot password?
+            </button>
           </div>
 
-          <button className="instructorLogin-btn" type="submit" disabled={loading}>
+          <button 
+            className="instructorLogin-btn" 
+            type="submit" 
+            disabled={loading}
+            style={{ outline: 'none', border: 'none' }}
+          >
             {loading ? <span className="instructorLogin-spinner" /> : "Log in"}
           </button>
         </form>
 
         <div className="instructorLogin-foot">
           <span>New instructor?</span>
-          <a className="instructorLogin-link" href="/InstructorSignUp1">Create an account</a>
+          <button
+            type="button"
+            className="instructorLogin-link-btn"
+            onClick={() => navigate("/InstructorSignUp1")}
+          >
+            Create an account
+          </button>
         </div>
       </div>
     </div>

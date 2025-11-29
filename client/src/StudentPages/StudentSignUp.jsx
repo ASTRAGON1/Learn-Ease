@@ -112,7 +112,14 @@ export default function StudentSignUp() {
               Sign up with Google
             </button>
             <p className="student-login-link">
-              Already a member? <a href="/login">Login</a>
+              Already a member?{" "}
+              <button
+                type="button"
+                className="student-login-link-btn"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
             </p>
           </form>
         </div>

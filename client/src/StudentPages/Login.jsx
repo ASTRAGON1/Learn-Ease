@@ -79,7 +79,7 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      // This is where your backend friend will add the API call
+      // This is where your backend friend will add the API callz
       // Example:
       // const response = await axios.post('/api/auth/login', formData);
       // if (response.data.success) {
@@ -157,7 +157,14 @@ const Login = () => {
             </button>
           </form>
           <p className="register-link">
-            Don't you have an account? <a href="#">Click here</a>
+            Don't you have an account?{" "}
+            <button
+              type="button"
+              className="register-link-btn"
+              onClick={() => navigate("/signup")}
+            >
+              Click here
+            </button>
           </p>
         </div>
         <div className="login-card-right">
