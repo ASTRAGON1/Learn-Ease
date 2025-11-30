@@ -16,6 +16,12 @@ connectDB();
 
 // Routes
 const testRoutes = require('./routes/testRoutes');
+const studentAuthRoutes = require('./routes/studentAuthRoutes');
+const teacherAuthRoutes = require('./routes/teacherAuthRoutes');
+const contentRoutes = require('./routes/contentRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
+const courseRoutes = require('./routes/courseRoutes');
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -24,6 +30,12 @@ app.get('/api/test', (req, res) => {
 
 // API routes
 app.use('/api/test', testRoutes);
+app.use('/api/students', studentAuthRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/teachers', teacherAuthRoutes);
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/courses', courseRoutes);
 
 
 // Start server
