@@ -5,6 +5,14 @@ const connectDB = require('./config/db');
 //  Debug: Check if .env is loaded
 console.log('🔍 MONGO_URI:', process.env.MONGO_URI ?  '✅ Found' : '❌ Not found');
 console.log('🔍 First 50 chars:', process.env.MONGO_URI?.substring(0, 50));
+console.log('🔍 JWT_SECRET:', process.env.JWT_SECRET ?  '✅ Found' : '❌ Not found');
+
+// Validate required environment variables
+if (!process.env.JWT_SECRET) {
+  console.error('❌ ERROR: JWT_SECRET is not set in .env file!');
+  console.error('Please add JWT_SECRET=your-secret-key-here to your server/.env file');
+  process.exit(1);
+}
 const app = express();
 
 // Middleware

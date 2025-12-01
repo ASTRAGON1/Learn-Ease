@@ -29,20 +29,31 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  firstName: {
+  fullName: {
     type: String,
-    required: [true, 'First name is required'],
-    trim: true
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
+    required: [true, 'Full name is required'],
     trim: true
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters']
+    required: false, // Made optional - will validate with custom validator
+    validate: {
+      validator: function(value) {
+        // If firebaseUID exists, password is optional
+        if (this.firebaseUID) {
+          return true;
+        }
+        // If no firebaseUID, password is required and must be at least 6 characters
+        return value && value.length >= 6;
+      },
+      message: 'Password is required (minimum 6 characters) when not using Firebase authentication'
+    }
+  },
+  firebaseUID: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values
+    trim: true
   },
   ranking: {
     type: Number,

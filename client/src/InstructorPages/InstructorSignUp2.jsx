@@ -1,48 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { auth } from '../config/firebase';
+import { onAuthStateChanged, reload } from 'firebase/auth';
 import './InstructorSignUp2.css';
-
-// Stub – replace with your real API call
-async function performConfirm(code) {
-  await new Promise((r) => setTimeout(r, 800));
-  if (code.length < 6) {
-    return { ok: false, status: 400 };
-  }
-  return { ok: true };
-}
 
 export default function InstructorSignUp2() {
   const navigate = useNavigate();
-  const [code, setCode] = useState('');
-  const [error, setError] = useState('');
   const [generalError, setGeneralError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    // Get email from sessionStorage
+    const storedEmail = sessionStorage.getItem('instructorSignupEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      // If no email in sessionStorage, check Firebase auth state
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user && user.email) {
+          setEmail(user.email);
+          sessionStorage.setItem('instructorSignupEmail', user.email);
+        } else {
+          // No user found, redirect back to signup
+          navigate('/InstructorSignUp1');
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [navigate]);
 
   const handleConfirm = async () => {
-    if (!code.trim() || code.length < 6) {
-      setError('Please enter the 6-digit code');
-      return;
-    }
-
-    setError('');
     setGeneralError('');
     setLoading(true);
 
     try {
-      const res = await performConfirm(code);
+      const user = auth.currentUser;
+      if (!user) {
+        setGeneralError('No user found. Please sign up again.');
+        navigate('/InstructorSignUp1');
+        return;
+      }
 
-      if (res.ok) {
+      // Reload user to check if email is verified
+      await reload(user);
+      
+      // Check if email is verified
+      if (user.emailVerified) {
+        // Email is verified, proceed to next step
+        sessionStorage.removeItem('instructorSignupEmail');
         navigate('/InformationGathering1');
-      } else if (res.status === 400) {
-        setGeneralError('Invalid verification code.');
       } else {
-        setGeneralError('Confirmation failed. Please try again.');
+        // Email not verified yet - the code might be for manual verification
+        // For now, we'll check if they entered a valid code
+        // In a real implementation, you might want to use Firebase's email verification link
+        // or implement a custom verification code system
+        setGeneralError('Email not verified. Please check your email and click the verification link.');
       }
     } catch (err) {
-      console.error(err);
-      setGeneralError('Network error. Please check your connection.');
+      console.error('Verification error:', err);
+      if (err.code === 'auth/requires-recent-login') {
+        setGeneralError('Session expired. Please sign up again.');
+        navigate('/InstructorSignUp1');
+      } else {
+        setGeneralError(err.message || 'Verification failed. Please check your email and try again.');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        // Firebase doesn't have a resend verification code function
+        // Instead, we can send the verification email again
+        const { sendEmailVerification } = await import('firebase/auth');
+        await sendEmailVerification(user);
+        alert('Verification email resent to your email address');
+      }
+    } catch (err) {
+      console.error('Resend error:', err);
+      alert('Failed to resend verification email. Please try again.');
     }
   };
 
@@ -55,61 +95,36 @@ export default function InstructorSignUp2() {
 
         <h1 className="signupInst2-title">Confirm Your Email</h1>
         <p className="signupInst2-subtitle">
-          A 6-digit code has been sent to your email address. Please enter it below to verify your account.
+          A verification email has been sent to <strong>{email || 'your email'}</strong>. Please check your inbox and click the verification link to verify your account.
+        </p>
+        <p className="signupInst2-subtitle" style={{ fontSize: '14px', marginTop: '8px', color: '#666' }}>
+          After clicking the verification link, click the button below to continue.
         </p>
 
-        {(generalError || error) && (
+        {generalError && (
           <div className="signupInst2-alert" role="alert">
-            {generalError || error}
+            {generalError}
           </div>
         )}
 
         <div className="signupInst2-form">
-          <div className="signupInst2-field">
-            <label htmlFor="code">Verification Code</label>
-            <input
-              id="code"
-              type="text"
-              placeholder="Enter code"
-              className="signupInst2-input"
-              value={code}
-              maxLength={6}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setCode(val);
-                setError('');
-                setGeneralError('');
-              }}
-              style={{
-                textAlign: 'center',
-                letterSpacing: '8px',
-                fontSize: '20px',
-                fontWeight: '600',
-              }}
-            />
-            <small className="signupInst2-hint">Enter the 6-digit code sent to your email</small>
-          </div>
-
           <button
             className="signupInst2-btn"
             onClick={handleConfirm}
-            disabled={loading || code.length < 6}
+            disabled={loading}
             type="button"
           >
-            {loading ? 'Confirming…' : 'Confirm'}
+            {loading ? 'Checking…' : 'I\'ve Verified My Email'}
           </button>
 
           <p className="signupInst2-resend">
-            Didn't receive the code?{' '}
+            Didn't receive the email?{' '}
             <button
               type="button"
               className="signupInst2-link"
-              onClick={() => {
-                // Resend logic here
-                alert('Verification code resent to your email');
-              }}
+              onClick={handleResendCode}
             >
-              Resend code
+              Resend verification email
             </button>
           </p>
         </div>
