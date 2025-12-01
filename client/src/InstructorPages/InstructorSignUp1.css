@@ -1,7 +1,7 @@
 /* === InstructorSignUp1 (fixed) === */
 .signupInst1-wrap{
-  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:24px; background:#f7f7fb; gap:20px;
+  min-height:100vh; display:grid; place-items:center;
+  padding:24px; background:#f7f7fb;
 }
 
 /* Card constraints (prevents full-width inputs) */
@@ -131,41 +131,3 @@
   font-family:inherit;
 }
 .signupInst1-link-btn:hover{text-decoration:underline}
-
-/* Notice Banner (outside card) */
-.signupInst1-notice{
-  width:100%; max-width:440px; margin:0 auto;
-  background:#fff3cd; border:1px solid #ffc107; border-radius:12px;
-  padding:16px 20px; box-shadow:0 4px 12px rgba(255,193,7,.15);
-}
-.signupInst1-notice-content{
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  flex-wrap:wrap;
-}
-.signupInst1-notice-message{
-  flex:1; min-width:200px;
-  color:#856404; font-size:14px; line-height:1.5;
-}
-.signupInst1-notice-message strong{
-  display:block; margin-bottom:4px; font-weight:600;
-}
-.signupInst1-notice-btn{
-  padding:8px 20px; background:#ffc107; color:#000;
-  border:none; border-radius:8px; font-weight:600; font-size:14px;
-  cursor:pointer; transition:all .2s; outline:none;
-  white-space:nowrap;
-}
-.signupInst1-notice-btn:hover{
-  background:#ffb300; transform:translateY(-1px);
-  box-shadow:0 4px 8px rgba(255,193,7,.3);
-}
-.signupInst1-notice-btn:active{
-  transform:translateY(0);
-}
-
-/* Alert (for non-login-prompt errors) */
-.signupInst1-alert{
-  width:100%; max-width:440px; margin:0 auto;
-  background:#fee; border:1px solid #fcc; border-radius:12px;
-  padding:12px 16px; color:#c33; font-size:14px; text-align:center;
-}

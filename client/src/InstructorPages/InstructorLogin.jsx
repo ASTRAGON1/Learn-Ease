@@ -1,116 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase";
 import "./InstructorLogin.css";
 
-// Combined authentication: Firebase + MongoDB
+// MongoDB authentication API call
 async function loginInstructor({ email, password }) {
   try {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     
-    // Step 1: Check if user exists in MongoDB and get their auth method
-    const checkResponse = await fetch(`${API_URL}/api/teachers/auth/check-auth-method`, {
+    const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
 
-    const checkData = await checkResponse.json();
+    const data = await response.json();
 
-    if (!checkResponse.ok) {
-      if (checkResponse.status === 404) {
+    if (!response.ok) {
+      // Handle errors from API
+      if (response.status === 404) {
         return { ok: false, error: 'Teacher not found. Please check your email.' };
+      } else if (response.status === 401) {
+        return { ok: false, error: 'Invalid email or password.' };
+      } else {
+        return { ok: false, error: data.error || 'Login failed. Please try again.' };
       }
-      return { ok: false, error: checkData.error || 'Login failed. Please try again.' };
     }
 
-    // Step 2: Authenticate based on auth method
-    if (checkData.hasFirebase) {
-      // User has Firebase UID - authenticate with Firebase
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const firebaseUser = userCredential.user;
-        
-        // Check if email is verified (for email/password signups)
-        if (!firebaseUser.emailVerified) {
-          await auth.signOut();
-          return { 
-            ok: false, 
-            error: 'Please verify your email before logging in. Check your inbox for the verification link.' 
-          };
-        }
-
-        // Firebase authentication successful - get MongoDB token
-        const loginResponse = await fetch(`${API_URL}/api/teachers/auth/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password, firebaseUID: firebaseUser.uid }),
-        });
-
-        const loginData = await loginResponse.json();
-
-        if (!loginResponse.ok) {
-          await auth.signOut();
-          return { ok: false, error: loginData.error || 'Login failed. Please try again.' };
-        }
-
-        return {
-          ok: true,
-          token: loginData.data.token,
-          user: {
-            id: loginData.data.teacher.id,
-            name: loginData.data.teacher.fullName,
-            email: loginData.data.teacher.email
-          }
-        };
-      } catch (firebaseError) {
-        console.error('Firebase login error:', firebaseError);
-        if (firebaseError.code === 'auth/wrong-password') {
-          return { ok: false, error: 'Invalid email or password.' };
-        } else if (firebaseError.code === 'auth/user-not-found') {
-          return { ok: false, error: 'Teacher not found. Please check your email.' };
-        } else if (firebaseError.code === 'auth/too-many-requests') {
-          return { ok: false, error: 'Too many login attempts. Please try again later.' };
-        }
-        return { ok: false, error: firebaseError.message || 'Firebase authentication failed.' };
+    // Login successful
+    return {
+      ok: true,
+      token: data.data.token,
+      user: {
+        id: data.data.teacher.id,
+        name: `${data.data.teacher.firstName} ${data.data.teacher.lastName}`,
+        email: data.data.teacher.email
       }
-    } else {
-      // User doesn't have Firebase - use MongoDB password authentication
-      const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return { ok: false, error: 'Teacher not found. Please check your email.' };
-        } else if (response.status === 401) {
-          return { ok: false, error: 'Invalid email or password.' };
-        } else {
-          return { ok: false, error: data.error || 'Login failed. Please try again.' };
-        }
-      }
-
-      return {
-        ok: true,
-        token: data.data.token,
-        user: {
-          id: data.data.teacher.id,
-          name: data.data.teacher.fullName,
-          email: data.data.teacher.email
-        }
-      };
-    }
+    };
   } catch (error) {
     console.error('Login error:', error);
     return { ok: false, error: 'Network error. Please check your connection and try again.' };
