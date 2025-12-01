@@ -34,8 +34,10 @@ async function loginInstructor({ email, password }) {
       token: data.data.token,
       user: {
         id: data.data.teacher.id,
-        name: `${data.data.teacher.firstName} ${data.data.teacher.lastName}`,
-        email: data.data.teacher.email
+        name: data.data.teacher.fullName || 'Instructor',
+        email: data.data.teacher.email,
+        areasOfExpertise: data.data.teacher.areasOfExpertise || [],
+        cv: data.data.teacher.cv || ''
       }
     };
   } catch (error) {
@@ -107,8 +109,32 @@ export default function InstructorLogin({
     storage.setItem("le_instructor_name", res.user?.name || "Instructor"); // Keep for compatibility
     storage.setItem("userEmail", res.user?.email || "");
     
-    if (typeof onSuccess === "function") onSuccess(res);
-    else window.location.assign(redirectTo);
+    // Check if information gathering is complete
+    const areasOfExpertise = res.user?.areasOfExpertise || [];
+    const cv = res.user?.cv || '';
+    
+    // Information gathering is complete if:
+    // 1. areasOfExpertise has at least 1 item (InformationGathering1 done)
+    // 2. cv is not empty (InformationGathering2 done - file uploaded)
+    const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+    
+    if (typeof onSuccess === "function") {
+      onSuccess(res);
+    } else {
+      // Redirect based on information gathering status
+      if (!isInfoGatheringComplete) {
+        // Determine which step to redirect to
+        if (areasOfExpertise.length === 0) {
+          navigate('/InformationGathering1');
+        } else if (cv.trim() === '') {
+          navigate('/InformationGathering2');
+        } else {
+          navigate('/InformationGathering3');
+        }
+      } else {
+        window.location.assign(redirectTo);
+      }
+    }
   };
 
   return (

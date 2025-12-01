@@ -65,6 +65,23 @@
   margin-bottom: 12px;
 }
 
+.signupInst2-alert-success {
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.06);
+  color: #15803d;
+}
+
+.signupInst2-info-box {
+  padding: 14px 16px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
 /* Form */
 .signupInst2-form {
   display: grid;

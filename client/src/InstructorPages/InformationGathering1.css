@@ -190,6 +190,16 @@
   font-weight: 700;
 }
 
+.info1-error {
+  padding: 12px 16px;
+  background: #fee2e2;
+  border: 1px solid #f87171;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
 .info1-subtitle {
   font-size: 16px;
   color: #64748b;

@@ -36,7 +36,10 @@ const teacherSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: false, // Made optional - will validate with custom validator
+    required: function() {
+      return !this.firebaseUID;
+    },
+    minlength: [6, 'Password must be at least 6 characters'],
     validate: {
       validator: function(value) {
         // If firebaseUID exists, password is optional
@@ -75,6 +78,18 @@ const teacherSchema = new mongoose.Schema({
   suspended: {
     type: Boolean,
     default: false
+  },
+  areasOfExpertise: {
+    type: [String],
+    validate: {
+      validator: function(value) {
+        // Allow empty array (for initial creation)
+        // But if array has items, it must have 1-4 items
+        return value.length === 0 || (value.length >= 1 && value.length <= 4);
+      },
+      message: 'Areas of expertise must be between 1 and 4 items'
+    },
+    default: []
   }
 }, {
   timestamps: true,

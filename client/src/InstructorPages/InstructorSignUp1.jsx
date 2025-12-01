@@ -1,15 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth } from "../config/firebase";
 import "./InstructorSignUp1.css";
 
-/* Fake signup handler (replace with backend later) */
-async function performSignUp({ fullName, email, password }) {
-  await new Promise((r) => setTimeout(r, 800));
-  if (email === "instructor@demo.com") {
-    return { ok: false, status: 409 }; // already exists
-  }
-  return { ok: true };
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function InstructorSignUp1() {
   const [fullName, setFullName] = useState("");
@@ -20,8 +15,19 @@ export default function InstructorSignUp1() {
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const navigate = useNavigate();
+
+  // Sign out any unverified Firebase users on component mount
+  useEffect(() => {
+    const checkAndSignOut = async () => {
+      if (auth.currentUser && !auth.currentUser.emailVerified) {
+        await signOut(auth);
+      }
+    };
+    checkAndSignOut();
+  }, []);
 
   const handleSignUp = async () => {
     const errs = {};
@@ -35,18 +41,110 @@ export default function InstructorSignUp1() {
     if (Object.keys(errs).length !== 0) return;
 
     setGeneralError("");
+    setShowLoginPrompt(false);
     setLoading(true);
+
     try {
-      const res = await performSignUp({ fullName, email, password });
-      if (res.ok) {
-        navigate("/instructorSignUp2");
-      } else if (res.status === 409) {
-        setGeneralError("An account with that email already exists.");
-      } else {
-        setGeneralError("Sign up failed. Please try again.");
+      let firebaseUser;
+      let firebaseUID;
+
+      try {
+        // Try to create user in Firebase
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        firebaseUser = userCredential.user;
+        firebaseUID = firebaseUser.uid;
+      } catch (createError) {
+        if (createError.code === 'auth/email-already-in-use') {
+          // Email already exists in Firebase
+          try {
+            // Try to sign in to check if account is verified
+            const signInCredential = await signInWithEmailAndPassword(auth, email, password);
+            firebaseUser = signInCredential.user;
+            firebaseUID = firebaseUser.uid;
+
+            if (firebaseUser.emailVerified) {
+              setGeneralError("This account is already registered and verified. Would you like to go to the login page?");
+              setShowLoginPrompt(true);
+              await signOut(auth);
+              return;
+            }
+          } catch (signInError) {
+            if (signInError.code === 'auth/wrong-password') {
+              setGeneralError("An account with this email already exists, but the password is incorrect. Would you like to go to the login page?");
+              setShowLoginPrompt(true);
+            } else {
+              setGeneralError("An account with this email already exists. Would you like to go to the login page?");
+              setShowLoginPrompt(true);
+            }
+            return;
+          }
+        } else {
+          throw createError;
+        }
       }
-    } catch {
-      setGeneralError("Network error. Please check your connection.");
+
+      // Send email verification
+      if (!firebaseUser.emailVerified) {
+        await sendEmailVerification(firebaseUser);
+      }
+
+      // Create user in MongoDB
+      const response = await fetch(`${API_URL}/api/teachers/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: fullName.trim(), email, password, firebaseUID }),
+      });
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // If not JSON, get text to see what we got
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        await signOut(auth);
+        
+        if (response.status === 404) {
+          setGeneralError("Server endpoint not found. Please check if the server is running.");
+        } else if (response.status >= 500) {
+          setGeneralError("Server error. Please try again later.");
+        } else {
+          setGeneralError("Sign up failed. Please check your connection and try again.");
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          // User already exists in MongoDB, but Firebase account was created
+          // Sign out and show error
+          await signOut(auth);
+          setGeneralError("An account with this email already exists. Would you like to go to the login page?");
+          setShowLoginPrompt(true);
+          return;
+        } else {
+          // If MongoDB registration fails, delete Firebase user
+          await signOut(auth);
+          setGeneralError(data.error || "Sign up failed. Please try again.");
+          return;
+        }
+      }
+
+      // Success - navigate to verification page
+      sessionStorage.setItem('instructorSignupEmail', email);
+      navigate("/instructorSignUp2");
+    } catch (error) {
+      console.error('Signup error:', error);
+      if (error.code === 'auth/weak-password') {
+        setGeneralError("Password is too weak. Please use a stronger password.");
+      } else if (error.code === 'auth/invalid-email') {
+        setGeneralError("Invalid email address. Please check your email.");
+      } else {
+        setGeneralError(error.message || "Sign up failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -58,12 +156,26 @@ export default function InstructorSignUp1() {
 
   return (
     <div className="signupInst1-wrap">
+      {showLoginPrompt && (
+        <div className="signupInst1-notice-banner">
+          <div className="signupInst1-notice-content">
+            <p>{generalError}</p>
+            <button
+              type="button"
+              className="signupInst1-notice-btn"
+              onClick={() => navigate("/InstructorLogin")}
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+      )}
       <div className="signupInst1-card">
         <button type="button" className="signupInst1-back" onClick={handleBack}>‹ Go Back</button>
         <h1 className="signupInst1-title">Create Instructor Account</h1>
         <p className="signupInst1-subtitle">Sign up to manage your courses and students.</p>
 
-        {generalError && <div className="signupInst1-alert">{generalError}</div>}
+        {generalError && !showLoginPrompt && <div className="signupInst1-alert">{generalError}</div>}
 
         <div className="signupInst1-form">
           <div className="signupInst1-field">

@@ -19,19 +19,17 @@ router.post('/auth/register', async (req, res) => {
     const exists = await Teacher.findOne({ email });
     if (exists) return res.status(409).json({ error: 'Email already used' });
 
-    // Check if firebaseUID already exists (if provided)
+    // If firebaseUID is provided, check if it's already linked
     if (firebaseUID) {
       const firebaseExists = await Teacher.findOne({ firebaseUID });
       if (firebaseExists) return res.status(409).json({ error: 'Firebase account already linked' });
     }
 
-    // Hash password only if provided (not for Google signups)
     let hashedPassword = '';
     if (password && password !== 'google-signup') {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // Create teacher document
     const teacherData = {
       fullName: fullName.trim(),
       email,
@@ -40,12 +38,10 @@ router.post('/auth/register', async (req, res) => {
       bio: bio || ''
     };
 
-    // Add password only if provided
     if (hashedPassword) {
       teacherData.password = hashedPassword;
     }
 
-    // Add firebaseUID if provided
     if (firebaseUID) {
       teacherData.firebaseUID = firebaseUID;
     }
@@ -63,30 +59,8 @@ router.post('/auth/register', async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     if (error.code === 11000) {
-      // Duplicate key error
       return res.status(409).json({ error: 'Email or Firebase UID already exists' });
     }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// POST /api/teachers/auth/check-auth-method - Check if user has Firebase or MongoDB auth
-router.post('/auth/check-auth-method', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-
-    const t = await Teacher.findOne({ email });
-    if (!t) return res.status(404).json({ error: 'Teacher not found' });
-
-    res.json({ 
-      hasFirebase: !!t.firebaseUID,
-      hasPassword: !!t.password && t.password !== 'google-signup'
-    });
-  } catch (error) {
-    console.error('Check auth method error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -98,16 +72,15 @@ router.post('/auth/login', async (req, res) => {
     const t = await Teacher.findOne({ email });
     if (!t) return res.status(404).json({ error: 'Teacher not found' });
 
-    // If firebaseUID is provided, verify it matches the stored one
+    // If firebaseUID is provided, verify it matches
     if (firebaseUID) {
       if (t.firebaseUID !== firebaseUID) {
-        return res.status(401).json({ error: 'Firebase authentication failed' });
+        return res.status(401).json({ error: 'Invalid Firebase credentials' });
       }
-      // Firebase authentication successful - generate token
     } else {
-      // MongoDB password authentication
-      if (!t.password || t.password === 'google-signup') {
-        return res.status(401).json({ error: 'This account uses Firebase authentication. Please use email/password login.' });
+      // Traditional password login
+      if (!t.password) {
+        return res.status(401).json({ error: 'This account uses Firebase authentication. Please sign in with Firebase.' });
       }
       const ok = await bcrypt.compare(password, t.password);
       if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
@@ -121,12 +94,13 @@ router.post('/auth/login', async (req, res) => {
           id: t._id, 
           fullName: t.fullName, 
           email: t.email, 
-          profilePic: t.profilePic 
+          profilePic: t.profilePic,
+          areasOfExpertise: t.areasOfExpertise || [],
+          cv: t.cv || ''
         } 
       } 
     });
-  } catch (error) {
-    console.error('Login error:', error);
+  } catch {
     res.status(500).json({ error: 'Server error' });
   }
 });

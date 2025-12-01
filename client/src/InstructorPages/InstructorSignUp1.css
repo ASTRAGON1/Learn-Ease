@@ -1,8 +1,27 @@
 /* === InstructorSignUp1 (fixed) === */
 .signupInst1-wrap{
-  min-height:100vh; display:grid; place-items:center;
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:24px; background:#f7f7fb;
 }
+
+/* Notice banner for existing accounts */
+.signupInst1-notice-banner{
+  width:100%; max-width:440px; margin:0 auto 20px;
+  background:#fef3c7; border:1px solid #fbbf24; border-radius:12px;
+  padding:16px; box-shadow:0 4px 12px rgba(251,191,36,.15);
+}
+.signupInst1-notice-content{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.signupInst1-notice-content p{
+  margin:0; font-size:14px; color:#92400e; flex:1;
+}
+.signupInst1-notice-btn{
+  padding:8px 16px; background:#f59e0b; color:#fff;
+  border:none; border-radius:8px; font-weight:600; font-size:14px;
+  cursor:pointer; white-space:nowrap;
+}
+.signupInst1-notice-btn:hover{background:#d97706}
 
 /* Card constraints (prevents full-width inputs) */
 .signupInst1-card{
@@ -36,6 +55,10 @@
 }
 .signupInst1-title{margin:10px 0 4px; font-size:28px; font-weight:800; text-align:center}
 .signupInst1-subtitle{margin:0 0 16px; font-size:14px; color:#64748b; text-align:center}
+.signupInst1-alert{
+  padding:12px 16px; background:#fee2e2; border:1px solid #f87171;
+  border-radius:8px; color:#991b1b; font-size:14px; margin-bottom:16px;
+}
 
 /* Form layout + spacing */
 .signupInst1-form{

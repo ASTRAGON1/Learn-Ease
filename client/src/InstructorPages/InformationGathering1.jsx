@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './InformationGathering1.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function InformationGathering1({ onNext, onLogout }) {
   const OPTIONS = [
@@ -17,7 +19,49 @@ export default function InformationGathering1({ onNext, onLogout }) {
   const [otherText, setOtherText] = useState('');
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Check token on component mount and verify it's valid
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = localStorage.getItem('token') || localStorage.getItem('le_instructor_token') || 
+                    sessionStorage.getItem('token') || sessionStorage.getItem('le_instructor_token');
+      
+      if (!token) {
+        setError('No authentication token found. Please log in again.');
+        return;
+      }
+
+      // Try to verify token by making a test request
+      try {
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401) {
+          setError('Invalid or expired token. Please log in again.');
+        } else if (response.status === 404) {
+          // Teacher not found - this shouldn't happen if account was just created
+          // But don't block the user, they can still proceed
+          console.warn('Teacher not found in database, but token is valid');
+          // Don't set error - allow user to continue
+        } else if (!response.ok) {
+          // Other errors - don't block user
+          console.log('Token check response:', response.status);
+        }
+      } catch (err) {
+        console.error('Token validation error:', err);
+        // Don't show error on mount, just log it
+      }
+    };
+
+    checkToken();
+  }, []);
 
   const toggle = opt => {
     if (opt === 'Others') {
@@ -40,19 +84,94 @@ export default function InformationGathering1({ onNext, onLogout }) {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selected.length === 0) {
-      alert('Please select at least one area of expertise');
+      setError('Please select at least one area of expertise');
       return;
     }
     if (selected.includes('Others') && !otherText.trim()) {
-      alert('Please describe your expertise in the "Others" field');
+      setError('Please describe your expertise in the "Others" field');
       return;
     }
-    if (typeof onNext === 'function') {
-      onNext({ selected, otherText });
+
+    setError('');
+    setLoading(true);
+
+    try {
+      // Get token from storage
+      const token = localStorage.getItem('token') || localStorage.getItem('le_instructor_token') || 
+                    sessionStorage.getItem('token') || sessionStorage.getItem('le_instructor_token');
+
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        return;
+      }
+
+      // Prepare areas of expertise array
+      // Replace "Others" with the custom text if provided
+      const areasOfExpertise = selected.map(area => 
+        area === 'Others' && otherText.trim() ? otherText.trim() : area
+      );
+
+      // Save to backend
+      const response = await fetch(`${API_URL}/api/teachers/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ areasOfExpertise })
+      });
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // If not JSON, get text to see what we got
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        
+        if (response.status === 401) {
+          throw new Error('Invalid or expired token. Please log in again.');
+        } else if (response.status === 404) {
+          throw new Error('User not found. Please contact support.');
+        } else {
+          throw new Error('Server error. Please try again later.');
+        }
+      }
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid or expired token. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please log in again.');
+        } else {
+          throw new Error(data.error || 'Failed to save areas of expertise');
+        }
+      }
+
+      // Success - proceed to next step
+      if (typeof onNext === 'function') {
+        onNext({ selected, otherText });
+      }
+      navigate('/InformationGathering2');
+    } catch (err) {
+      console.error('Error saving areas of expertise:', err);
+      
+      // More specific error messages
+      if (err.message.includes('token') || err.message.includes('Authentication') || err.message.includes('401')) {
+        setError('Your session has expired. Please log in again.');
+      } else if (err.message.includes('Network') || err.message.includes('fetch')) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError(err.message || 'Failed to save. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
-    navigate('/InformationGathering2');
   };
 
   const handleLogout = () => {
@@ -118,6 +237,12 @@ export default function InformationGathering1({ onNext, onLogout }) {
           Select your area of expertise (max 4)
         </p>
 
+        {error && (
+          <div className="info1-error" role="alert">
+            {error}
+          </div>
+        )}
+
         {selected.length > 0 && (
           <div className="info1-tags">
             {selected.map(t => (
@@ -181,8 +306,9 @@ export default function InformationGathering1({ onNext, onLogout }) {
             type="button"
             className="info1-next"
             onClick={handleNext}
+            disabled={loading}
           >
-            Next
+            {loading ? 'Saving...' : 'Next'}
           </button>
         </div>
       </div>
