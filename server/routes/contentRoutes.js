@@ -10,21 +10,24 @@ const router = express.Router();
  */
 router.post('/', auth(['teacher']), async (req, res) => {
   try {
-    const { contentTitle, title, type, fileUrl, CourseId } = req.body;
+    const { title, type, fileURL, course, topic, lesson, category, description } = req.body;
 
     // minimal validation
-    if (!contentTitle || !type || !fileUrl || !CourseId) {
-      return res.status(400).json({ error: 'contentTitle, type, fileUrl, CourseId are required' });
+    if (!title || !type || !fileURL || !course || !category) {
+      return res.status(400).json({ error: 'title, type, fileURL, course, and category are required' });
     }
 
-    // TeacherId comes from the token
+    // teacher comes from the token
     const doc = await Content.create({
-      contentTitle,
-      title: title || contentTitle,
+      title,
       type,
-      fileUrl,
-      CourseId,
-      TeacherId: req.user.sub,
+      fileURL,
+      course,
+      topic: topic || '',
+      lesson: lesson || '',
+      category,
+      description: description || '',
+      teacher: req.user.sub,
     });
 
     res.status(201).json({ data: doc });
@@ -43,7 +46,7 @@ router.get('/course/:courseId', auth(['student', 'teacher']), async (req, res) =
     const { courseId } = req.params;
     const { type, page = 1, limit = 20 } = req.query;
 
-    const query = { CourseId: courseId };
+    const query = { course: courseId };
     if (type) query.type = type;
 
     const skip = (Math.max(parseInt(page), 1) - 1) * Math.max(parseInt(limit), 1);
@@ -82,7 +85,7 @@ router.get('/:id', auth(['student', 'teacher']), async (req, res) => {
  */
 router.get('/me/mine', auth(['teacher']), async (req, res) => {
   try {
-    const items = await Content.find({ TeacherId: req.user.sub }).sort({ _id: -1 });
+    const items = await Content.find({ teacher: req.user.sub }).sort({ _id: -1 });
     res.json({ data: items });
   } catch (e) {
     res.status(500).json({ error: 'Failed to fetch your content' });
@@ -96,13 +99,13 @@ router.get('/me/mine', auth(['teacher']), async (req, res) => {
 router.patch('/:id', auth(['teacher']), async (req, res) => {
   try {
     // only allow safe fields to be edited
-    const allowed = ['contentTitle', 'title', 'type', 'fileUrl', 'CourseId'];
+    const allowed = ['title', 'type', 'fileURL', 'course', 'topic', 'lesson', 'category', 'description', 'status'];
     const update = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => allowed.includes(k))
     );
 
     const updated = await Content.findOneAndUpdate(
-      { _id: req.params.id, TeacherId: req.user.sub },
+      { _id: req.params.id, teacher: req.user.sub },
       update,
       { new: true }
     );
@@ -124,7 +127,7 @@ router.delete('/:id', auth(['teacher']), async (req, res) => {
   try {
     const deleted = await Content.findOneAndDelete({
       _id: req.params.id,
-      TeacherId: req.user.sub,
+      teacher: req.user.sub,
     });
     if (!deleted) {
       return res.status(404).json({ error: 'Content not found or not yours' });

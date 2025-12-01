@@ -7,18 +7,60 @@ const router = express.Router();
 // POST /api/teachers/auth/register
 router.post('/auth/register', async (req, res) => {
   try {
-    const { name, email, password, cv, age, avatar, bio } = req.body;
+    const { fullName, email, password, cv, profilePic, bio, firebaseUID } = req.body;
+    if (!fullName || !fullName.trim()) {
+      return res.status(400).json({ error: 'fullName is required' });
+    }
+    if (!email) {
+      return res.status(400).json({ error: 'email is required' });
+    }
+
+    // Check if email already exists
     const exists = await Teacher.findOne({ email });
     if (exists) return res.status(409).json({ error: 'Email already used' });
 
-    const hash = await bcrypt.hash(password, 10);
-    const doc = await Teacher.create({
-      name, email, password: hash, cv: cv || '', uploadedContent: [],
-      age, avatar, bio
-    });
+    // If firebaseUID is provided, check if it's already linked
+    if (firebaseUID) {
+      const firebaseExists = await Teacher.findOne({ firebaseUID });
+      if (firebaseExists) return res.status(409).json({ error: 'Firebase account already linked' });
+    }
 
-    res.status(201).json({ data: { id: doc._id, name: doc.name, email: doc.email } });
-  } catch {
+    let hashedPassword = '';
+    if (password && password !== 'google-signup') {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    const teacherData = {
+      fullName: fullName.trim(),
+      email,
+      cv: cv || '',
+      profilePic: profilePic || '',
+      bio: bio || ''
+    };
+
+    if (hashedPassword) {
+      teacherData.password = hashedPassword;
+    }
+
+    if (firebaseUID) {
+      teacherData.firebaseUID = firebaseUID;
+    }
+
+    const doc = await Teacher.create(teacherData);
+
+    res.status(201).json({ 
+      data: { 
+        id: doc._id, 
+        fullName: doc.fullName, 
+        email: doc.email,
+        firebaseUID: doc.firebaseUID || null
+      } 
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    if (error.code === 11000) {
+      return res.status(409).json({ error: 'Email or Firebase UID already exists' });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -26,15 +68,38 @@ router.post('/auth/register', async (req, res) => {
 // POST /api/teachers/auth/login
 router.post('/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, firebaseUID } = req.body;
     const t = await Teacher.findOne({ email });
     if (!t) return res.status(404).json({ error: 'Teacher not found' });
 
-    const ok = await bcrypt.compare(password, t.password);
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    // If firebaseUID is provided, verify it matches
+    if (firebaseUID) {
+      if (t.firebaseUID !== firebaseUID) {
+        return res.status(401).json({ error: 'Invalid Firebase credentials' });
+      }
+    } else {
+      // Traditional password login
+      if (!t.password) {
+        return res.status(401).json({ error: 'This account uses Firebase authentication. Please sign in with Firebase.' });
+      }
+      const ok = await bcrypt.compare(password, t.password);
+      if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const token = jwt.sign({ sub: t._id, role: 'teacher' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ data: { token, teacher: { id: t._id, name: t.name, email: t.email, avatar: t.avatar } } });
+    res.json({ 
+      data: { 
+        token, 
+        teacher: { 
+          id: t._id, 
+          fullName: t.fullName, 
+          email: t.email, 
+          profilePic: t.profilePic,
+          areasOfExpertise: t.areasOfExpertise || [],
+          cv: t.cv || ''
+        } 
+      } 
+    });
   } catch {
     res.status(500).json({ error: 'Server error' });
   }

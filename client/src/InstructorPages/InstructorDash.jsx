@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SidebarLayout from "../components/SidebarLayout";
-import Footer from "../components/Footer";
 import CurriculumSection from "../components/CurriculumSection";
 import CourseSection from "../components/CourseSection";
 import PerformanceSection from "../components/PerformanceSection";
@@ -8,10 +8,67 @@ import ResourcesSection from "../components/ResourcesSection";
 
 import "./InstructorDash.css";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function InstructorDashboard() {
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const [active, setActive]     = useState("course");
   const name = "Adolf";
+
+  // Check if information gathering is complete on mount
+  useEffect(() => {
+    const checkInfoGathering = async () => {
+      const token = localStorage.getItem('token') || localStorage.getItem('le_instructor_token') || 
+                    sessionStorage.getItem('token') || sessionStorage.getItem('le_instructor_token');
+
+      if (!token) {
+        navigate('/InstructorLogin');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401) {
+          navigate('/InstructorLogin');
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          const teacher = data.data;
+          
+          const areasOfExpertise = teacher.areasOfExpertise || [];
+          const cv = teacher.cv || '';
+          
+          // Check if information gathering is complete
+          const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+          
+          if (!isInfoGatheringComplete) {
+            // Redirect to the appropriate step
+            if (areasOfExpertise.length === 0) {
+              navigate('/InformationGathering1');
+            } else if (cv.trim() === '') {
+              navigate('/InformationGathering2');
+            } else {
+              navigate('/InformationGathering3');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking information gathering status:', error);
+        // Don't redirect on error, let user access dashboard
+      }
+    };
+
+    checkInfoGathering();
+  }, [navigate]);
 
   const sampleMetrics = [
     { label: "Content views",  value: "2,315", change: "+11.01%" },
@@ -84,8 +141,6 @@ export default function InstructorDashboard() {
         )}
         {active === "resources" && <ResourcesSection />}
       </main>
-
-      <Footer />
     </div>
   );
 }

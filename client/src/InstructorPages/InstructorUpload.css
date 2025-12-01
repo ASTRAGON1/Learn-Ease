@@ -2,7 +2,7 @@
 :root{
   --card-w:1233px;
   --upload-w:1188px;
-  --purple:#5b22d1;
+  --purple:#475569;
   --ink:#111;
   --muted:#8a8a8a;
   --white:#fff;
@@ -17,8 +17,33 @@
 
 /* Top line */
 .upl-topline{ width:var(--card-w); margin:8px auto 12px; text-align:left; }
-.upl-back{ background:none; border:0; cursor:pointer; font-weight:700; font-size:24px; line-height:1; color:#000; }
-.upl-back .upl-chev{ margin-right:6px; margin-top: 30px !important;}
+.upl-back{ 
+  background:none; 
+  border:0; 
+  cursor:pointer; 
+  font-weight:700; 
+  font-size:24px; 
+  line-height:1; 
+  color:#000; 
+  font-family:inherit;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:transform 0.2s ease;
+}
+.upl-back:hover {
+  transform:translateX(-2px);
+  outline:none;
+}
+.upl-back:focus {
+  outline:none;
+}
+.upl-back .upl-chev{ 
+  font-size:28px;
+  font-weight:800;
+  line-height:1;
+}
 
 /* ---- Section spacing (60px gap) ---- */
 .upl-section{ margin-bottom:60px; }
@@ -49,7 +74,11 @@
 .upl-textarea::placeholder{ color:#8a8a8a; }
 
 .upl-input:focus,
-.upl-textarea:focus{ border-color:var(--purple); box-shadow:0 0 0 3px rgba(91,34,209,.12); }
+.upl-textarea:focus{ 
+  border-color:var(--purple); 
+  box-shadow:0 0 0 3px rgba(71,85,105,.12); 
+  outline:none;
+}
 
 .upl-input:-webkit-autofill,
 .upl-textarea:-webkit-autofill{
@@ -64,10 +93,17 @@
 .upl-tagbox{
   height:40px; padding:0 12px; background:#fff; border:1px solid #e6e6e9; border-radius:10px;
   display:flex; align-items:center; justify-content:space-between; cursor:pointer; position:relative;
+  outline:none;
+}
+.upl-tagbox:hover {
+  outline:none;
+}
+.upl-tagbox:focus {
+  outline:none;
 }
 .upl-placeholder{ color:var(--muted); font-size:14px; }
 .upl-chips{ display:flex; gap:8px; flex-wrap:wrap; }
-.upl-chip{ background:#f0eaff; border:1px solid #e2d6ff; padding:4px 8px; border-radius:999px; font-size:12px; }
+.upl-chip{ background:#f1f5f9; border:1px solid #e2e8f0; padding:4px 8px; border-radius:999px; font-size:12px; }
 .upl-caret{ margin-left:12px; transform:translateY(-1px); }
 
 /* dropdown list */
@@ -96,8 +132,15 @@
   width:100%;
   border:1px solid #e6e6e9; background:#fff; border-radius:999px;
   padding:6px 10px; font-size:12px; cursor:pointer; text-align:center; color: #000;
+  outline:none;
 }
-.upl-tagitem.selected{ border-color:#5b22d1; background:#f3ecff; }
+.upl-tagitem:hover {
+  outline:none;
+}
+.upl-tagitem:focus {
+  outline:none;
+}
+.upl-tagitem.selected{ border-color:#475569; background:#f1f5f9; }
 
 /* Upload */
 .upl-upload{  width: 100%;  max-width: 100%;  height:130px;   margin:10px 0 16px; border:1px dashed #dbe3ef;   border-radius:12px;
@@ -110,13 +153,61 @@
 /* Categories */
 .upl-cats{ display:flex; gap:20px !important; margin:10px 0 14px; }
 .upl-cats.upl-no-margin{ margin:0; }
-.upl-catbtn{ border:1px solid #eadfff; background:#f3ecff; color:#5b22d1; padding:8px 14px; border-radius:999px; font-weight:600; cursor:pointer; }
-.upl-catbtn.active{ background:#5b22d1; color:#fff; }
+.upl-catbtn{ 
+  border:1px solid #cbd5e1; 
+  background:#f1f5f9; 
+  color:#475569; 
+  padding:8px 14px; 
+  border-radius:999px; 
+  font-weight:600; 
+  cursor:pointer;
+  outline:none;
+}
+.upl-catbtn:hover {
+  outline:none;
+}
+.upl-catbtn:focus {
+  outline:none;
+}
+.upl-catbtn.active{ background:#475569; color:#fff; }
 
 /* Actions */
 .upl-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
-.upl-secondary{ height:40px; padding:0 14px; border-radius:10px; background:#f2f2f4; border:1px solid #e6e6e9; cursor:pointer; font-weight:600; color: #4f14c9;}
-.upl-primary{ height:40px; padding:0 18px; border-radius:10px; background:var(--purple); color:#fff; border:0; cursor:pointer; font-weight:700; }
+.upl-secondary{ 
+  height:40px; 
+  padding:0 14px; 
+  border-radius:10px; 
+  background:#f2f2f4; 
+  border:1px solid #e6e6e9; 
+  cursor:pointer; 
+  font-weight:600; 
+  color: #475569;
+  outline:none;
+}
+.upl-secondary:hover {
+  outline:none;
+}
+.upl-secondary:focus {
+  outline:none;
+}
+.upl-primary{ 
+  height:40px; 
+  padding:0 18px; 
+  border-radius:10px; 
+  background:#475569; 
+  color:#fff; 
+  border:0; 
+  cursor:pointer; 
+  font-weight:700;
+  outline:none;
+}
+.upl-primary:hover {
+  background:#334155;
+  outline:none;
+}
+.upl-primary:focus {
+  outline:none;
+}
 
 /* ---- Quiz section ---- */
 .upl-quiz-card{
@@ -134,15 +225,31 @@
 .upl-qa-row{ display:grid; grid-template-columns:1fr 1fr auto auto; gap:24px; align-items:end; margin-top:10px; }
 
 .upl-quiz-add{
-  width:36px; height:36px; border-radius:999px; border:0; background:#5312d6; color:#fff;
+  width:36px; height:36px; border-radius:50%; border:0; background:#d8f5d8; color:#206b20;
   font-size:20px; line-height:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  outline:none;
+  font-weight:700;
+}
+.upl-quiz-add:hover {
+  background:#c4e8c4;
+  outline:none;
+}
+.upl-quiz-add:focus {
+  outline:none;
 }
 .upl-quiz-remove{
   width:36px; height:36px; border-radius:999px; border:0;
   background:#f82828; color:#fff; font-size:22px; line-height:0;
   cursor:pointer; display:flex; align-items:center; justify-content:center;
+  outline:none;
 }
-.upl-quiz-remove:hover{ filter:brightness(.95); }
+.upl-quiz-remove:hover{ 
+  filter:brightness(.95);
+  outline:none;
+}
+.upl-quiz-remove:focus {
+  outline:none;
+}
 
 /* ---- Content section ---- */
 .upl-content-card{
@@ -187,15 +294,25 @@
 }
 .upl-btn-arch{
   background:#6b7280;
+  outline:none;
 }
 .upl-btn-arch:hover{
   background:#5b6170;
+  outline:none;
+}
+.upl-btn-arch:focus {
+  outline:none;
 }
 .upl-btn-del{
   background:#ef4444;
+  outline:none;
 }
 .upl-btn-del:hover{
   background:#dc2626;
+  outline:none;
+}
+.upl-btn-del:focus {
+  outline:none;
 }
 .upl-actions-col{ justify-self:end; }
 
@@ -267,6 +384,10 @@
   background:#5b6170;
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  outline:none;
+}
+.upl-btn-restore:focus {
+  outline:none;
 }
 
 .upl-btn-delete-arch{
@@ -278,6 +399,10 @@
   background:#dc2626;
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(239,68,68,0.3);
+  outline:none;
+}
+.upl-btn-delete-arch:focus {
+  outline:none;
 }
 
 /* Empty state for archive */

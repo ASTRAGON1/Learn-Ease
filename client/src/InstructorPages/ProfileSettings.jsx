@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./ProfileSettings.css";
+
+/* Icons for password visibility */
+const Eye = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" strokeWidth="2" fill="none"/>
+    <circle cx="12" cy="12" r="3" strokeWidth="2" fill="none"/>
+  </svg>
+);
+const EyeOff = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M1 1l22 22" strokeWidth="2" fill="none"/>
+    <path d="M3 7s4-5 9-5 9 5 9 5m-4.5 9.5C14.9 17.8 13.5 18 12 18 7 18 3 12 3 12a26 26 0 0 1 2.5-3.3" strokeWidth="2" fill="none"/>
+    <circle cx="12" cy="12" r="3" strokeWidth="2" fill="none"/>
+  </svg>
+);
 
 const COUNTRIES = [
   "United States","United Kingdom","Germany","France","Canada","India",
@@ -8,6 +23,7 @@ const COUNTRIES = [
 ];
 
 export default function ProfileSettings() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("profile");
 
   // LearnEase Profile
@@ -24,6 +40,7 @@ export default function ProfileSettings() {
   const [email, setEmail] = useState("");
   const [storedPassword, setStoredPassword] = useState(""); // real old password (not shown)
   const [passwordMask] = useState("•••••••••••••••");
+  const [showPassword, setShowPassword] = useState(false);
   const [showPwdModal, setShowPwdModal] = useState(false);
   const [newPwd, setNewPwd] = useState("");
   const [newPwd2, setNewPwd2] = useState("");
@@ -124,10 +141,19 @@ const savePrivate = async () => {
     }
   };
 
+  const handleBack = () => {
+    navigate("/InstructorDash");
+  };
+
   return (
     <div className="ps-page">
-      <Link to="/InstructorDash" className="ps-back"><span className="chev">‹</span> Dashboard</Link>
-      <h1 className="ps-title">Profile &amp; settings</h1>
+      <div className="ps-header-row">
+        <button type="button" className="ps-back" onClick={handleBack}>
+          <span className="chev">‹</span> Dashboard
+        </button>
+        <h1 className="ps-title">Profile &amp; settings</h1>
+        <span className="ps-spacer" aria-hidden />
+      </div>
       <div style={{width:"1140px",margin:"0 auto 8px",fontWeight:700}}>
         Signed in as {first || "—"} {last || ""}
       </div>
@@ -222,8 +248,22 @@ const savePrivate = async () => {
           <div className="ps-pw-row">
             <div className="ps-field sm flex1">
               <label>Password</label>
-              {/* show only dots, keep the real one in storedPassword */}
-              <input className="ps-input" value={passwordMask} readOnly />
+              <div className="ps-input-group">
+                <input 
+                  className="ps-input" 
+                  type={showPassword ? "text" : "password"}
+                  value={showPassword ? storedPassword : passwordMask} 
+                  readOnly 
+                />
+                <button
+                  type="button"
+                  className="ps-eye"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
             </div>
             <button className="ps-secondary" onClick={()=>setShowPwdModal(true)}>Edit</button>
           </div>

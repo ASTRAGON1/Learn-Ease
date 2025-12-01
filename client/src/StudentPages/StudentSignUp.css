@@ -106,6 +106,19 @@
   color: #5b22d1;
   text-decoration: none;
 }
+.student-login-link-btn {
+  background: none;
+  border: none;
+  color: #5b22d1;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+}
+.student-login-link-btn:hover {
+  text-decoration: underline;
+}
 
 .student-right-panel {
   width: 50%;

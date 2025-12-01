@@ -32,6 +32,9 @@ import HelpAndSupport from "./InstructorPages/HelpAndSupport";
 import GetSupport from "./InstructorPages/getSupport";
 import InstructorCommunity from "./InstructorPages/InstructorCommunity";
 import AIQuiz from "./InstructorPages/AIQuiz";
+import InstructorForgotPasswordStep1 from "./InstructorPages/InstructorForgotPasswordStep1";
+import InstructorForgotPasswordStep2 from "./InstructorPages/InstructorForgotPasswordStep2";
+import InstructorForgotPasswordStep3 from "./InstructorPages/InstructorForgotPasswordStep3";
 
 // Admin
 import AdminPanel from "./AdminPages/AdminPanel";
@@ -95,6 +98,9 @@ export default function App() {
         <Route path="/getSupport" element={<GetSupport />} />
         <Route path="/InstructorCommunity" element={<InstructorCommunity />} />
         <Route path="/ai-quiz" element={<AIQuiz />} />
+        <Route path="/InstructorForgotPassword" element={<InstructorForgotPasswordStep1 />} />
+        <Route path="/InstructorForgotPassword/verify-code" element={<InstructorForgotPasswordStep2 />} />
+        <Route path="/InstructorForgotPassword/new-password" element={<InstructorForgotPasswordStep3 />} />
 
         {/* Admin */}
         <Route path="/admin" element={<AdminPanel />} />

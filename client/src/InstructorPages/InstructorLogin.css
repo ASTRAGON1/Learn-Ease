@@ -1,6 +1,6 @@
 :root{
   --il-bg:#f7f7fb; --il-surface:#fff; --il-text:#0f172a; --il-muted:#64748b;
-  --il-primary:#6d28d9; --il-line:rgba(2,6,23,.12); --il-danger:#e11d48;
+  --il-primary:#475569; --il-line:rgba(2,6,23,.12); --il-danger:#e11d48;
   --il-shadow:0 12px 30px rgba(2,6,23,.08); --il-radius:16px;
 }
 
@@ -9,14 +9,28 @@ html,body,#root{height:100%}
 body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--il-text);background:var(--il-bg)}
 
 .instructorLogin-wrap{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative}
-.instructorLogin-back{display: inline-flex;
-  align-self: flex-start;
+.instructorLogin-back{
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  margin: 0 0 10px 6px;   
+  margin: 0 0 16px 0;
+  padding: 0;
   color: #0f172a;
-  text-decoration: none;
-  font-weight: 600;}
-.instructorLogin-back:hover{text-decoration: none; transform: translateX(-2px); }
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: transform 0.2s ease;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
+}
+.instructorLogin-back:hover{
+  transform: translateX(-2px);
+  color: #0f172a;
+}
 
 .instructorLogin-card{width:100%;max-width:440px;background:var(--il-surface);border:1px solid var(--il-line);border-radius:var(--il-radius);box-shadow:var(--il-shadow);padding:28px;display: flex;
   flex-direction: column;}
@@ -69,14 +83,54 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color
 .instructorLogin-link{color:var(--il-primary);text-decoration:none}
 .instructorLogin-link:hover{text-decoration:underline}
 
+.instructorLogin-link-btn{
+  background:none;
+  border:none;
+  color:var(--il-primary);
+  text-decoration:none;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+  padding:0;
+  font-family:inherit;
+}
+.instructorLogin-link-btn:hover{text-decoration:underline}
+
 .instructorLogin-btn{
   width:100%; display:inline-flex; align-items:center; justify-content:center;
-  height:44px; border-radius:12px; border:1px solid transparent;
+  height:44px; border-radius:12px; border:none !important;
   background:var(--il-primary); color:#fff; font-weight:700; cursor:pointer;
-  transition:.15s ease; box-shadow:0 6px 16px rgba(109,40,217,.25);
+  transition:.15s ease; box-shadow:0 6px 16px rgba(71,85,105,.25);
+  outline:none !important;
 }
-.instructorLogin-btn:hover{filter:brightness(1.06); transform:translateY(-1px)}
-.instructorLogin-btn:disabled{opacity:.7; cursor:not-allowed; transform:none}
+.instructorLogin-btn:hover{
+  filter:brightness(1.06); 
+  transform:translateY(-1px); 
+  outline:none !important;
+  border:none !important;
+  box-shadow:0 6px 16px rgba(71,85,105,.25);
+}
+.instructorLogin-btn:focus{
+  outline:none !important; 
+  border:none !important;
+  box-shadow:0 6px 16px rgba(71,85,105,.25) !important;
+}
+.instructorLogin-btn:focus-visible{
+  outline:none !important; 
+  border:none !important;
+  box-shadow:0 6px 16px rgba(71,85,105,.25) !important;
+}
+.instructorLogin-btn:active{
+  outline:none !important;
+  border:none !important;
+}
+.instructorLogin-btn:disabled{
+  opacity:.7; 
+  cursor:not-allowed; 
+  transform:none; 
+  outline:none !important;
+  border:none !important;
+}
 
 .instructorLogin-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:instructorLogin-spin .8s linear infinite}
 @keyframes instructorLogin-spin{to{transform:rotate(360deg)}}

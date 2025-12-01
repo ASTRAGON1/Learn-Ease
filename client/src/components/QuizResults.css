@@ -68,12 +68,12 @@ margin-bottom: 4px;
 }
 
 .quiz-row:nth-child(odd) {
-background: #3b3b3b2d;  /* purple */
+background: #3b3b3b2d;
 color: #1a1a1f;
 }
 
 .quiz-row:nth-child(even) {
-background-color: #3b3b3b17;  /* light blue */
+background-color: #3b3b3b17;
 color: #1a1a1f;
 }
 

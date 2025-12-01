@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import "./getSupport.css";
-import Footer from "../components/Footer";
 
 export default function GetSupport() {
   // ---- AI chat (local mock) ----
@@ -42,12 +40,18 @@ export default function GetSupport() {
     alert("Ticket sent to admin (backend hook later).");
   };
 
+  const handleBack = () => {
+    window.location.href = "/HelpAndSupport";
+  };
+
   return (
     <div className="sp-page">
       <div className="sp-head">
-        <Link to="/HelpAndSupport" className="sp-back">‹ Get Back</Link>
+        <button type="button" className="sp-back" onClick={handleBack}>
+          <span>‹</span> <span>Get Back</span>
+        </button>
         <h1 className="sp-title">Get support</h1>
-        <span aria-hidden />
+        <span className="sp-spacer" aria-hidden />
       </div>
 
       <div className="sp-grid">
@@ -133,7 +137,6 @@ export default function GetSupport() {
         </section>
       </div>
 
-      <Footer />
     </div>
   );
 }

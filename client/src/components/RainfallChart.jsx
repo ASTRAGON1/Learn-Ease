@@ -3,13 +3,19 @@ import { BarChart } from '@mui/x-charts/BarChart';
 import { dataset, valueFormatter } from '../dataset/weather';
 
 const chartSetting = {
-  yAxis: [{ label: 'Engagement', width: 60 }],
+  yAxis: [{ label: 'Count', width: 60 }],
   series: [
     {
-      dataKey: 'seoul',
-      label: 'Seoul rainfall',
+      dataKey: 'views',
+      label: 'Total Views',
       valueFormatter,
-      color: '#9C6FE4',  // <-- bars will be purple
+      color: '#475569',  // grey color
+    },
+    {
+      dataKey: 'likes',
+      label: 'Likes',
+      valueFormatter,
+      color: '#64748b',  // lighter grey
     },
   ],
   height: 300,
@@ -25,6 +31,7 @@ export default function RainfallChart({
       dataset={dataset}
       xAxis={[{ dataKey: 'month', tickPlacement, tickLabelPlacement }]}
       {...chartSetting}
+      width={800}
     />
   );
 }

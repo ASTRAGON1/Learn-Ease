@@ -9,16 +9,14 @@ const router = express.Router();
  */
 router.post('/', auth(['teacher']), async (req, res) => {
   try {
-    const { title, description, category } = req.body;
+    const { title, description } = req.body;
     if (!title) return res.status(400).json({ error: 'title is required' });
 
-    // keep owner for permissions (add this field in your Course schema if not present)
+    // Course schema has 'teacher' field (ObjectId ref to Teacher)
     const doc = await Course.create({
       title,
       description: description || '',
-      contentIds: [],
-      category: category || '',
-      TeacherId: req.user.sub,     // <- add this field in the schema
+      teacher: req.user.sub,
     });
 
     res.status(201).json({ data: doc });
@@ -34,10 +32,10 @@ router.post('/', auth(['teacher']), async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const { q, category, page = 1, limit = 20 } = req.query;
+    const { q, difficulty, page = 1, limit = 20 } = req.query;
     const query = {};
     if (q) query.title = { $regex: q, $options: 'i' };
-    if (category) query.category = category;
+    if (difficulty) query.difficulty = difficulty;
 
     const skip = (Math.max(parseInt(page), 1) - 1) * Math.max(parseInt(limit), 1);
 
@@ -72,11 +70,11 @@ router.get('/:id', async (req, res) => {
  */
 router.patch('/:id', auth(['teacher']), async (req, res) => {
   try {
-    const allowed = ['title', 'description', 'category'];
+    const allowed = ['title', 'description', 'difficulty', 'isPublished'];
     const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
 
     const out = await Course.findOneAndUpdate(
-      { _id: req.params.id, TeacherId: req.user.sub },
+      { _id: req.params.id, teacher: req.user.sub },
       update,
       { new: true }
     );
@@ -92,18 +90,12 @@ router.patch('/:id', auth(['teacher']), async (req, res) => {
  * Attach a contentId to the course (owner teacher)
  * body: { contentId: "..." }
  */
+// Note: Course schema doesn't have contentIds field - it has topics array
+// If you need to link content to courses, consider adding contentIds to Course schema
+// or use the topic/lesson/content relationship structure
 router.post('/:id/content', auth(['teacher']), async (req, res) => {
   try {
-    const { contentId } = req.body;
-    if (!contentId) return res.status(400).json({ error: 'contentId required' });
-
-    const out = await Course.findOneAndUpdate(
-      { _id: req.params.id, TeacherId: req.user.sub },
-      { $addToSet: { contentIds: contentId } },   // no duplicates
-      { new: true }
-    );
-    if (!out) return res.status(404).json({ error: 'Course not found or not yours' });
-    res.json({ data: out });
+    return res.status(400).json({ error: 'Course schema does not support direct content linking. Use topics/lessons structure instead.' });
   } catch {
     res.status(500).json({ error: 'Failed to attach content' });
   }
@@ -113,15 +105,10 @@ router.post('/:id/content', auth(['teacher']), async (req, res) => {
  * DELETE /api/courses/:id/content/:contentId
  * Remove a contentId from the course (owner teacher)
  */
+// Note: Course schema doesn't have contentIds field
 router.delete('/:id/content/:contentId', auth(['teacher']), async (req, res) => {
   try {
-    const out = await Course.findOneAndUpdate(
-      { _id: req.params.id, TeacherId: req.user.sub },
-      { $pull: { contentIds: req.params.contentId } },
-      { new: true }
-    );
-    if (!out) return res.status(404).json({ error: 'Course not found or not yours' });
-    res.json({ data: out });
+    return res.status(400).json({ error: 'Course schema does not support direct content linking. Use topics/lessons structure instead.' });
   } catch {
     res.status(500).json({ error: 'Failed to remove content' });
   }
@@ -133,7 +120,7 @@ router.delete('/:id/content/:contentId', auth(['teacher']), async (req, res) => 
  */
 router.delete('/:id', auth(['teacher']), async (req, res) => {
   try {
-    const del = await Course.findOneAndDelete({ _id: req.params.id, TeacherId: req.user.sub });
+    const del = await Course.findOneAndDelete({ _id: req.params.id, teacher: req.user.sub });
     if (!del) return res.status(404).json({ error: 'Course not found or not yours' });
     res.json({ msg: 'Course deleted' });
   } catch {

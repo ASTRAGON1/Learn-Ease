@@ -1,20 +1,49 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./InstructorLogin.css";
 
-/* Demo auth stub (swap with your backend later) */
-const DEMO_INSTRUCTOR = {
-  id: "inst-demo-1",
-  name: "Demo Instructor",
-  email: "instructor@demo.com",
-  password: "Teach123!",
-};
-
+// MongoDB authentication API call
 async function loginInstructor({ email, password }) {
-  await new Promise((r) => setTimeout(r, 600));
-  if (email === DEMO_INSTRUCTOR.email && password === DEMO_INSTRUCTOR.password) {
-    return { ok: true, token: "demo.jwt.token", user: { id: DEMO_INSTRUCTOR.id, name: DEMO_INSTRUCTOR.name, email } };
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Handle errors from API
+      if (response.status === 404) {
+        return { ok: false, error: 'Teacher not found. Please check your email.' };
+      } else if (response.status === 401) {
+        return { ok: false, error: 'Invalid email or password.' };
+      } else {
+        return { ok: false, error: data.error || 'Login failed. Please try again.' };
+      }
+    }
+
+    // Login successful
+    return {
+      ok: true,
+      token: data.data.token,
+      user: {
+        id: data.data.teacher.id,
+        name: data.data.teacher.fullName || 'Instructor',
+        email: data.data.teacher.email,
+        areasOfExpertise: data.data.teacher.areasOfExpertise || [],
+        cv: data.data.teacher.cv || ''
+      }
+    };
+  } catch (error) {
+    console.error('Login error:', error);
+    return { ok: false, error: 'Network error. Please check your connection and try again.' };
   }
-  return { ok: false, error: "Invalid email or password." };
 }
 
 /* Icons */
@@ -39,6 +68,7 @@ export default function InstructorLogin({
   redirectTo = "/InstructorDash",
   backHref = "/",
 }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -66,12 +96,45 @@ export default function InstructorLogin({
     setLoading(false);
     if (!res.ok) return setServerError(res.error || "Login failed.");
 
+    // Store authentication data
     const storage = remember ? window.localStorage : window.sessionStorage;
-    if (res.token) storage.setItem("le_instructor_token", res.token);
-    storage.setItem("le_instructor_name", res.user?.name || "Instructor");
-    storage.setItem("le_instructor_id", res.user?.id || "");
-    if (typeof onSuccess === "function") onSuccess(res);
-    else window.location.assign(redirectTo);
+    if (res.token) {
+      storage.setItem("token", res.token);
+      storage.setItem("le_instructor_token", res.token); // Keep for compatibility
+    }
+    storage.setItem("role", "teacher");
+    storage.setItem("userId", res.user?.id || "");
+    storage.setItem("le_instructor_id", res.user?.id || ""); // Keep for compatibility
+    storage.setItem("userName", res.user?.name || "Instructor");
+    storage.setItem("le_instructor_name", res.user?.name || "Instructor"); // Keep for compatibility
+    storage.setItem("userEmail", res.user?.email || "");
+    
+    // Check if information gathering is complete
+    const areasOfExpertise = res.user?.areasOfExpertise || [];
+    const cv = res.user?.cv || '';
+    
+    // Information gathering is complete if:
+    // 1. areasOfExpertise has at least 1 item (InformationGathering1 done)
+    // 2. cv is not empty (InformationGathering2 done - file uploaded)
+    const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+    
+    if (typeof onSuccess === "function") {
+      onSuccess(res);
+    } else {
+      // Redirect based on information gathering status
+      if (!isInfoGatheringComplete) {
+        // Determine which step to redirect to
+        if (areasOfExpertise.length === 0) {
+          navigate('/InformationGathering1');
+        } else if (cv.trim() === '') {
+          navigate('/InformationGathering2');
+        } else {
+          navigate('/InformationGathering3');
+        }
+      } else {
+        window.location.assign(redirectTo);
+      }
+    }
   };
 
   return (
@@ -79,7 +142,14 @@ export default function InstructorLogin({
       
 
       <div className="instructorLogin-card">
-        <a className="instructorLogin-back" href={backHref} aria-label="Back to landing">‹ Back</a>
+        <button 
+          type="button"
+          className="instructorLogin-back" 
+          onClick={() => window.location.href = backHref}
+          aria-label="Back to landing"
+        >
+          ‹ Back
+        </button>
         <h1 className="instructorLogin-title">Instructor Login</h1>
         <p className="instructorLogin-subtitle">Access your dashboard to manage courses and students.</p>
 
@@ -141,17 +211,34 @@ export default function InstructorLogin({
               <span className="instructorLogin-switch-track" aria-hidden="true"></span>
               <span className="instructorLogin-switch-label">Remember me</span>
             </label>
-            <a className="instructorLogin-link" href="/instructor/forgot-password">Forgot password?</a>
+            <button
+              type="button"
+              className="instructorLogin-link-btn"
+              onClick={() => navigate("/InstructorForgotPassword")}
+            >
+              Forgot password?
+            </button>
           </div>
 
-          <button className="instructorLogin-btn" type="submit" disabled={loading}>
+          <button 
+            className="instructorLogin-btn" 
+            type="submit" 
+            disabled={loading}
+            style={{ outline: 'none', border: 'none' }}
+          >
             {loading ? <span className="instructorLogin-spinner" /> : "Log in"}
           </button>
         </form>
 
         <div className="instructorLogin-foot">
           <span>New instructor?</span>
-          <a className="instructorLogin-link" href="/InstructorSignUp1">Create an account</a>
+          <button
+            type="button"
+            className="instructorLogin-link-btn"
+            onClick={() => navigate("/InstructorSignUp1")}
+          >
+            Create an account
+          </button>
         </div>
       </div>
     </div>

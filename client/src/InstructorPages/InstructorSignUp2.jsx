@@ -1,112 +1,367 @@
-// src/pages/InstructorSignUp2.jsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import illustration from '../assets/InstructorLogin.png';
+import { onAuthStateChanged, reload, sendEmailVerification } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import './InstructorSignUp2.css';
 
-// Stub – replace with your real API call
-async function performConfirm(code) {
-  const res = await fetch('/api/instructor/confirm-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
-  });
-  return res;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function InstructorSignUp2() {
   const navigate = useNavigate();
-  const [code, setCode]             = useState('');
-  const [error, setError]           = useState('');
+  const [email, setEmail] = useState('');
   const [generalError, setGeneralError] = useState('');
-  const [loading, setLoading]       = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
 
-  const handleConfirm = async () => {
-    if (!code.trim() || code.length < 6) {
-      setError('Please enter the 6-digit code');
+  useEffect(() => {
+    // Get email from sessionStorage
+    const signupEmail = sessionStorage.getItem('instructorSignupEmail');
+    if (!signupEmail) {
+      navigate('/InstructorSignUp1');
       return;
     }
+    setEmail(signupEmail);
 
-    setError('');
-    setGeneralError('');
-    setLoading(true);
+    // Check Firebase auth state
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user && user.email === signupEmail) {
+        // Reload user to get latest emailVerified status
+        await reload(user);
+        if (user.emailVerified) {
+          setIsVerified(true);
+          setChecking(false);
+          
+          // Automatically log in to get JWT token using the same flow as regular login
+          try {
+            const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                email: user.email, 
+                firebaseUID: user.uid 
+              }),
+            });
 
-    try {
-      const res = await performConfirm(code);
+            const contentType = response.headers.get('content-type');
+            let data;
+            
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+            } else {
+              const text = await response.text();
+              console.error('Non-JSON response during auto-login:', text);
+              setGeneralError('Failed to authenticate. Please try logging in manually.');
+              return;
+            }
 
-      if (res.ok) {
-        navigate('/InstructorDash');
-      } else if (res.status === 400) {
-        setGeneralError('Invalid verification code.');
+            if (!response.ok) {
+              console.error('Auto-login failed:', data.error);
+              setGeneralError(data.error || 'Failed to authenticate. Please try logging in manually.');
+              return;
+            }
+
+            if (data.data && data.data.token) {
+              // Store authentication data - same as regular login
+              const storage = window.sessionStorage; // Use sessionStorage during signup flow
+              storage.setItem('token', data.data.token);
+              storage.setItem('le_instructor_token', data.data.token);
+              storage.setItem('role', 'teacher');
+              storage.setItem('userId', data.data.teacher.id);
+              storage.setItem('le_instructor_id', data.data.teacher.id);
+              storage.setItem('userName', data.data.teacher.fullName || 'Instructor');
+              storage.setItem('le_instructor_name', data.data.teacher.fullName || 'Instructor');
+              storage.setItem('userEmail', data.data.teacher.email);
+
+              // Check if information gathering is complete - same logic as regular login
+              const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+              const cv = data.data.teacher.cv || '';
+              const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+
+              // Navigate based on information gathering status
+              setTimeout(() => {
+                if (!isInfoGatheringComplete) {
+                  if (areasOfExpertise.length === 0) {
+                    navigate('/InformationGathering1');
+                  } else if (cv.trim() === '') {
+                    navigate('/InformationGathering2');
+                  } else {
+                    navigate('/InformationGathering3');
+                  }
+                } else {
+                  navigate('/InstructorDash');
+                }
+              }, 1500);
+            } else {
+              setGeneralError('Failed to get authentication token. Please try logging in manually.');
+            }
+          } catch (loginError) {
+            console.error('Auto-login error:', loginError);
+            setGeneralError('Network error during authentication. Please try logging in manually.');
+          }
+        } else {
+          setChecking(false);
+        }
       } else {
-        setGeneralError('Confirmation failed. Please try again.');
+        setChecking(false);
+        setGeneralError('Please complete the signup process first.');
       }
-    } catch (err) {
-      console.error(err);
-      setGeneralError('Network error. Please check your connection.');
+    });
+
+    // Check verification status periodically
+    const checkInterval = setInterval(async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.email === signupEmail) {
+        await reload(currentUser);
+        if (currentUser.emailVerified) {
+          setIsVerified(true);
+          clearInterval(checkInterval);
+          
+          // Automatically log in to get JWT token using the same flow as regular login
+          try {
+            const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                email: currentUser.email, 
+                firebaseUID: currentUser.uid 
+              }),
+            });
+
+            const contentType = response.headers.get('content-type');
+            let data;
+            
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+            } else {
+              const text = await response.text();
+              console.error('Non-JSON response during auto-login:', text);
+              return;
+            }
+
+            if (!response.ok) {
+              console.error('Auto-login failed:', data.error);
+              return;
+            }
+
+            if (data.data && data.data.token) {
+              // Store authentication data - same as regular login
+              const storage = window.sessionStorage;
+              storage.setItem('token', data.data.token);
+              storage.setItem('le_instructor_token', data.data.token);
+              storage.setItem('role', 'teacher');
+              storage.setItem('userId', data.data.teacher.id);
+              storage.setItem('le_instructor_id', data.data.teacher.id);
+              storage.setItem('userName', data.data.teacher.fullName || 'Instructor');
+              storage.setItem('le_instructor_name', data.data.teacher.fullName || 'Instructor');
+              storage.setItem('userEmail', data.data.teacher.email);
+
+              // Check if information gathering is complete - same logic as regular login
+              const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+              const cv = data.data.teacher.cv || '';
+              const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+
+              // Navigate based on information gathering status
+              if (!isInfoGatheringComplete) {
+                if (areasOfExpertise.length === 0) {
+                  navigate('/InformationGathering1');
+                } else if (cv.trim() === '') {
+                  navigate('/InformationGathering2');
+                } else {
+                  navigate('/InformationGathering3');
+                }
+              } else {
+                navigate('/InstructorDash');
+              }
+            }
+          } catch (loginError) {
+            console.error('Auto-login error:', loginError);
+            // Continue anyway
+          }
+          
+          setTimeout(() => {
+            navigate('/InformationGathering1');
+          }, 1500);
+        }
+      }
+    }, 2000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(checkInterval);
+    };
+  }, [navigate]);
+
+  const handleResendVerification = async () => {
+    setLoading(true);
+    setGeneralError('');
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await sendEmailVerification(user);
+        setGeneralError('Verification email sent! Please check your inbox.');
+      } else {
+        setGeneralError('Please complete the signup process first.');
+      }
+    } catch (error) {
+      console.error('Resend error:', error);
+      setGeneralError('Failed to resend verification email. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="signup-page-2">
-      <div className="signup-container-2">
-
-        {/* ← LEFT PANEL: image */}
-        <div className="signup-left-2">
-          <img
-            src={illustration}
-            alt="Illustration"
-            className="signup-illustration-2"
-          />
+  if (checking) {
+    return (
+      <div className="signupInst2-wrap">
+        <div className="signupInst2-card">
+          <h1 className="signupInst2-title">Checking Verification...</h1>
+          <p className="signupInst2-subtitle">Please wait while we verify your email.</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* → RIGHT PANEL: form */}
-        <div className="signup-right-2">
-          <Link to="/InstructorSignUp1" className="go-back-2">
-            Back
-          </Link>
+  if (isVerified) {
+    return (
+      <div className="signupInst2-wrap">
+        <div className="signupInst2-card">
+          <h1 className="signupInst2-title">Email Verified!</h1>
+          <p className="signupInst2-subtitle">Your email has been verified. Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
-          <h2 className="signup-title-2">Confirm Your Email</h2>
-          <p className="signup-subtitle-2">
-            A 6-digit code is sent to your email
-          </p>
+  return (
+    <div className="signupInst2-wrap">
+      <div className="signupInst2-card">
+        <Link to="/InstructorSignUp1" className="signupInst2-back">
+          ‹ Go Back
+        </Link>
 
-          {generalError && (
-            <div className="signup-error-text-2">{generalError}</div>
-          )}
-          {error && <div className="signup-error-text-2">{error}</div>}
+        <h1 className="signupInst2-title">Confirm Your Email</h1>
+        <p className="signupInst2-subtitle">
+          We've sent a verification link to <strong>{email}</strong>. Please click the link in the email to verify your account.
+        </p>
 
-          <input
-            type="text"
-            placeholder="__ __ __ __ __ __"
-            className="signup-input-2"
-            value={code}
-            maxLength={6}
-            onChange={e => {
-              const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-              setCode(val);
-              setError('');
-              setGeneralError('');
-            }}
-          />
+        {generalError && (
+          <div className={`signupInst2-alert ${generalError.includes('sent') ? 'signupInst2-alert-success' : ''}`} role="alert">
+            {generalError}
+          </div>
+        )}
+
+        <div className="signupInst2-form">
+          <div className="signupInst2-info-box">
+            <p>After clicking the verification link in your email, this page will automatically update.</p>
+          </div>
 
           <button
-            className="signup-button-2"
-            onClick={handleConfirm}
+            className="signupInst2-btn"
+            onClick={handleResendVerification}
             disabled={loading}
+            type="button"
           >
-            {loading ? 'Confirming…' : 'Confirm'}
+            {loading ? 'Sending…' : 'Resend Verification Email'}
           </button>
 
-          <p className="signup-resend-2">
-            Didn’t receive it yet?{' '}
-            <Link to="/InstructorSignUp2" className="resend-link-2">
-              Send again
-            </Link>
+          <p className="signupInst2-resend">
+            Already verified?{' '}
+            <button
+              type="button"
+              className="signupInst2-link"
+              onClick={async () => {
+                const user = auth.currentUser;
+                if (user) {
+                  await reload(user);
+                  if (user.emailVerified) {
+                    // Automatically log in using the same flow as regular login
+                    try {
+                      const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                          email: user.email, 
+                          firebaseUID: user.uid 
+                        }),
+                      });
+
+                      const contentType = response.headers.get('content-type');
+                      let data;
+                      
+                      if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                      } else {
+                        const text = await response.text();
+                        console.error('Non-JSON response during auto-login:', text);
+                        setGeneralError('Failed to authenticate. Please try again.');
+                        return;
+                      }
+
+                      if (!response.ok) {
+                        console.error('Auto-login failed:', data.error);
+                        setGeneralError(data.error || 'Failed to authenticate. Please try again.');
+                        return;
+                      }
+
+                      if (data.data && data.data.token) {
+                        // Store authentication data - same as regular login
+                        const storage = window.sessionStorage;
+                        storage.setItem('token', data.data.token);
+                        storage.setItem('le_instructor_token', data.data.token);
+                        storage.setItem('role', 'teacher');
+                        storage.setItem('userId', data.data.teacher.id);
+                        storage.setItem('le_instructor_id', data.data.teacher.id);
+                        storage.setItem('userName', data.data.teacher.fullName || 'Instructor');
+                        storage.setItem('le_instructor_name', data.data.teacher.fullName || 'Instructor');
+                        storage.setItem('userEmail', data.data.teacher.email);
+
+                        // Check if information gathering is complete - same logic as regular login
+                        const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+                        const cv = data.data.teacher.cv || '';
+                        const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+
+                        // Navigate based on information gathering status
+                        if (!isInfoGatheringComplete) {
+                          if (areasOfExpertise.length === 0) {
+                            navigate('/InformationGathering1');
+                          } else if (cv.trim() === '') {
+                            navigate('/InformationGathering2');
+                          } else {
+                            navigate('/InformationGathering3');
+                          }
+                        } else {
+                          navigate('/InstructorDash');
+                        }
+                      } else {
+                        setGeneralError('Failed to get authentication token. Please try again.');
+                      }
+                    } catch (loginError) {
+                      console.error('Auto-login error:', loginError);
+                      setGeneralError('Network error during authentication. Please try again.');
+                    }
+                  } else {
+                    setGeneralError('Email not verified yet. Please check your inbox and click the verification link.');
+                  }
+                }
+              }}
+            >
+              Check Again
+            </button>
           </p>
+        </div>
+
+        <div className="signupInst2-foot">
+          <span>Need help?</span>
+          <Link to="/contact" className="signupInst2-link">
+            Contact support
+          </Link>
         </div>
       </div>
     </div>

@@ -1,44 +1,55 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-  studentName: {
+  name: {
     type: String,
-    required: true,
+    required: [true, 'Name is required'],
     trim: true
   },
-  studentEmail: {
+  email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true,
     lowercase: true,
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
+  },
+  pass: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters']
+  },
+  type: {
+    type: String,
+    enum: ['autism', 'downSyndrome', 'other'],
+    required: [true, 'Student type is required']
+  },
+  avatar: {
+    type: String,
+    default: 'default-avatar.png'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
+  suspended: {
+    type: Boolean,
+    default: false
+  },
+  assignedPath: {
+    type: String,
     trim: true
   },
-  studentPass: {
-    type: String,
-    required: true
-  },
-  studentType: {
-    type: String,
-    enum: ['regular', 'premium'],
-    default: 'regular'
-  },
-  studentDifficulty: {
-    type: String,
-    enum: ['easy', 'medium', 'hard'],
-    default: 'easy'
-  },
-  studentLearningMode: {
-    type: String,
-    enum: ['visual', 'auditory', 'kinesthetic', 'mixed'],
-    default: 'visual'
-  },
-  assignedPathType: {
-    type: String,
-    enum: ['autism', 'down syndrome', null],
-    default: null
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
 }, {
-  timestamps: true
+  timestamps: false,
+  collection: 'Student'
 });
 
-module.exports = mongoose.model('Student', studentSchema);
+const Student = mongoose.model('Student', studentSchema);
+
+module.exports = Student;

@@ -1,6 +1,6 @@
 // src/pages/InstructorUpload.jsx
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./InstructorUpload.css";
 import { USER_CURRICULUM } from "../data/curriculum";
 
@@ -19,6 +19,8 @@ const DEFAULT_ROWS = [
 ];
 
 export default function InstructorUpload() {
+  const navigate = useNavigate();
+  
   // Publishing
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState([]);
@@ -161,10 +163,16 @@ export default function InstructorUpload() {
   const removePair = (idx) => { if (pairs.length === 1) return; setPairs(pairs.filter((_, i) => i !== idx)); };
   const onPublishQuiz = () => { alert("Quiz published!"); };
 
+  const handleBack = () => {
+    navigate("/InstructorDash");
+  };
+
   return (
     <div className="upl-page">
       <div className="upl-topline">
-        <Link to="/InstructorDash" className="upl-back"><span className="upl-chev">‹</span> Dashboard</Link>
+        <button type="button" className="upl-back" onClick={handleBack}>
+          <span className="upl-chev">‹</span> Dashboard
+        </button>
       </div>
 
       {/* Publishing */}
