@@ -85,7 +85,16 @@ export default function InstructorSignUp1() {
 
       // Send email verification
       if (!firebaseUser.emailVerified) {
-        await sendEmailVerification(firebaseUser);
+        try {
+          await sendEmailVerification(firebaseUser, {
+            url: window.location.origin + '/InstructorSignUp2',
+            handleCodeInApp: false
+          });
+          console.log('Verification email sent successfully');
+        } catch (emailError) {
+          console.error('Error sending verification email:', emailError);
+          // Continue anyway - user can resend from Step 2
+        }
       }
 
       // Create user in MongoDB

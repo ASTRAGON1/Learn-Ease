@@ -76,22 +76,38 @@ export default function InstructorSignUp2() {
               storage.setItem('userEmail', data.data.teacher.email);
 
               // Check if information gathering is complete - same logic as regular login
-              const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
-              const cv = data.data.teacher.cv || '';
-              const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
-
+              // First check the completion flag - if true, user has completed it
+              const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
+              
               // Navigate based on information gathering status
-              setTimeout(() => {
-                if (!isInfoGatheringComplete) {
-                  if (areasOfExpertise.length === 0) {
-                    navigate('/InformationGathering1');
-                  } else if (cv.trim() === '') {
-                    navigate('/InformationGathering2');
-                  } else {
-                    navigate('/InformationGathering3');
-                  }
-                } else {
+              setTimeout(async () => {
+                if (isInfoGatheringComplete) {
                   navigate('/InstructorDash');
+                } else {
+                  // If not marked as complete, check if data exists
+                  const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+                  const cv = data.data.teacher.cv || '';
+                  
+                  // If data is missing, redirect to Step 1
+                  if (areasOfExpertise.length === 0 || cv.trim() === '') {
+                    navigate('/InformationGathering1');
+                  } else {
+                    // All data exists but not marked complete - automatically mark as complete
+                    try {
+                      await fetch(`${API_URL}/api/teachers/me`, {
+                        method: 'PATCH',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${data.data.token}`
+                        },
+                        body: JSON.stringify({ informationGatheringComplete: true })
+                      });
+                      navigate('/InstructorDash');
+                    } catch (error) {
+                      console.error('Error marking information gathering as complete:', error);
+                      navigate('/InstructorDash'); // Continue anyway
+                    }
+                  }
                 }
               }, 1500);
             } else {
@@ -161,31 +177,43 @@ export default function InstructorSignUp2() {
               storage.setItem('userEmail', data.data.teacher.email);
 
               // Check if information gathering is complete - same logic as regular login
-              const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
-              const cv = data.data.teacher.cv || '';
-              const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
-
+              // First check the completion flag - if true, user has completed it
+              const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
+              
               // Navigate based on information gathering status
-              if (!isInfoGatheringComplete) {
-                if (areasOfExpertise.length === 0) {
-                  navigate('/InformationGathering1');
-                } else if (cv.trim() === '') {
-                  navigate('/InformationGathering2');
-                } else {
-                  navigate('/InformationGathering3');
-                }
-              } else {
+              if (isInfoGatheringComplete) {
                 navigate('/InstructorDash');
+              } else {
+                // If not marked as complete, check if data exists
+                const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+                const cv = data.data.teacher.cv || '';
+                
+                // If data is missing, redirect to Step 1
+                if (areasOfExpertise.length === 0 || cv.trim() === '') {
+                  navigate('/InformationGathering1');
+                } else {
+                  // All data exists but not marked complete - automatically mark as complete
+                  try {
+                    await fetch(`${API_URL}/api/teachers/me`, {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${data.data.token}`
+                      },
+                      body: JSON.stringify({ informationGatheringComplete: true })
+                    });
+                    navigate('/InstructorDash');
+                  } catch (error) {
+                    console.error('Error marking information gathering as complete:', error);
+                    navigate('/InstructorDash'); // Continue anyway
+                  }
+                }
               }
             }
           } catch (loginError) {
             console.error('Auto-login error:', loginError);
-            // Continue anyway
+            // Continue anyway - navigation is handled above
           }
-          
-          setTimeout(() => {
-            navigate('/InformationGathering1');
-          }, 1500);
         }
       }
     }, 2000);
@@ -202,14 +230,22 @@ export default function InstructorSignUp2() {
     try {
       const user = auth.currentUser;
       if (user) {
-        await sendEmailVerification(user);
-        setGeneralError('Verification email sent! Please check your inbox.');
+        await sendEmailVerification(user, {
+          url: window.location.origin + '/InstructorSignUp2',
+          handleCodeInApp: false
+        });
+        setGeneralError('Verification email sent! Please check your inbox (and spam folder).');
+        console.log('Verification email resent successfully');
       } else {
         setGeneralError('Please complete the signup process first.');
       }
     } catch (error) {
       console.error('Resend error:', error);
-      setGeneralError('Failed to resend verification email. Please try again.');
+      if (error.code === 'auth/too-many-requests') {
+        setGeneralError('Too many requests. Please wait a few minutes before requesting another email.');
+      } else {
+        setGeneralError(`Failed to resend verification email: ${error.message || 'Please try again.'}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -247,6 +283,9 @@ export default function InstructorSignUp2() {
         <h1 className="signupInst2-title">Confirm Your Email</h1>
         <p className="signupInst2-subtitle">
           We've sent a verification link to <strong>{email}</strong>. Please click the link in the email to verify your account.
+        </p>
+        <p style={{ fontSize: '13px', color: '#64748b', marginTop: '8px', textAlign: 'center' }}>
+          💡 <strong>Tip:</strong> Check your spam/junk folder if you don't see the email.
         </p>
 
         {generalError && (
@@ -323,21 +362,37 @@ export default function InstructorSignUp2() {
                         storage.setItem('userEmail', data.data.teacher.email);
 
                         // Check if information gathering is complete - same logic as regular login
-                        const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
-                        const cv = data.data.teacher.cv || '';
-                        const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
-
+                        // First check the completion flag - if true, user has completed it
+                        const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
+                        
                         // Navigate based on information gathering status
-                        if (!isInfoGatheringComplete) {
-                          if (areasOfExpertise.length === 0) {
-                            navigate('/InformationGathering1');
-                          } else if (cv.trim() === '') {
-                            navigate('/InformationGathering2');
-                          } else {
-                            navigate('/InformationGathering3');
-                          }
-                        } else {
+                        if (isInfoGatheringComplete) {
                           navigate('/InstructorDash');
+                        } else {
+                          // If not marked as complete, check if data exists
+                          const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+                          const cv = data.data.teacher.cv || '';
+                          
+                          // If data is missing, redirect to Step 1
+                          if (areasOfExpertise.length === 0 || cv.trim() === '') {
+                            navigate('/InformationGathering1');
+                          } else {
+                            // All data exists but not marked complete - automatically mark as complete
+                            try {
+                              await fetch(`${API_URL}/api/teachers/me`, {
+                                method: 'PATCH',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${data.data.token}`
+                                },
+                                body: JSON.stringify({ informationGatheringComplete: true })
+                              });
+                              navigate('/InstructorDash');
+                            } catch (error) {
+                              console.error('Error marking information gathering as complete:', error);
+                              navigate('/InstructorDash'); // Continue anyway
+                            }
+                          }
                         }
                       } else {
                         setGeneralError('Failed to get authentication token. Please try again.');

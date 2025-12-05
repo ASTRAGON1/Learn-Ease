@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "./InstructorForgotPassword.css";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function InstructorForgotPasswordStep2() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -18,15 +20,29 @@ function InstructorForgotPasswordStep2() {
     }
   }, [email, navigate]);
 
-  // Verify code
+  // Verify code via API
   const verifyCode = async (email, code) => {
-    const storedCode = localStorage.getItem('instructor_reset_code');
-    const storedEmail = localStorage.getItem('instructor_reset_email');
-    
-    if (storedEmail === email && storedCode === code) {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/teachers/auth/verify-reset-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error || 'Invalid verification code' };
+      }
+
       return { success: true };
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      return { success: false, error: 'Network error. Please check your connection and try again.' };
+    } finally {
+      setLoading(false);
     }
-    return { success: false, error: 'Invalid verification code' };
   };
 
   const handleSubmit = async (e) => {

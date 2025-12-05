@@ -285,6 +285,42 @@ const savePrivate = async () => {
             ))}
           </div>
 
+          <h3 className="ps-subtitle">Logout</h3>
+          <p className="ps-warning">
+            Log out of your account. You will need to log in again to access your dashboard.
+          </p>
+          <button 
+            className="ps-secondary" 
+            onClick={() => {
+              // Clear all authentication tokens
+              localStorage.removeItem('token');
+              localStorage.removeItem('le_instructor_token');
+              localStorage.removeItem('role');
+              localStorage.removeItem('userId');
+              localStorage.removeItem('le_instructor_id');
+              localStorage.removeItem('userName');
+              localStorage.removeItem('le_instructor_name');
+              localStorage.removeItem('userEmail');
+              
+              // Clear sessionStorage as well
+              sessionStorage.removeItem('token');
+              sessionStorage.removeItem('le_instructor_token');
+              sessionStorage.removeItem('role');
+              sessionStorage.removeItem('userId');
+              sessionStorage.removeItem('le_instructor_id');
+              sessionStorage.removeItem('userName');
+              sessionStorage.removeItem('le_instructor_name');
+              sessionStorage.removeItem('userEmail');
+              sessionStorage.removeItem('instructorSignupEmail');
+              
+              // Redirect to login page
+              navigate('/InstructorLogin');
+            }}
+            style={{ marginBottom: '32px' }}
+          >
+            Logout
+          </button>
+
           <h3 className="ps-subtitle">Close account</h3>
           <p className="ps-warning">
             <strong>Warning:</strong> If you close your account, you will lose all access to your

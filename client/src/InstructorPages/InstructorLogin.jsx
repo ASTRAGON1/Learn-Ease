@@ -37,7 +37,8 @@ async function loginInstructor({ email, password }) {
         name: data.data.teacher.fullName || 'Instructor',
         email: data.data.teacher.email,
         areasOfExpertise: data.data.teacher.areasOfExpertise || [],
-        cv: data.data.teacher.cv || ''
+        cv: data.data.teacher.cv || '',
+        informationGatheringComplete: data.data.teacher.informationGatheringComplete || false
       }
     };
   } catch (error) {
@@ -110,30 +111,47 @@ export default function InstructorLogin({
     storage.setItem("userEmail", res.user?.email || "");
     
     // Check if information gathering is complete
-    const areasOfExpertise = res.user?.areasOfExpertise || [];
-    const cv = res.user?.cv || '';
+    // First check the completion flag - if true, user has completed it
+    const isInfoGatheringComplete = res.user?.informationGatheringComplete === true;
     
-    // Information gathering is complete if:
-    // 1. areasOfExpertise has at least 1 item (InformationGathering1 done)
-    // 2. cv is not empty (InformationGathering2 done - file uploaded)
-    const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+    // If not marked as complete, check if data exists
+    if (!isInfoGatheringComplete) {
+      const areasOfExpertise = res.user?.areasOfExpertise || [];
+      const cv = res.user?.cv || '';
+      
+      // If data is missing, redirect to appropriate step
+      if (areasOfExpertise.length === 0 || cv.trim() === '') {
+        // Missing data - redirect to Step 1
+        if (typeof onSuccess === "function") {
+          onSuccess(res);
+        } else {
+          navigate('/InformationGathering1');
+        }
+        return;
+      } else {
+        // All data exists but not marked complete - automatically mark as complete
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        try {
+          await fetch(`${API_URL}/api/teachers/me`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${res.token}`
+            },
+            body: JSON.stringify({ informationGatheringComplete: true })
+          });
+        } catch (error) {
+          console.error('Error marking information gathering as complete:', error);
+          // Continue anyway - will be marked on next login
+        }
+      }
+    }
     
+    // Information gathering is complete - proceed to dashboard
     if (typeof onSuccess === "function") {
       onSuccess(res);
     } else {
-      // Redirect based on information gathering status
-      if (!isInfoGatheringComplete) {
-        // Determine which step to redirect to
-        if (areasOfExpertise.length === 0) {
-          navigate('/InformationGathering1');
-        } else if (cv.trim() === '') {
-          navigate('/InformationGathering2');
-        } else {
-          navigate('/InformationGathering3');
-        }
-      } else {
-        window.location.assign(redirectTo);
-      }
+      window.location.assign(redirectTo);
     }
   };
 

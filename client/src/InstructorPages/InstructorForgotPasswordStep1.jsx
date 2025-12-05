@@ -11,29 +11,34 @@ function InstructorForgotPasswordStep1() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Simulate sending verification code (replace with actual API call)
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  // Send verification code via API
   const sendVerificationCode = async (email) => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/teachers/forgot-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email })
-      // });
+      const response = await fetch(`${API_URL}/api/teachers/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error || 'Failed to send verification code' };
+      }
+
+      // In development, code is returned in response (for testing)
+      // In production, code would be sent via email
+      if (data.data?.code) {
+        console.log('Verification code (development only):', data.data.code);
+      }
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For demo: generate a 6-digit code
-      const demoCode = Math.floor(100000 + Math.random() * 900000).toString();
-      localStorage.setItem('instructor_reset_code', demoCode);
-      localStorage.setItem('instructor_reset_email', email);
-      console.log('Demo verification code:', demoCode); // Remove in production
-      
-      return { success: true, code: demoCode };
+      return { success: true };
     } catch (error) {
-      return { success: false, error: 'Failed to send verification code' };
+      console.error('Error sending verification code:', error);
+      return { success: false, error: 'Network error. Please check your connection and try again.' };
     } finally {
       setLoading(false);
     }

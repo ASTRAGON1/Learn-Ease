@@ -38,26 +38,28 @@ function InstructorForgotPasswordStep3() {
     }
   }, [email, code, navigate]);
 
-  // Reset password
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  // Reset password via API
   const resetPassword = async (email, newPassword) => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/teachers/reset-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, newPassword, code })
-      // });
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Clear stored data
-      localStorage.removeItem('instructor_reset_code');
-      localStorage.removeItem('instructor_reset_email');
+      const response = await fetch(`${API_URL}/api/teachers/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, newPassword, code })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error || 'Failed to reset password' };
+      }
       
       return { success: true };
     } catch (error) {
-      return { success: false, error: 'Failed to reset password' };
+      console.error('Error resetting password:', error);
+      return { success: false, error: 'Network error. Please check your connection and try again.' };
     } finally {
       setLoading(false);
     }

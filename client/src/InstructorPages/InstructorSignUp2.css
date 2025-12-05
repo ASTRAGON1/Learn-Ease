@@ -120,8 +120,8 @@
 }
 
 .signupInst2-input:focus {
-  border-color: #6d28d9;
-  box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.2);
+  border-color: #6b7280;
+  box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.2);
 }
 
 .signupInst2-hint {
@@ -137,13 +137,13 @@
   height: 44px;
   border: none;
   border-radius: 12px;
-  background: #6d28d9;
+  background: #6b7280;
   color: #fff;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   transition: 0.15s ease;
-  box-shadow: 0 6px 16px rgba(109, 40, 217, 0.25);
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.25);
   margin-top: 6px;
 }
 
@@ -167,7 +167,7 @@
 }
 
 .signupInst2-link {
-  color: #6d28d9;
+  color: #6b7280;
   text-decoration: none;
   background: none;
   border: none;

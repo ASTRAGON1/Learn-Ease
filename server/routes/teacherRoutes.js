@@ -20,7 +20,7 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
       return res.status(400).json({ error: 'Invalid user ID format' });
     }
     
-    const allowed = ['fullName', 'cv', 'profilePic', 'bio', 'headline', 'country', 'areasOfExpertise'];
+    const allowed = ['fullName', 'cv', 'profilePic', 'bio', 'headline', 'country', 'areasOfExpertise', 'informationGatheringComplete'];
     const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
     
     // Validate areasOfExpertise if provided

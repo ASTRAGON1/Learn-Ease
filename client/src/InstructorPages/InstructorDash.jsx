@@ -44,20 +44,34 @@ export default function InstructorDashboard() {
           const data = await response.json();
           const teacher = data.data;
           
-          const areasOfExpertise = teacher.areasOfExpertise || [];
-          const cv = teacher.cv || '';
-          
           // Check if information gathering is complete
-          const isInfoGatheringComplete = areasOfExpertise.length >= 1 && cv.trim() !== '';
+          // First check the completion flag - if true, user has completed it
+          const isInfoGatheringComplete = teacher.informationGatheringComplete === true;
           
           if (!isInfoGatheringComplete) {
-            // Redirect to the appropriate step
-            if (areasOfExpertise.length === 0) {
+            // If not marked as complete, check if data exists
+            const areasOfExpertise = teacher.areasOfExpertise || [];
+            const cv = teacher.cv || '';
+            
+            // If data is missing, redirect to Step 1
+            if (areasOfExpertise.length === 0 || cv.trim() === '') {
               navigate('/InformationGathering1');
-            } else if (cv.trim() === '') {
-              navigate('/InformationGathering2');
             } else {
-              navigate('/InformationGathering3');
+              // All data exists but not marked complete - automatically mark as complete
+              try {
+                await fetch(`${API_URL}/api/teachers/me`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({ informationGatheringComplete: true })
+                });
+                // Stay on dashboard - already here
+              } catch (error) {
+                console.error('Error marking information gathering as complete:', error);
+                // Stay on dashboard anyway
+              }
             }
           }
         }
@@ -109,7 +123,6 @@ export default function InstructorDashboard() {
     { tag:"Recognizing",pct:0 },
     { tag:"Memorizing", pct:50 },
   ];
-
 
   return (
     <div className="dash-root">

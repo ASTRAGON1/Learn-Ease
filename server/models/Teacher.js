@@ -90,6 +90,18 @@ const teacherSchema = new mongoose.Schema({
       message: 'Areas of expertise must be between 1 and 4 items'
     },
     default: []
+  },
+  informationGatheringComplete: {
+    type: Boolean,
+    default: false
+  },
+  resetPasswordCode: {
+    type: String,
+    default: null
+  },
+  resetPasswordCodeExpiry: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true,
