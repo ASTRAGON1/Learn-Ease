@@ -173,10 +173,8 @@ export default function InstructorUpload() {
         <button type="button" className="upl-back" onClick={handleBack}>
           <span className="upl-chev">‹</span> Dashboard
         </button>
+        <div className="upl-header">Publishing</div>
       </div>
-
-      {/* Publishing */}
-      <div className="upl-header">Publishing</div>
       <div className="upl-card upl-section">
         <div className="upl-row">
           <div className="upl-field">

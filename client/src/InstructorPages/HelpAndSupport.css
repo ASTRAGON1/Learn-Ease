@@ -105,7 +105,7 @@
   border:1px solid #ddd; background:#efeff4; border-radius:10px; padding:10px 14px; font-weight:700;
   cursor:pointer; color: black;
 }
-.sup-chip.active{ background:#6c2ed4; color:#fff; border-color:#6c2ed4; } /* Light purple */
+.sup-chip.active{ background:#4C0FAD; color:#fff; border-color:#4C0FAD; } /* Darker purple */
 
 .sup-textarea-wrap{ position:relative; }
 .sup-textarea-wrap textarea{
@@ -117,7 +117,7 @@
 
 .sup-actions{ display:flex; justify-content:flex-end; }
 .sup-send{
-  height:40px; padding:0 24px; border-radius:10px; background:#6c2ed4; color:#fff; border:0; /* Light purple */
+  height:40px; padding:0 24px; border-radius:10px; background:#4C0FAD; color:#fff; border:0; /* Darker purple */
   font-weight:800; cursor:pointer;
   transition: background 0.2s ease;
 }

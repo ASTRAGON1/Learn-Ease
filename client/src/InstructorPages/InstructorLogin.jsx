@@ -229,13 +229,6 @@ export default function InstructorLogin({
               <span className="instructorLogin-switch-track" aria-hidden="true"></span>
               <span className="instructorLogin-switch-label">Remember me</span>
             </label>
-            <button
-              type="button"
-              className="instructorLogin-link-btn"
-              onClick={() => navigate("/InstructorForgotPassword")}
-            >
-              Forgot password?
-            </button>
           </div>
 
           <button 

@@ -16,7 +16,14 @@
 }
 
 /* Top line */
-.upl-topline{ width:var(--card-w); margin:8px auto 12px; text-align:left; }
+.upl-topline{ 
+  width:var(--card-w); 
+  margin:8px auto 12px; 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  position:relative; 
+}
 .upl-back{ 
   background:none; 
   border:0; 
@@ -47,7 +54,7 @@
 
 /* ---- Section spacing (60px gap) ---- */
 .upl-section{ margin-bottom:60px; }
-.upl-section-title{ width:var(--card-w); margin:0 auto 30px; font-size:22px; font-weight:700; color: #6d28d9; } /* Dark purple for headlines */
+.upl-section-title{ width:var(--card-w); margin:0 auto 30px; font-size:22px; font-weight:700; color: #000000; } /* Black for headlines */
 
 /* Card base */
 .upl-card{
@@ -55,7 +62,15 @@
   background:#f4f4f5; border:1px solid #eee; border-radius:20px; padding:24px 28px;
   margin-bottom:100px; text-align:left;
 }
-.upl-header{ font-size:16px; font-weight:700; margin-bottom:30px; }
+.upl-header{ 
+  font-size:22px; 
+  font-weight:700; 
+  position:absolute; 
+  left:50%; 
+  transform:translateX(-50%); 
+  margin-bottom:0; 
+  color: #000000; 
+}
 
 /* Form primitives */
 .upl-row{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:14px; }
@@ -169,7 +184,7 @@
 .upl-catbtn:focus {
   outline:none;
 }
-.upl-catbtn.active{ background:#6c2ed4; color:#fff; } /* Light purple */
+.upl-catbtn.active{ background:#4C0FAD; color:#fff; } /* Darker purple */
 
 /* Actions */
 .upl-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
@@ -194,7 +209,7 @@
   height:40px; 
   padding:0 18px; 
   border-radius:10px; 
-  background:#6c2ed4; /* Light purple */ 
+  background:#4C0FAD; /* Darker purple */ 
   color:#fff; 
   border:0; 
   cursor:pointer; 

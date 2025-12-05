@@ -4,7 +4,27 @@ import { onAuthStateChanged, reload, sendEmailVerification } from 'firebase/auth
 import { auth } from '../config/firebase';
 import './InstructorSignUp2.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env. VITE_API_URL || 'http://localhost:5000';
+
+// Helper function to store auth data in both localStorage and sessionStorage
+const storeAuthData = (token, teacher) => {
+  const authData = {
+    'token': token,
+    'le_instructor_token': token,
+    'role': 'teacher',
+    'userId': teacher.id,
+    'le_instructor_id': teacher.id,
+    'userName': teacher. fullName || 'Instructor',
+    'le_instructor_name': teacher.fullName || 'Instructor',
+    'userEmail': teacher. email
+  };
+
+  // Store in both localStorage and sessionStorage for consistency
+  Object.entries(authData).forEach(([key, value]) => {
+    localStorage.setItem(key, value);
+    sessionStorage.setItem(key, value);
+  });
+};
 
 export default function InstructorSignUp2() {
   const navigate = useNavigate();
@@ -17,7 +37,7 @@ export default function InstructorSignUp2() {
   useEffect(() => {
     // Get email from sessionStorage
     const signupEmail = sessionStorage.getItem('instructorSignupEmail');
-    if (!signupEmail) {
+    if (! signupEmail) {
       navigate('/InstructorSignUp1');
       return;
     }
@@ -41,7 +61,7 @@ export default function InstructorSignUp2() {
               },
               body: JSON.stringify({ 
                 email: user.email, 
-                firebaseUID: user.uid 
+                firebaseUID: user. uid 
               }),
             });
 
@@ -53,30 +73,21 @@ export default function InstructorSignUp2() {
             } else {
               const text = await response.text();
               console.error('Non-JSON response during auto-login:', text);
-              setGeneralError('Failed to authenticate. Please try logging in manually.');
+              setGeneralError('Failed to authenticate.  Please try logging in manually.');
               return;
             }
 
-            if (!response.ok) {
-              console.error('Auto-login failed:', data.error);
-              setGeneralError(data.error || 'Failed to authenticate. Please try logging in manually.');
+            if (! response.ok) {
+              console.error('Auto-login failed:', data. error);
+              setGeneralError(data.error || 'Failed to authenticate.  Please try logging in manually.');
               return;
             }
 
             if (data.data && data.data.token) {
-              // Store authentication data - same as regular login
-              const storage = window.sessionStorage; // Use sessionStorage during signup flow
-              storage.setItem('token', data.data.token);
-              storage.setItem('le_instructor_token', data.data.token);
-              storage.setItem('role', 'teacher');
-              storage.setItem('userId', data.data.teacher.id);
-              storage.setItem('le_instructor_id', data.data.teacher.id);
-              storage.setItem('userName', data.data.teacher.fullName || 'Instructor');
-              storage.setItem('le_instructor_name', data.data.teacher.fullName || 'Instructor');
-              storage.setItem('userEmail', data.data.teacher.email);
+              // Store authentication data in BOTH localStorage and sessionStorage
+              storeAuthData(data.data.token, data. data.teacher);
 
               // Check if information gathering is complete - same logic as regular login
-              // First check the completion flag - if true, user has completed it
               const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
               
               // Navigate based on information gathering status
@@ -84,28 +95,25 @@ export default function InstructorSignUp2() {
                 if (isInfoGatheringComplete) {
                   navigate('/InstructorDash');
                 } else {
-                  // If not marked as complete, check if data exists
                   const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
-                  const cv = data.data.teacher.cv || '';
+                  const cv = data.data. teacher.cv || '';
                   
-                  // If data is missing, redirect to Step 1
                   if (areasOfExpertise.length === 0 || cv.trim() === '') {
                     navigate('/InformationGathering1');
                   } else {
-                    // All data exists but not marked complete - automatically mark as complete
                     try {
                       await fetch(`${API_URL}/api/teachers/me`, {
                         method: 'PATCH',
                         headers: {
                           'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${data.data.token}`
+                          'Authorization': `Bearer ${data.data. token}`
                         },
                         body: JSON.stringify({ informationGatheringComplete: true })
                       });
                       navigate('/InstructorDash');
                     } catch (error) {
                       console.error('Error marking information gathering as complete:', error);
-                      navigate('/InstructorDash'); // Continue anyway
+                      navigate('/InstructorDash');
                     }
                   }
                 }
@@ -148,71 +156,57 @@ export default function InstructorSignUp2() {
               }),
             });
 
-            const contentType = response.headers.get('content-type');
+            const contentType = response. headers.get('content-type');
             let data;
             
-            if (contentType && contentType.includes('application/json')) {
+            if (contentType && contentType. includes('application/json')) {
               data = await response.json();
             } else {
               const text = await response.text();
-              console.error('Non-JSON response during auto-login:', text);
+              console. error('Non-JSON response during auto-login:', text);
               return;
             }
 
-            if (!response.ok) {
+            if (!response. ok) {
               console.error('Auto-login failed:', data.error);
               return;
             }
 
-            if (data.data && data.data.token) {
-              // Store authentication data - same as regular login
-              const storage = window.sessionStorage;
-              storage.setItem('token', data.data.token);
-              storage.setItem('le_instructor_token', data.data.token);
-              storage.setItem('role', 'teacher');
-              storage.setItem('userId', data.data.teacher.id);
-              storage.setItem('le_instructor_id', data.data.teacher.id);
-              storage.setItem('userName', data.data.teacher.fullName || 'Instructor');
-              storage.setItem('le_instructor_name', data.data.teacher.fullName || 'Instructor');
-              storage.setItem('userEmail', data.data.teacher.email);
+            if (data.data && data. data.token) {
+              // Store authentication data in BOTH localStorage and sessionStorage
+              storeAuthData(data.data.token, data.data. teacher);
 
-              // Check if information gathering is complete - same logic as regular login
-              // First check the completion flag - if true, user has completed it
-              const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
+              // Check if information gathering is complete
+              const isInfoGatheringComplete = data.data.teacher. informationGatheringComplete === true;
               
-              // Navigate based on information gathering status
               if (isInfoGatheringComplete) {
                 navigate('/InstructorDash');
               } else {
-                // If not marked as complete, check if data exists
-                const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
-                const cv = data.data.teacher.cv || '';
+                const areasOfExpertise = data.data.teacher. areasOfExpertise || [];
+                const cv = data. data.teacher.cv || '';
                 
-                // If data is missing, redirect to Step 1
-                if (areasOfExpertise.length === 0 || cv.trim() === '') {
+                if (areasOfExpertise. length === 0 || cv.trim() === '') {
                   navigate('/InformationGathering1');
                 } else {
-                  // All data exists but not marked complete - automatically mark as complete
                   try {
                     await fetch(`${API_URL}/api/teachers/me`, {
                       method: 'PATCH',
                       headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${data.data.token}`
+                        'Authorization': `Bearer ${data. data.token}`
                       },
-                      body: JSON.stringify({ informationGatheringComplete: true })
+                      body: JSON. stringify({ informationGatheringComplete: true })
                     });
                     navigate('/InstructorDash');
                   } catch (error) {
-                    console.error('Error marking information gathering as complete:', error);
-                    navigate('/InstructorDash'); // Continue anyway
+                    console. error('Error marking information gathering as complete:', error);
+                    navigate('/InstructorDash');
                   }
                 }
               }
             }
           } catch (loginError) {
             console.error('Auto-login error:', loginError);
-            // Continue anyway - navigation is handled above
           }
         }
       }
@@ -234,13 +228,13 @@ export default function InstructorSignUp2() {
           url: window.location.origin + '/InstructorSignUp2',
           handleCodeInApp: false
         });
-        setGeneralError('Verification email sent! Please check your inbox (and spam folder).');
+        setGeneralError('Verification email sent!  Please check your inbox (and spam folder).');
         console.log('Verification email resent successfully');
       } else {
         setGeneralError('Please complete the signup process first.');
       }
     } catch (error) {
-      console.error('Resend error:', error);
+      console. error('Resend error:', error);
       if (error.code === 'auth/too-many-requests') {
         setGeneralError('Too many requests. Please wait a few minutes before requesting another email.');
       } else {
@@ -255,8 +249,8 @@ export default function InstructorSignUp2() {
     return (
       <div className="signupInst2-wrap">
         <div className="signupInst2-card">
-          <h1 className="signupInst2-title">Checking Verification...</h1>
-          <p className="signupInst2-subtitle">Please wait while we verify your email.</p>
+          <h1 className="signupInst2-title">Checking Verification... </h1>
+          <p className="signupInst2-subtitle">Please wait while we verify your email. </p>
         </div>
       </div>
     );
@@ -267,7 +261,7 @@ export default function InstructorSignUp2() {
       <div className="signupInst2-wrap">
         <div className="signupInst2-card">
           <h1 className="signupInst2-title">Email Verified!</h1>
-          <p className="signupInst2-subtitle">Your email has been verified. Redirecting...</p>
+          <p className="signupInst2-subtitle">Your email has been verified.  Redirecting... </p>
         </div>
       </div>
     );
@@ -296,7 +290,7 @@ export default function InstructorSignUp2() {
 
         <div className="signupInst2-form">
           <div className="signupInst2-info-box">
-            <p>After clicking the verification link in your email, this page will automatically update.</p>
+            <p>After clicking the verification link in your email, this page will automatically update. </p>
           </div>
 
           <button
@@ -309,12 +303,12 @@ export default function InstructorSignUp2() {
           </button>
 
           <p className="signupInst2-resend">
-            Already verified?{' '}
+            Already verified? {' '}
             <button
               type="button"
               className="signupInst2-link"
               onClick={async () => {
-                const user = auth.currentUser;
+                const user = auth. currentUser;
                 if (user) {
                   await reload(user);
                   if (user.emailVerified) {
@@ -331,53 +325,40 @@ export default function InstructorSignUp2() {
                         }),
                       });
 
-                      const contentType = response.headers.get('content-type');
+                      const contentType = response. headers.get('content-type');
                       let data;
                       
                       if (contentType && contentType.includes('application/json')) {
                         data = await response.json();
                       } else {
-                        const text = await response.text();
+                        const text = await response. text();
                         console.error('Non-JSON response during auto-login:', text);
                         setGeneralError('Failed to authenticate. Please try again.');
                         return;
                       }
 
-                      if (!response.ok) {
-                        console.error('Auto-login failed:', data.error);
+                      if (! response.ok) {
+                        console. error('Auto-login failed:', data.error);
                         setGeneralError(data.error || 'Failed to authenticate. Please try again.');
                         return;
                       }
 
-                      if (data.data && data.data.token) {
-                        // Store authentication data - same as regular login
-                        const storage = window.sessionStorage;
-                        storage.setItem('token', data.data.token);
-                        storage.setItem('le_instructor_token', data.data.token);
-                        storage.setItem('role', 'teacher');
-                        storage.setItem('userId', data.data.teacher.id);
-                        storage.setItem('le_instructor_id', data.data.teacher.id);
-                        storage.setItem('userName', data.data.teacher.fullName || 'Instructor');
-                        storage.setItem('le_instructor_name', data.data.teacher.fullName || 'Instructor');
-                        storage.setItem('userEmail', data.data.teacher.email);
+                      if (data.data && data.data. token) {
+                        // Store authentication data in BOTH localStorage and sessionStorage
+                        storeAuthData(data.data.token, data.data. teacher);
 
-                        // Check if information gathering is complete - same logic as regular login
-                        // First check the completion flag - if true, user has completed it
-                        const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
+                        // Check if information gathering is complete
+                        const isInfoGatheringComplete = data. data.teacher.informationGatheringComplete === true;
                         
-                        // Navigate based on information gathering status
                         if (isInfoGatheringComplete) {
                           navigate('/InstructorDash');
                         } else {
-                          // If not marked as complete, check if data exists
                           const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
                           const cv = data.data.teacher.cv || '';
                           
-                          // If data is missing, redirect to Step 1
                           if (areasOfExpertise.length === 0 || cv.trim() === '') {
                             navigate('/InformationGathering1');
                           } else {
-                            // All data exists but not marked complete - automatically mark as complete
                             try {
                               await fetch(`${API_URL}/api/teachers/me`, {
                                 method: 'PATCH',
@@ -390,7 +371,7 @@ export default function InstructorSignUp2() {
                               navigate('/InstructorDash');
                             } catch (error) {
                               console.error('Error marking information gathering as complete:', error);
-                              navigate('/InstructorDash'); // Continue anyway
+                              navigate('/InstructorDash');
                             }
                           }
                         }
@@ -410,13 +391,6 @@ export default function InstructorSignUp2() {
               Check Again
             </button>
           </p>
-        </div>
-
-        <div className="signupInst2-foot">
-          <span>Need help?</span>
-          <Link to="/contact" className="signupInst2-link">
-            Contact support
-          </Link>
         </div>
       </div>
     </div>

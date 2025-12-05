@@ -117,7 +117,7 @@ html,body{
 }
 
 .sp-primary{
-  height:40px; padding:0 16px; border-radius:10px; background:#6c2ed4; /* Light purple */
+  height:40px; padding:0 16px; border-radius:10px; background:#4C0FAD; /* Darker purple */
   color:#fff; border:0; cursor:pointer; font-weight:800;
   transition: background 0.2s ease;
 }

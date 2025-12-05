@@ -24,7 +24,7 @@
   font-weight: 800;
   text-align: center;
   margin: 0 0 8px;
-  color: #6d28d9; /* Dark purple for headlines */
+  color: #000000; /* Black for headlines */
 }
 
 .info3-subtitle {
@@ -75,7 +75,7 @@
 }
 
 .info3-bar-active {
-  background: #6c2ed4; /* Light purple */
+  background: #4C0FAD; /* Darker purple */
 }
 
 /* Actions */
@@ -108,7 +108,7 @@
 .info3-submit {
   width: 150px;
   height: 44px;
-  background: #6c2ed4; /* Light purple */
+  background: #4C0FAD; /* Darker purple */
   color: #fff;
   font-size: 15px;
   font-weight: 700;

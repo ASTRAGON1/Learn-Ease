@@ -25,7 +25,7 @@
     margin:0; 
     font-size:32px; 
     font-weight:800; 
-    color: #6d28d9; /* Dark purple for headlines */
+    color: #000000; /* Black for headlines */
   }
   
   /* Tabs */
@@ -63,7 +63,7 @@
     right:0; 
     bottom:-2px; 
     height:3px; 
-    background:#6c2ed4; /* Light purple */ 
+    background:#4C0FAD; /* Darker purple */ 
     border-radius:3px 3px 0 0; 
   }
   
@@ -225,7 +225,7 @@
     height:44px; 
     padding:0 24px; 
     border-radius:12px; 
-    background:#6c2ed4; /* Light purple */ 
+    background:#4C0FAD; /* Darker purple */ 
     color:#fff; 
     border:0; 
     cursor:pointer; 
@@ -276,7 +276,7 @@
     font-size:16px; 
     font-weight:700; 
     text-align: left !important;
-    color: #6d28d9; /* Dark purple for headlines */
+    color: #000000; /* Black for headlines */
   }
   .ps-pw-row{ 
     display:flex; 
@@ -369,7 +369,7 @@
     transition:.2s; 
     box-shadow:0 2px 4px rgba(0,0,0,.15);
   }
-  .ps-switchrow input:checked + .ps-switch{ background:#6c2ed4; } /* Light purple */
+  .ps-switchrow input:checked + .ps-switch{ background:#4C0FAD; } /* Darker purple */
   .ps-switchrow input:checked + .ps-switch::after{ left:23px; }
   
   .ps-warning{ 

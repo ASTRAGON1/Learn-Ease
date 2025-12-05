@@ -12,7 +12,7 @@
 /* container + section header */
 .le-content { padding: 22px; display: grid; gap: 18px; }
 .section-title { display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px; }
-.section-title h2 { margin: 0; font-size: 22px; color: #6d28d9; } /* Dark purple for headlines */
+.section-title h2 { margin: 0; font-size: 22px; color: #000000; } /* Black for headlines */
 .sub { color: var(--muted); font-size: 13px; }
 
 /* blocks */

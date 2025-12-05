@@ -34,7 +34,7 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color
 
 .instructorLogin-card{width:100%;max-width:440px;background:var(--il-surface);border:1px solid var(--il-line);border-radius:var(--il-radius);box-shadow:var(--il-shadow);padding:28px;display: flex;
   flex-direction: column;}
-.instructorLogin-title{margin:8px 0 4px;font-size:28px;font-weight:800; color: #6d28d9;} /* Dark purple for headlines */
+.instructorLogin-title{margin:8px 0 4px;font-size:28px;font-weight:800; color: #000000;} /* Black for headlines */
 .instructorLogin-subtitle{margin:0 0 18px;color:var(--il-muted);font-size:14px}
 
 .instructorLogin-alert{border:1px solid rgba(225,29,72,.25);background:rgba(225,29,72,.06);color:#9f1239;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px}
@@ -86,7 +86,7 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color
 .instructorLogin-link-btn{
   background:none;
   border:none;
-  color:var(--il-primary);
+  color:#000000; /* Black for "Create an account" */
   text-decoration:none;
   font-weight:600;
   font-size:14px;
@@ -99,16 +99,17 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color
 .instructorLogin-btn{
   width:100%; display:inline-flex; align-items:center; justify-content:center;
   height:44px; border-radius:12px; border:none !important;
-  background:var(--il-primary); color:#fff; font-weight:700; cursor:pointer;
-  transition:.15s ease; box-shadow:0 6px 16px rgba(71,85,105,.25);
+  background:#4C0FAD; color:#fff; font-weight:700; cursor:pointer;
+  transition:.15s ease; box-shadow:0 6px 16px rgba(76,15,173,.25);
   outline:none !important;
 }
 .instructorLogin-btn:hover{
-  filter:brightness(1.06); 
+  background:#4c0fad; 
+  filter:brightness(1.1); 
   transform:translateY(-1px); 
   outline:none !important;
   border:none !important;
-  box-shadow:0 6px 16px rgba(71,85,105,.25);
+  box-shadow:0 6px 16px rgba(76,15,173,.25);
 }
 .instructorLogin-btn:focus{
   outline:none !important; 

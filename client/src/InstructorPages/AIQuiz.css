@@ -34,7 +34,7 @@ textarea:focus {
   font-family:Inter,system-ui,Arial,sans-serif; color:var(--ink);
 }
 
-.qzInst-title{ text-align:center; font-size:32px; font-weight:900; margin:10px 0 40px; color: #6d28d9; } /* Dark purple for headlines */
+.qzInst-title{ text-align:center; font-size:32px; font-weight:900; margin:10px 0 40px; color: #000000; } /* Black for headlines */
 
 .qzInst-card{
   background:var(--card); border:1px solid var(--border);
@@ -78,14 +78,14 @@ textarea:focus {
 .qzInst-pill:focus {
   outline:none;
 }
-.qzInst-pill.qzInst-active{ background:#6c2ed4; color:#fff; border-color:transparent; } /* Light purple */
+.qzInst-pill.qzInst-active{ background:#4C0FAD; color:#fff; border-color:transparent; } /* Darker purple */
 
 .qzInst-form-actions{
   display:flex; justify-content:flex-end; gap:8px; margin-top:12px;
 }
 .qzInst-primary{
   height:40px; padding:0 16px; border-radius:10px; border:0;
-  background:#6c2ed4; /* Light purple */ color:#fff; font-weight:800; cursor:pointer;
+  background:#4C0FAD; /* Darker purple */ color:#fff; font-weight:800; cursor:pointer;
   outline:none;
   transition: background 0.2s ease;
 }
