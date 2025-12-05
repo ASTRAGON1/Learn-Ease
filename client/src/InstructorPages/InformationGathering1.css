@@ -107,7 +107,7 @@
 }
 
 .info1-modal-confirm {
-  background: #475569;
+  background: #6c2ed4; /* Light purple */
   color: #fff;
   box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3);
 }
@@ -161,7 +161,7 @@
 .info1-title {
   font-size: 28px;
   font-weight: 800;
-  color: #0f172a;
+  color: #6d28d9; /* Dark purple for headlines */
   margin: 0;
 }
 
@@ -218,7 +218,7 @@
 }
 
 .info1-tag {
-  background: #475569;
+  background: #6c2ed4; /* Light purple */
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 14px;
@@ -274,7 +274,7 @@
 }
 
 .info1-textarea:focus {
-  border-color: #475569;
+  border-color: #6c2ed4; /* Light purple */
   box-shadow: none;
 }
 
@@ -307,7 +307,7 @@
 }
 
 .info1-option:hover {
-  border-color: #475569;
+  border-color: #6c2ed4; /* Light purple */
   background: transparent;
 }
 
@@ -329,14 +329,14 @@
 }
 
 .info1-option input[type="checkbox"]:hover {
-  border-color: #475569;
+  border-color: #6c2ed4; /* Light purple */
   outline: none;
   box-shadow: none;
 }
 
 .info1-option input[type="checkbox"]:checked {
   background: #fff;
-  border-color: #475569;
+  border-color: #6c2ed4; /* Light purple */
   outline: none;
   box-shadow: none;
 }
@@ -368,7 +368,7 @@
 
 .info1-option:has(input[type="checkbox"]:checked) {
   background: transparent;
-  border-color: #475569;
+  border-color: #6c2ed4; /* Light purple */
 }
 
 /* Progress bars */
@@ -388,7 +388,7 @@
 }
 
 .info1-bar-active {
-  background: #475569;
+  background: #6c2ed4; /* Light purple */
 }
 
 /* Action button */
@@ -400,7 +400,7 @@
 .info1-next {
   width: 150px;
   height: 44px;
-  background: #475569;
+  background: #6c2ed4; /* Light purple */
   color: #fff;
   font-size: 15px;
   font-weight: 700;

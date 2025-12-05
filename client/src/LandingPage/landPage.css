@@ -1,8 +1,8 @@
 :root{
   --bg:#ffffff; --text:#0f172a; --muted:#475569;
-  --primary:#6d28d9; --primary-2:#8b5cf6; --accent:#10b981;
-  --ring:rgba(109,40,217,.25); --card:#ffffff; --line:rgba(2,6,23,.08);
-  --radius:16px; --shadow:0 12px 30px rgba(2,6,23,.08); --shadow-2:0 6px 16px rgba(2,6,23,.08);
+  --primary:#6c2ed4; --primary-2:#4c0fad; --accent:#10b981; /* Light purple for buttons, darker purple for hover */
+  --ring:rgba(108,46,212,.25); --card:#ffffff; --line:rgba(2,6,23,.08);
+  --radius:16px; --shadow:0 12px 30px rgba(2,6,23,.08); --shadow-2:0 6px 16px rgba(108,46,212,.15);
   --container:1600px;
 }
 
@@ -19,21 +19,32 @@ a{color:inherit;text-decoration:none}
 /* Layout + typography */
 .landPage-container{max-width:var(--container);margin:0 auto;padding:0 24px;}
 .landPage-section{padding:72px 0}
-.landPage-title{font-size:42px;line-height:1.15;margin:0 0 10px;font-weight:800}
+.landPage-title{font-size:42px;line-height:1.15;margin:0 0 10px;font-weight:800; color: #4c0fad;} /* Darker purple for headlines */
+/* Specific headlines that should be black */
+.landPage-hero .landPage-title, /* "Personalized learning for every unique mind" */
+#who .landPage-title, /* "Who we are" */
+#start-teaching .landPage-title, /* "Start teaching on LearnEase" */
+#reviews .landPage-title, /* "What families & teachers say" */
+#faq .landPage-title{ /* "FAQ" */
+  color: #000000;
+}
 .landPage-subtitle{font-size:18px;color:var(--muted);margin:0 0 24px}
+.landPage-hero-card strong{color: #000000;} /* "Today's snapshot" - black */
+.landPage-card strong, .landPage-foot strong{color: #4c0fad;} /* Darker purple for other strong/headlines */
 
 /* Buttons */
 .landPage-btn, .landPage-btn:visited, .landPage-btn:active { color: #fff; text-decoration: none;}
-.landPage-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;border:1px solid transparent;background:var(--primary);color:#fff;font-weight:600;box-shadow:var(--shadow-2);cursor:pointer;transition:.2s}
-.landPage-btn:hover{transform:translateY(-1px);filter:brightness(1.05);color: #fff;}
-.landPage-btn.landPage-outline{background:#fff;color:var(--primary);border-color:var(--primary)}
+.landPage-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;border:1px solid transparent;background:#6c2ed4;color:#fff;font-weight:600;box-shadow:0 6px 16px rgba(108,46,212,.15);cursor:pointer;transition:.2s} /* Light purple */
+.landPage-btn:hover{background:#4c0fad;transform:translateY(-1px);color: #fff;} /* Darker purple on hover */
+.landPage-btn.landPage-outline{background:#fff;color:#6c2ed4;border-color:#6c2ed4} /* Light purple for outline */
+.landPage-btn.landPage-outline:hover{background:#6c2ed4;color:#fff;border-color:#6c2ed4} /* Fill on hover */
 .landPage-btn.landPage-ghost{background:transparent;border-color:var(--line);color:var(--text)}
 .landPage-pill{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:999px}
 
 /* Inputs */
 input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);outline:none;transition:.2s;background:#fff;color:var(--text)}
 input::placeholder{color:#9aa4b2}
-input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px var(--ring);border-color:var(--primary)}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px rgba(108,46,212,.25);border-color:#6c2ed4} /* Light purple */
 label{font-weight:600;font-size:14px;margin-bottom:6px;display:block}
 
 /* Navbar */

@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 :root{
-  --sb-bg:#475569;     /* sidebar base - white like landing page */
-  --sb-bg-2:#475569;   /* hover/active - grey from landing page */
-  --text:#475569;      /* dark text like landing page */
+  --sb-bg:#6c2ed4;     /* sidebar base - light purple */
+  --sb-bg-2:#4c0fad;   /* hover/active - darker purple */
+  --text:#6d28d9;      /* dark purple for text */
   --text-muted:#64748b; /* muted text */
   --border:rgba(2,6,23,.08); /* border color */
 }

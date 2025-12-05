@@ -9,7 +9,7 @@ const chartSetting = {
       dataKey: 'views',
       label: 'Total Views',
       valueFormatter,
-      color: '#475569',  // grey color
+      color: '#6c2ed4',  // light purple
     },
     {
       dataKey: 'likes',

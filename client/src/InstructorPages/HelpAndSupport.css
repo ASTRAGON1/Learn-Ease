@@ -1,6 +1,6 @@
 :root{
   --w:1140px;
-  --purple:#475569;
+  --purple:#6c2ed4; /* Light purple */
   --ink:#111;
   --muted:#777;
   --card:#f6f6f8;
@@ -16,6 +16,7 @@
   font-size:40px; 
   font-weight:800; 
   text-align:center;
+  color: #6d28d9; /* Dark purple for headlines */
 }
 
 /* Header row with back button and title */
@@ -104,7 +105,7 @@
   border:1px solid #ddd; background:#efeff4; border-radius:10px; padding:10px 14px; font-weight:700;
   cursor:pointer; color: black;
 }
-.sup-chip.active{ background:#475569; color:#fff; border-color:#475569; }
+.sup-chip.active{ background:#6c2ed4; color:#fff; border-color:#6c2ed4; } /* Light purple */
 
 .sup-textarea-wrap{ position:relative; }
 .sup-textarea-wrap textarea{
@@ -116,12 +117,12 @@
 
 .sup-actions{ display:flex; justify-content:flex-end; }
 .sup-send{
-  height:40px; padding:0 24px; border-radius:10px; background:#475569; color:#fff; border:0;
+  height:40px; padding:0 24px; border-radius:10px; background:#6c2ed4; color:#fff; border:0; /* Light purple */
   font-weight:800; cursor:pointer;
   transition: background 0.2s ease;
 }
 .sup-send:hover {
-  background:#334155;
+  background:#4c0fad; /* Darker purple on hover */
 }
 
 /* responsive */

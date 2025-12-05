@@ -6,7 +6,7 @@
   .metric-card {
     width: 202px;
     height: 112px;
-    background: #8c72e6;
+    background: #6c2ed4; /* Light purple */
     border-radius: 6px;
     padding: 12px;
     display: flex;
@@ -30,9 +30,9 @@
   }
 
   .perf-metrics-row .metric-card:nth-child(odd) {
-    background: #9C6FE4;
+    background: #6c2ed4; /* Light purple */
   }
 
   .perf-metrics-row .metric-card:nth-child(even) {
-    background-color: rgba(156, 111, 228, 0.58);
+    background-color: rgba(108, 46, 212, 0.58); /* Light purple with opacity */
   }

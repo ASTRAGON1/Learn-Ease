@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
@@ -15,9 +14,8 @@ import CoursePlayer from "./StudentPages/CoursePlayer";
 import AchievementPage from "./StudentPages/AchievementPage";
 import QuizInformationPage from "./StudentPages/QuizInformation";
 import StudentProfile from "./StudentPages/StudentProfile";
-import StudentShell from "./StudentPages/StudentShell";   // student-only sidebar wrapper
+import StudentShell from "./StudentPages/StudentShell";
 
-// Instructor
 import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
 import InstructorSignUp1 from "./InstructorPages/InstructorSignUp1";
@@ -36,12 +34,10 @@ import InstructorForgotPasswordStep1 from "./InstructorPages/InstructorForgotPas
 import InstructorForgotPasswordStep2 from "./InstructorPages/InstructorForgotPasswordStep2";
 import InstructorForgotPasswordStep3 from "./InstructorPages/InstructorForgotPasswordStep3";
 
-// Admin
 import AdminPanel from "./AdminPages/AdminPanel";
 
 import "./App.css";
 
-/* Dev helper */
 function DevAuth() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -59,12 +55,9 @@ export default function App() {
   return (
     <Router>
       <DevAuth />
-
       <Routes>
-        {/* Public / Landing */}
         <Route path="/" element={<LandingPage />} />
-
-        {/* Student (no shell) */}
+        
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<StudentSignUp />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -75,7 +68,6 @@ export default function App() {
         <Route path="/CoursePlayer" element={<CoursePlayer />} />
         <Route path="/StudentProfile" element={<StudentProfile />} />
 
-        {/* Student pages WITH student-only sidebar */}
         <Route element={<StudentShell />}>
           <Route path="/courses" element={<Courses />} />
           <Route path="/personalized" element={<PersonalizedPath />} />
@@ -83,8 +75,7 @@ export default function App() {
           <Route path="/messages/:id" element={<MessageThread />} />
         </Route>
 
-        {/* Instructor */}
-        <Route path="/InstructorLogin" element={<InstructorLogin />} /> 
+        <Route path="/InstructorLogin" element={<InstructorLogin />} />
         <Route path="/InstructorDash" element={<InstructorDashboard />} />
         <Route path="/InstructorSignUp1" element={<InstructorSignUp1 />} />
         <Route path="/InstructorSignUp2" element={<InstructorSignUp2 />} />
@@ -102,10 +93,8 @@ export default function App() {
         <Route path="/InstructorForgotPassword/verify-code" element={<InstructorForgotPasswordStep2 />} />
         <Route path="/InstructorForgotPassword/new-password" element={<InstructorForgotPasswordStep3 />} />
 
-        {/* Admin */}
         <Route path="/admin" element={<AdminPanel />} />
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

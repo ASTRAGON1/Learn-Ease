@@ -1,6 +1,6 @@
 
 /* src/pages/TeachingCenter.css */
-.tc-root { --tc-purple:#4C0FAD; --tc-text:#1b1b1f; background:#fff; color:var(--tc-text); font-family:'Poppins', Helvetica, Arial, sans-serif; }
+.tc-root { --tc-purple:#6d28d9; --tc-text:#1b1b1f; background:#fff; color:var(--tc-text); font-family:'Poppins', Helvetica, Arial, sans-serif; } /* Dark purple for headlines */
 
 /* HEADER (155px) */
 .tc-header { height:155px; display:flex; align-items:center; background:#fff; border-bottom:1px solid #eaeaea; }
@@ -19,7 +19,7 @@
 .tc-hero { height:450px; display:flex; align-items:center; background:#f9f9fb; border-bottom:1px solid #eee; }
 .tc-hero-inner { width:100%; max-width:1200px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:40px; }
 .tc-back { justify-content: start; display:flex; margin-bottom:40px; color:#111; text-decoration:none; font-size:14px; }
-.tc-hero-title { text-align: left; margin:0 0 60px; font-size:40px; font-weight:800; line-height:1.2; }
+.tc-hero-title { text-align: left; margin:0 0 60px; font-size:40px; font-weight:800; line-height:1.2; color: #6d28d9; } /* Dark purple for headlines */
 .tc-hero-sub { text-align: left; margin:0; max-width:560px; color:#505050; }
 .tc-hero-illus { width:635px; height:450px; display:flex; align-items:center; justify-content:center; }
 .tc-hero-img { width:100%; height:100%; object-fit:contain; }
@@ -33,11 +33,11 @@
 
 /* PAGINATION */
 .tc-pagination { display:flex; justify-content:center; gap:22px; margin:32px 0 64px; }
-.tc-pagination a { color:#4C0FAD; font-weight:700; text-decoration:none; }
+.tc-pagination a { color:#a78bfa; font-weight:700; text-decoration:none; } /* Light purple */
 
 /* CTA */
 .tc-cta { text-align:center; padding-bottom:80px; }
-.tc-cta h3 { margin:0 0 28px; font-weight:800; font-size:22px; }
+.tc-cta h3 { margin:0 0 28px; font-weight:800; font-size:22px; color: #6d28d9; } /* Dark purple for headlines */
 .tc-primary-btn { background:#6c2ed4; color:#fff; border:none; border-radius:10px; padding:14px 28px; font-weight:700; cursor:pointer; box-shadow:0 8px 22px rgba(91,34,209,.18); }
 .tc-primary-btn:hover { background:#4c0fad; }
 

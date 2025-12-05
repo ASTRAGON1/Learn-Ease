@@ -1,5 +1,5 @@
 :root{
-  --purple:#475569;
+  --purple:#6c2ed4; /* Light purple */
   --ink:#111;
   --bg:#f7f7f9;
   --border:#e3e3ea;
@@ -117,12 +117,12 @@ html,body{
 }
 
 .sp-primary{
-  height:40px; padding:0 16px; border-radius:10px; background:#475569;
+  height:40px; padding:0 16px; border-radius:10px; background:#6c2ed4; /* Light purple */
   color:#fff; border:0; cursor:pointer; font-weight:800;
   transition: background 0.2s ease;
 }
 .sp-primary:hover {
-  background:#334155;
+  background:#4c0fad; /* Darker purple on hover */
 }
 .sp-actions{ display:flex; justify-content:flex-end; margin-top:8px; }
 
@@ -140,8 +140,8 @@ html,body{
   overflow-x:hidden;
 }
 .sp-msg{ max-width:80%; padding:10px 12px; border-radius:12px; font-size:14px; }
-.sp-msg.bot{ background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; align-self:flex-start; }
-.sp-msg.me{ background:#e2e8f0; border:1px solid #cbd5e1; color:#334155; align-self:flex-end; }
+.sp-msg.bot{ background:#f1f5f9; border:1px solid #e2e8f0; color:#6c2ed4; align-self:flex-start; } /* Light purple */
+.sp-msg.me{ background:#e2e8f0; border:1px solid #cbd5e1; color:#4c0fad; align-self:flex-end; } /* Darker purple */
 
 .sp-row{ display:flex; gap:10px; }
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import Logo from "../assets/Logo.png";
 import Logo2 from "../assets/fullLogo.png";
 import illus from "../assets/illustration.png";

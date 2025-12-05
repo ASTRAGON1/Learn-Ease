@@ -1,6 +1,6 @@
 :root{
   --il-bg:#f7f7fb; --il-surface:#fff; --il-text:#0f172a; --il-muted:#64748b;
-  --il-primary:#475569; --il-line:rgba(2,6,23,.12); --il-danger:#e11d48;
+  --il-primary:#6c2ed4; /* Light purple */ --il-line:rgba(2,6,23,.12); --il-danger:#e11d48;
   --il-shadow:0 12px 30px rgba(2,6,23,.08); --il-radius:16px;
 }
 
@@ -34,7 +34,7 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color
 
 .instructorLogin-card{width:100%;max-width:440px;background:var(--il-surface);border:1px solid var(--il-line);border-radius:var(--il-radius);box-shadow:var(--il-shadow);padding:28px;display: flex;
   flex-direction: column;}
-.instructorLogin-title{margin:8px 0 4px;font-size:28px;font-weight:800}
+.instructorLogin-title{margin:8px 0 4px;font-size:28px;font-weight:800; color: #6d28d9;} /* Dark purple for headlines */
 .instructorLogin-subtitle{margin:0 0 18px;color:var(--il-muted);font-size:14px}
 
 .instructorLogin-alert{border:1px solid rgba(225,29,72,.25);background:rgba(225,29,72,.06);color:#9f1239;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px}

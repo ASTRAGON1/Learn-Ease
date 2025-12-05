@@ -1,7 +1,7 @@
 /* src/pages/ProfileSettings.css */
 :root{
     --card-w:1140px;
-    --purple:#475569;
+    --purple:#6c2ed4; /* Light purple */
     --ink:#111;
     --muted:#6b6b6b;
     --border:#dcdce2;
@@ -25,7 +25,7 @@
     margin:0; 
     font-size:32px; 
     font-weight:800; 
-    color: #000000;
+    color: #6d28d9; /* Dark purple for headlines */
   }
   
   /* Tabs */
@@ -53,7 +53,7 @@
     color:var(--ink);
   }
   .ps-tab.active{ 
-    color:#475569; 
+    color:#6c2ed4; /* Light purple */ 
     font-weight:700;
   }
   .ps-tab.active::after{ 
@@ -63,7 +63,7 @@
     right:0; 
     bottom:-2px; 
     height:3px; 
-    background:#475569; 
+    background:#6c2ed4; /* Light purple */ 
     border-radius:3px 3px 0 0; 
   }
   
@@ -164,7 +164,7 @@
     text-decoration: underline;
   }
   .ps-link:hover {
-    color: #334155;
+    color: #4c0fad; /* Darker purple */
   }
   .ps-upload-body{ 
     background:#f8f9fa; 
@@ -225,7 +225,7 @@
     height:44px; 
     padding:0 24px; 
     border-radius:12px; 
-    background:#475569; 
+    background:#6c2ed4; /* Light purple */ 
     color:#fff; 
     border:0; 
     cursor:pointer; 
@@ -243,7 +243,7 @@
     padding:0 20px; 
     border-radius:12px; 
     background:#f1f5f9; 
-    color:#475569; 
+    color:#6c2ed4; /* Light purple */ 
     border:1px solid #e2e8f0; 
     cursor:pointer; 
     font-weight:600; 
@@ -276,7 +276,7 @@
     font-size:16px; 
     font-weight:700; 
     text-align: left !important;
-    color: #475569;
+    color: #6d28d9; /* Dark purple for headlines */
   }
   .ps-pw-row{ 
     display:flex; 
@@ -369,7 +369,7 @@
     transition:.2s; 
     box-shadow:0 2px 4px rgba(0,0,0,.15);
   }
-  .ps-switchrow input:checked + .ps-switch{ background:#475569; }
+  .ps-switchrow input:checked + .ps-switch{ background:#6c2ed4; } /* Light purple */
   .ps-switchrow input:checked + .ps-switch::after{ left:23px; }
   
   .ps-warning{ 

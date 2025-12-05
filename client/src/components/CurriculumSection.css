@@ -1,8 +1,8 @@
 /* === LearningPaths (topics + courses collapsible) === */
 :root {
-  --primary: #475569;
+  --primary: #6c2ed4; /* Light purple */
   --accent: #64748b;
-  --accent60: rgba(71,85,105,0.6);
+  --accent60: rgba(108,46,212,0.6);
   --card: #ffffff;
   --text: #111111;
   --muted: #666666;
@@ -12,7 +12,7 @@
 /* container + section header */
 .le-content { padding: 22px; display: grid; gap: 18px; }
 .section-title { display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px; }
-.section-title h2 { margin: 0; font-size: 22px; }
+.section-title h2 { margin: 0; font-size: 22px; color: #6d28d9; } /* Dark purple for headlines */
 .sub { color: var(--muted); font-size: 13px; }
 
 /* blocks */
@@ -22,7 +22,7 @@
 
 /* badge */
 .badge { display:inline-flex; align-items:center; gap:6px; padding: 6px 10px; border-radius: 20px; font-size: 12px; border:1px solid var(--border); background:#fff; }
-.badge.purple { border-color:#cbd5e1; background:#f1f5f9; color:#475569; }
+.badge.purple { border-color:#cbd5e1; background:#f1f5f9; color:#6c2ed4; } /* Light purple */
 
 /* collapsible (topics + courses) */
 details.list-item { padding: 12px; }
