@@ -63,21 +63,13 @@ const teacherSchema = new mongoose.Schema({
     default: 0,
     min: [0, 'Ranking cannot be negative']
   },
-  dateStarted: {
-    type: Date,
-    default: Date.now
-  },
   userStatus: {
     type: String,
     enum: {
-      values: ['active', 'inactive'],
-      message: 'Status must be either active or inactive'
+      values: ['active', 'pending', 'suspended'],
+      message: 'Status must be either active, pending, or suspended'
     },
     default: 'active'
-  },
-  suspended: {
-    type: Boolean,
-    default: false
   },
   areasOfExpertise: {
     type: [String],
@@ -94,14 +86,6 @@ const teacherSchema = new mongoose.Schema({
   informationGatheringComplete: {
     type: Boolean,
     default: false
-  },
-  resetPasswordCode: {
-    type: String,
-    default: null
-  },
-  resetPasswordCodeExpiry: {
-    type: Date,
-    default: null
   }
 }, {
   timestamps: true,
