@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./InstructorLogin.css";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../config/firebase";
 
 // MongoDB authentication API call
 async function loginInstructor({ email, password }) {
@@ -109,6 +111,18 @@ export default function InstructorLogin({
     storage.setItem("userName", res.user?.name || "Instructor");
     storage.setItem("le_instructor_name", res.user?.name || "Instructor"); // Keep for compatibility
     storage.setItem("userEmail", res.user?.email || "");
+
+    // Also authenticate with Firebase Auth if user has Firebase account
+    // Try to sign in with Firebase using the same email/password
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Successfully authenticated with Firebase
+    } catch (firebaseError) {
+      // If Firebase sign-in fails, it's okay - user might not have Firebase account
+      // They can still use the app, but file uploads won't work
+      console.log('Firebase authentication not available:', firebaseError.code);
+      // Don't block login - user can still access the app
+    }
     
     // Check if information gathering is complete
     // First check the completion flag - if true, user has completed it

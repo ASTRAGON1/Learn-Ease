@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./ProfileSettings.css";
 import { uploadFile } from "../utils/uploadFile";
 import { auth } from "../config/firebase";
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
 
 const COUNTRIES = [
   "United States","United Kingdom","Germany","France","Canada","India",
@@ -35,6 +35,9 @@ export default function ProfileSettings() {
   const [newPwd, setNewPwd] = useState("");
   const [newPwd2, setNewPwd2] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const [notif, setNotif] = useState({
     updates: true, admin: true, performance: true, ranking: true, followers: false,
@@ -288,9 +291,93 @@ const savePrivate = async () => {
   };
 
   const closeAccount = () => {
-    if (window.confirm("Are you sure you want to close your account? This cannot be undone.")) {
-      console.log("Account closed");
-      alert("Account closed");
+    // Show modal to confirm and get password
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!deletePassword) {
+      alert("Please enter your password to confirm account deletion.");
+      return;
+    }
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to delete your account");
+      setShowDeleteModal(false);
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      alert("Please log in to delete your account");
+      setShowDeleteModal(false);
+      return;
+    }
+
+    setDeletingAccount(true);
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Step 1: Re-authenticate with Firebase (required before deleteUser)
+      let firebaseDeleted = false;
+      if (currentUser.email) {
+        try {
+          const credential = EmailAuthProvider.credential(currentUser.email, deletePassword);
+          await reauthenticateWithCredential(currentUser, credential);
+          console.log('Re-authenticated with Firebase');
+          
+          // Now delete from Firebase Auth
+          await deleteUser(currentUser);
+          firebaseDeleted = true;
+          console.log('Account deleted from Firebase Auth');
+        } catch (firebaseError) {
+          console.error('Firebase deletion error:', firebaseError);
+          
+          // If it's a wrong password error, don't proceed
+          if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
+            throw new Error('Incorrect password. Please try again.');
+          }
+          
+          // If user doesn't have Firebase account, that's okay
+          if (firebaseError.code === 'auth/user-not-found') {
+            console.log('User not found in Firebase (may not have Firebase account)');
+          } else {
+            // For other errors, log but continue with MongoDB deletion
+            console.warn('Firebase deletion failed, but continuing with MongoDB deletion:', firebaseError.message);
+          }
+        }
+      }
+
+      // Step 2: Delete from MongoDB
+      const response = await fetch(`${API_URL}/api/teachers/me`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || 'Failed to delete account from database');
+      }
+
+      const result = await response.json();
+      console.log('Account deleted from MongoDB:', result);
+
+      // Step 3: Clear all local storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Step 4: Redirect to login page
+      setShowDeleteModal(false);
+      alert("Your account has been permanently deleted.");
+      navigate('/InstructorLogin');
+    } catch (error) {
+      console.error('Error closing account:', error);
+      alert(`Failed to delete account: ${error.message}`);
+      setDeletingAccount(false);
     }
   };
 
@@ -528,6 +615,76 @@ const savePrivate = async () => {
                 disabled={changingPassword}
               >
                 {changingPassword ? "Changing..." : "Change password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="ps-modal-backdrop" onClick={() => {
+          if (!deletingAccount) {
+            setShowDeleteModal(false);
+            setDeletePassword("");
+          }
+        }}>
+          <div className="ps-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ps-modal-head">
+              <h2>Delete Account</h2>
+              <button 
+                className="ps-x" 
+                onClick={() => {
+                  if (!deletingAccount) {
+                    setShowDeleteModal(false);
+                    setDeletePassword("");
+                  }
+                }}
+                disabled={deletingAccount}
+              >
+                ×
+              </button>
+            </div>
+            <div className="ps-field">
+              <label>Enter your password to confirm</label>
+              <input 
+                className="ps-input" 
+                type="password" 
+                value={deletePassword} 
+                onChange={e => setDeletePassword(e.target.value)} 
+                placeholder="Enter your password" 
+                disabled={deletingAccount}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && deletePassword && !deletingAccount) {
+                    confirmDeleteAccount();
+                  }
+                }}
+              />
+              <small className="ps-help" style={{ color: '#dc2626', marginTop: '8px', display: 'block' }}>
+                This action cannot be undone. Your account and all associated data will be permanently deleted from both MongoDB and Firebase.
+              </small>
+            </div>
+            <div className="ps-modal-foot" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'nowrap' }}>
+              <button 
+                className="ps-secondary" 
+                onClick={() => {
+                  if (!deletingAccount) {
+                    setShowDeleteModal(false);
+                    setDeletePassword("");
+                  }
+                }}
+                disabled={deletingAccount}
+                style={{ flexShrink: 0 }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="ps-danger" 
+                onClick={confirmDeleteAccount}
+                disabled={deletingAccount || !deletePassword}
+                style={{ flexShrink: 0 }}
+              >
+                {deletingAccount ? "Deleting..." : "Delete Account"}
               </button>
             </div>
           </div>

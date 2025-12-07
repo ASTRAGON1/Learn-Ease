@@ -234,7 +234,31 @@ export default function InstructorUpload() {
     const e = {};
     if (!title.trim()) e.title = "Title is required";
     if (!desc.trim()) e.desc = "Description is required";
-    if (!file) e.file = "File is required";
+    if (!file) {
+      e.file = "File is required";
+    } else {
+      // Validate file type
+      const fileName = file.name.toLowerCase();
+      const validExtensions = ['.pdf', '.doc', '.docx', '.mp4', '.mov', '.jpg', '.jpeg', '.png', '.gif'];
+      const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (!hasValidExtension) {
+        e.file = `Invalid file type. Allowed: ${validExtensions.join(', ')}`;
+      } else {
+        // Validate file size based on file type
+        const isVideo = fileName.endsWith('.mp4') || fileName.endsWith('.mov');
+        const isImage = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif');
+        const isDocument = fileName.endsWith('.pdf') || fileName.endsWith('.doc') || fileName.endsWith('.docx');
+        
+        if (isVideo && file.size > 800 * 1024 * 1024) {
+          e.file = "Video file is too large. Maximum size is 800MB.";
+        } else if (isImage && file.size > 5 * 1024 * 1024) {
+          e.file = "Image file is too large. Maximum size is 5MB.";
+        } else if (isDocument && file.size > 20 * 1024 * 1024) {
+          e.file = "Document file is too large. Maximum size is 20MB.";
+        }
+      }
+    }
     if (!fileType) e.fileType = "File type is required";
     if (!course) e.course = "Course is required";
     if (!topic) e.topic = "Topic is required";
@@ -299,6 +323,18 @@ export default function InstructorUpload() {
     setUploadProgress(0);
 
     try {
+      // Validate file before upload
+      if (!file) {
+        throw new Error("No file selected");
+      }
+      
+      console.log('Uploading file:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        fileType: fileType
+      });
+
       // Upload file to Firebase Storage
       const storageFolder = getStorageType(fileType);
       const uploadResult = await uploadFile(
@@ -307,6 +343,8 @@ export default function InstructorUpload() {
         currentUser.uid,
         (progress) => setUploadProgress(progress)
       );
+      
+      console.log('File uploaded successfully:', uploadResult);
 
       // Save metadata to server
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/content`, {
@@ -334,11 +372,13 @@ export default function InstructorUpload() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save content');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Failed to save content to MongoDB:', errorData);
+        throw new Error(errorData.error || errorData.message || 'Failed to save content');
       }
 
       const result = await response.json();
+      console.log('Content saved to MongoDB:', result);
       
       // Refresh content list
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -378,7 +418,25 @@ export default function InstructorUpload() {
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert(`Error: ${error.message}`);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+        file: file ? { name: file.name, size: file.size, type: file.type } : null
+      });
+      
+      // Show more specific error messages
+      let errorMessage = error.message;
+      if (error.code === 'storage/unauthorized') {
+        errorMessage = "Permission denied. Please check Firebase Storage rules.";
+      } else if (error.code === 'storage/quota-exceeded') {
+        errorMessage = "Storage quota exceeded. Please contact support.";
+      } else if (error.message.includes('Not authenticated')) {
+        errorMessage = "Authentication error. Please log in again.";
+      }
+      
+      alert(`Upload failed: ${errorMessage}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -387,6 +445,352 @@ export default function InstructorUpload() {
 
   const onSaveDraft = () => saveContent("Draft");
   const onPublish = () => saveContent("Published");
+
+  // Archive content
+  const archiveContent = async (contentId) => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'archived' })
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let error;
+        if (contentType && contentType.includes('application/json')) {
+          error = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        throw new Error(error.error || error.message || 'Failed to archive content');
+      }
+
+      // Refresh content list
+      const refreshResponse = await fetch(`${API_URL}/api/content`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allContent = refreshResult.data || [];
+        const active = allContent.filter(c => c.status !== 'archived');
+        const archived = allContent.filter(c => c.status === 'archived');
+        
+        const mapContent = (content) => ({
+          id: content._id,
+          title: content.title,
+          category: content.category === 'autism' ? 'Autism' : 'Down Syndrome',
+          status: content.status === 'published' ? 'Published' : content.status === 'draft' ? 'Draft' : 'Archived'
+        });
+        
+        setContentRows(active.map(mapContent));
+        setArchivedRows(archived.map(mapContent));
+      }
+
+      alert("Content archived successfully");
+    } catch (error) {
+      console.error('Error archiving content:', error);
+      alert(`Failed to archive: ${error.message}`);
+    }
+  };
+
+  // Archive quiz
+  const archiveQuiz = async (quizId) => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'archived' })
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let error;
+        if (contentType && contentType.includes('application/json')) {
+          error = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        throw new Error(error.error || error.message || 'Failed to archive quiz');
+      }
+
+      // Refresh quiz list
+      const refreshResponse = await fetch(`${API_URL}/api/quizzes`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allQuizzes = refreshResult.data || [];
+        const active = allQuizzes.filter(q => q.status !== 'archived');
+        
+        const mapQuiz = (quiz) => ({
+          id: quiz._id,
+          title: quiz.title,
+          category: quiz.category === 'autism' ? 'Autism' : 'Down Syndrome'
+        });
+        
+        setQuizRows(active.map(mapQuiz));
+      }
+
+      alert("Quiz archived successfully");
+    } catch (error) {
+      console.error('Error archiving quiz:', error);
+      alert(`Failed to archive: ${error.message}`);
+    }
+  };
+
+  // Delete content
+  const deleteContent = async (contentId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this content? This action cannot be undone and the file will be permanently removed from Firebase Storage.");
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Delete from MongoDB (backend returns storagePath in response)
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let error;
+        if (contentType && contentType.includes('application/json')) {
+          error = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        throw new Error(error.error || error.message || 'Failed to delete content');
+      }
+
+      const result = await response.json();
+      const storagePath = result.storagePath;
+
+      console.log('Delete response:', result);
+      console.log('Storage path to delete:', storagePath);
+
+      // Delete from Firebase Storage if storagePath exists
+      if (storagePath) {
+        try {
+          const { deleteFileByPath } = await import("../utils/uploadFile");
+          console.log('Attempting to delete from Firebase Storage:', storagePath);
+          await deleteFileByPath(storagePath);
+          console.log('✅ File successfully deleted from Firebase Storage:', storagePath);
+        } catch (firebaseError) {
+          console.error('❌ Error deleting file from Firebase Storage:', firebaseError);
+          console.error('Error details:', {
+            code: firebaseError.code,
+            message: firebaseError.message,
+            storagePath: storagePath
+          });
+          // Show error to user but don't block - MongoDB deletion succeeded
+          alert(`Content deleted from database, but failed to delete file from Firebase Storage: ${firebaseError.message}`);
+        }
+      } else {
+        console.warn('⚠️ No storagePath found in response, skipping Firebase Storage deletion');
+        console.log('Response data:', result);
+      }
+
+      // Refresh content list
+      const refreshResponse = await fetch(`${API_URL}/api/content`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allContent = refreshResult.data || [];
+        const active = allContent.filter(c => c.status !== 'archived');
+        const archived = allContent.filter(c => c.status === 'archived');
+        
+        const mapContent = (content) => ({
+          id: content._id,
+          title: content.title,
+          category: content.category === 'autism' ? 'Autism' : 'Down Syndrome',
+          status: content.status === 'published' ? 'Published' : content.status === 'draft' ? 'Draft' : 'Archived'
+        });
+        
+        setContentRows(active.map(mapContent));
+        setArchivedRows(archived.map(mapContent));
+      }
+
+      alert("Content deleted successfully");
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert(`Failed to delete: ${error.message}`);
+    }
+  };
+
+  // Delete quiz
+  const deleteQuiz = async (quizId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this quiz? This action cannot be undone.");
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let error;
+        if (contentType && contentType.includes('application/json')) {
+          error = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        throw new Error(error.error || error.message || 'Failed to delete quiz');
+      }
+
+      // Refresh quiz list
+      const refreshResponse = await fetch(`${API_URL}/api/quizzes`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allQuizzes = refreshResult.data || [];
+        const active = allQuizzes.filter(q => q.status !== 'archived');
+        
+        const mapQuiz = (quiz) => ({
+          id: quiz._id,
+          title: quiz.title,
+          category: quiz.category === 'autism' ? 'Autism' : 'Down Syndrome'
+        });
+        
+        setQuizRows(active.map(mapQuiz));
+      }
+
+      alert("Quiz deleted successfully");
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+      alert(`Failed to delete: ${error.message}`);
+    }
+  };
+
+  // Restore content from archive
+  const restoreContent = async (contentId) => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: 'published' })
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let error;
+        if (contentType && contentType.includes('application/json')) {
+          error = await response.json();
+        } else {
+          const text = await response.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        throw new Error(error.error || error.message || 'Failed to restore content');
+      }
+
+      // Refresh content list
+      const refreshResponse = await fetch(`${API_URL}/api/content`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allContent = refreshResult.data || [];
+        const active = allContent.filter(c => c.status !== 'archived');
+        const archived = allContent.filter(c => c.status === 'archived');
+        
+        const mapContent = (content) => ({
+          id: content._id,
+          title: content.title,
+          category: content.category === 'autism' ? 'Autism' : 'Down Syndrome',
+          status: content.status === 'published' ? 'Published' : content.status === 'draft' ? 'Draft' : 'Archived'
+        });
+        
+        setContentRows(active.map(mapContent));
+        setArchivedRows(archived.map(mapContent));
+      }
+
+      alert("Content restored and published successfully");
+    } catch (error) {
+      console.error('Error restoring content:', error);
+      alert(`Failed to restore: ${error.message}`);
+    }
+  };
 
   const addPair = () => {
     if (pairs.length >= 15) {
@@ -565,41 +969,78 @@ export default function InstructorUpload() {
 
         <div
           className="upl-upload"
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.add('upl-upload-dragover');
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('upl-upload-dragover');
+          }}
           onDrop={(e) => {
             e.preventDefault();
+            e.currentTarget.classList.remove('upl-upload-dragover');
             setFile(e.dataTransfer.files?.[0] || null);
           }}
         >
           <input
             id="upl-file"
             type="file"
-            accept=".mp4,.mov,.pdf,.doc,.docx"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            accept=".mp4,.mov,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+            onChange={(e) => {
+              const selectedFile = e.target.files?.[0] || null;
+              setFile(selectedFile);
+              if (selectedFile) {
+                console.log('File selected:', {
+                  name: selectedFile.name,
+                  size: selectedFile.size,
+                  type: selectedFile.type
+                });
+              }
+            }}
             hidden
           />
-          <p className="upl-upload-text">
-            Drag & Drop or{" "}
-            <label htmlFor="upl-file" className="upl-link">Choose file</label>{" "}
-            to upload
-          </p>
-          <small>video, pdf, doc</small>
-          {file && <div className="upl-filename">{file.name}</div>}
+          {!file ? (
+            <>
+              <div className="upl-upload-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 18V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9 15H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="upl-upload-content">
+                <p className="upl-upload-text">
+                  <label htmlFor="upl-file" className="upl-link">Click to upload</label> or drag and drop
+                </p>
+                <small className="upl-upload-hint">PDF, DOC, DOCX, MP4, MOV, JPG, PNG, GIF (Max 800MB)</small>
+              </div>
+            </>
+          ) : (
+            <div className="upl-upload-file-selected">
+              <div className="upl-upload-file-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="upl-upload-file-info">
+                <div className="upl-filename">{file.name}</div>
+                <small className="upl-file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
+              </div>
+              <label htmlFor="upl-file" className="upl-upload-change-btn">Change</label>
+            </div>
+          )}
           {errors.file && <span className="upl-errtxt">{errors.file}</span>}
           {isUploading && (
-            <div style={{ marginTop: '10px' }}>
-              <div style={{ width: '100%', backgroundColor: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ 
-                  width: `${uploadProgress}%`, 
-                  backgroundColor: '#4CAF50', 
-                  height: '20px', 
-                  transition: 'width 0.3s',
-                  textAlign: 'center',
-                  color: 'white',
-                  fontSize: '12px',
-                  lineHeight: '20px'
-                }}>
-                  {Math.round(uploadProgress)}%
+            <div className="upl-upload-progress">
+              <div className="upl-upload-progress-bar">
+                <div 
+                  className="upl-upload-progress-fill"
+                  style={{ width: `${uploadProgress}%` }}
+                >
+                  <span className="upl-upload-progress-text">{Math.round(uploadProgress)}%</span>
                 </div>
               </div>
             </div>
@@ -845,7 +1286,7 @@ export default function InstructorUpload() {
 
       {/* Quizzes List */}
       <h2 className="upl-section-title">Quizzes</h2>
-      <div className="upl-content-card upl-archive-card upl-section">
+      <div className="upl-content-card upl-archive-card upl-section" style={{ marginBottom: '40px' }}>
         <div className="upl-content-head upl-archive-head">
           <span>Quiz title</span>
           <span>Category</span>
@@ -872,8 +1313,8 @@ export default function InstructorUpload() {
                 <div className="upl-pill upl-pill-archive">{row.category}</div>
 
                 <div className="upl-content-actions upl-archive-actions">
-                  <button type="button" className="upl-btn-arch" onClick={()=>{}}>Archive</button>
-                  <button type="button" className="upl-btn-del"  onClick={()=>{}}>Delete</button>
+                  <button type="button" className="upl-btn-arch" onClick={() => archiveQuiz(row.id)}>Archive</button>
+                  <button type="button" className="upl-btn-del"  onClick={() => deleteQuiz(row.id)}>Delete</button>
                 </div>
               </div>
             ))
@@ -883,7 +1324,7 @@ export default function InstructorUpload() {
 
       {/* Content */}
       <h2 className="upl-section-title">Content</h2>
-      <div className="upl-content-card upl-archive-card upl-section">
+      <div className="upl-content-card upl-archive-card upl-section" style={{ marginBottom: '40px' }}>
         <div className="upl-content-head upl-archive-head" data-columns="4">
           <span>Content title</span>
           <span>Category</span>
@@ -918,8 +1359,8 @@ export default function InstructorUpload() {
                 </div>
 
                 <div className="upl-content-actions upl-archive-actions">
-                  <button type="button" className="upl-btn-arch" onClick={()=>{}}>Archive</button>
-                  <button type="button" className="upl-btn-del"  onClick={()=>{}}>Delete</button>
+                  <button type="button" className="upl-btn-arch" onClick={() => archiveContent(row.id)}>Archive</button>
+                  <button type="button" className="upl-btn-del"  onClick={() => deleteContent(row.id)}>Delete</button>
                 </div>
               </div>
             ))
@@ -955,14 +1396,14 @@ export default function InstructorUpload() {
                 <div className="upl-content-actions upl-archive-actions">
                   <button 
                     className="upl-btn-arch upl-btn-restore" 
-                    onClick={() => console.log("show", idx)}
+                    onClick={() => restoreContent(row.id)}
                     title="Restore content"
                   >
                     Restore
                   </button>
                   <button 
                     className="upl-btn-del upl-btn-delete-arch" 
-                    onClick={() => setArchivedRows(a => a.filter((_, i) => i !== idx))}
+                    onClick={() => deleteContent(row.id)}
                     title="Permanently delete"
                   >
                     Delete

@@ -168,6 +168,55 @@ router.patch('/me/password', auth(['teacher']), async (req, res) => {
   }
 });
 
+// DELETE /api/teachers/me — delete account
+router.delete('/me', auth(['teacher']), async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const userId = req.user.sub;
+    
+    // Convert to ObjectId if it's a string
+    let teacherId;
+    try {
+      teacherId = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+    
+    // Find teacher to get firebaseUID before deletion
+    let teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      teacher = await Teacher.findById(userId);
+    }
+    if (!teacher) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+    
+    const firebaseUID = teacher.firebaseUID || null;
+    
+    // Delete teacher from MongoDB
+    const deleteResult = await Teacher.deleteOne({ _id: teacherId });
+    
+    if (deleteResult.deletedCount === 0) {
+      // Try with string ID
+      const deleteResult2 = await Teacher.deleteOne({ _id: userId });
+      if (deleteResult2.deletedCount === 0) {
+        return res.status(404).json({ error: 'Teacher not found' });
+      }
+    }
+    
+    console.log('Teacher deleted from MongoDB:', userId);
+    
+    // Return firebaseUID so frontend can delete from Firebase Auth
+    res.json({ 
+      message: 'Account deleted successfully',
+      firebaseUID: firebaseUID
+    });
+  } catch (error) {
+    console.error('Error deleting teacher account:', error);
+    res.status(500).json({ error: 'Server error while deleting account' });
+  }
+});
+
 // GET /api/teachers/:id — public teacher profile (no password)
 router.get('/:id', async (req, res) => {
   const t = await Teacher.findById(req.params.id).select('-password');
