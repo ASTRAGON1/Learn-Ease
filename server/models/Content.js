@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const contentSchema = new mongoose.Schema({
   teacher: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose. Schema.Types.ObjectId,
     ref: 'Teacher',
     required: [true, 'Teacher is required']
   },
@@ -14,12 +14,18 @@ const contentSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['autism', 'downSyndrome']
+    enum: {
+      values: ['autism', 'downSyndrome'],
+      message: 'Category must be either autism or downSyndrome'
+    }
   },
   type: {
     type: String,
     required: [true, 'Content type is required'],
-    enum: ['video', 'file', 'audio', 'image']
+    enum: {
+      values: ['video', 'document', 'image'],
+      message: 'Type must be video, file, or image'
+    }
   },
   topic: {
     type: String,
@@ -38,11 +44,22 @@ const contentSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    trim: true
+    trim: true,
+    default: ''
+  },
+  difficulty: {
+    type: String,
+    enum: {
+      values: ['Easy', 'Medium', 'Hard'],
+      message: 'Difficulty must be Easy, Medium, or Hard'
+    }
   },
   status: {
     type: String,
-    enum: ['draft', 'published', 'archived'],
+    enum: {
+      values: ['draft', 'published', 'archived'],
+      message: 'Status must be draft, published, or archived'
+    },
     default: 'draft'
   },
   fileURL: {
@@ -65,10 +82,6 @@ const contentSchema = new mongoose.Schema({
     type: Number,
     min: 0
   },
-  kind: {
-    type: String,
-    trim: true
-  },
   releaseDate: {
     type: Date,
     default: Date.now
@@ -88,8 +101,10 @@ contentSchema.index({ teacher: 1 });
 contentSchema.index({ category: 1 });
 contentSchema.index({ type: 1 });
 contentSchema.index({ course: 1 });
+contentSchema.index({ topic: 1 });
 contentSchema.index({ lesson: 1 });
-contentSchema.index({ status: 1 });
+contentSchema. index({ status: 1 });
+contentSchema.index({ difficulty: 1 });
 
 const Content = mongoose.model('Content', contentSchema);
 

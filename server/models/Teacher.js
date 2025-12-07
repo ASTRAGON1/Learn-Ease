@@ -29,6 +29,11 @@ const teacherSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  website: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   fullName: {
     type: String,
     required: [true, 'Full name is required'],

@@ -14,7 +14,15 @@ export default function InstructorDashboard() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const [active, setActive]     = useState("course");
-  const name = "Adolf";
+  const [name, setName] = useState(() => {
+    // Get name from storage as initial value and extract first name
+    const fullName = localStorage.getItem('userName') || 
+                     localStorage.getItem('le_instructor_name') || 
+                     sessionStorage.getItem('userName') || 
+                     sessionStorage.getItem('le_instructor_name') || 
+                     'Instructor';
+    return fullName.split(' ')[0]; // Get first name only
+  });
 
   // Check if information gathering is complete on mount
   useEffect(() => {
@@ -43,6 +51,11 @@ export default function InstructorDashboard() {
         if (response.ok) {
           const data = await response.json();
           const teacher = data.data;
+          
+          // Update name from API response (first name only)
+          if (teacher?.fullName) {
+            setName(teacher.fullName.split(' ')[0]);
+          }
           
           // Check if information gathering is complete
           // First check the completion flag - if true, user has completed it

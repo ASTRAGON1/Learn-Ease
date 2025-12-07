@@ -353,6 +353,14 @@
   font-size:13px;
 }
 
+/* Content section with status - 4 columns override */
+.upl-content-card.upl-archive-card .upl-content-head.upl-archive-head[data-columns="4"] {
+  grid-template-columns:1fr 180px 160px 220px !important;
+}
+.upl-content-card.upl-archive-card .upl-content-row.upl-archive-row[data-columns="4"] {
+  grid-template-columns:1fr 180px 160px 220px !important;
+}
+
 .upl-archive-rows{
   gap:12px;
 }

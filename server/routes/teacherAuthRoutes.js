@@ -110,7 +110,15 @@ router.post('/auth/login', async (req, res) => {
 router.get('/auth/me', require('../middleware/auth')(['teacher']), async (req, res) => {
   const me = await Teacher.findById(req.user.sub).select('-password');
   if (!me) return res.status(404).json({ error: 'Not found' });
-  res.json({ data: me });
+  
+  // Check if teacher has a password set (not Firebase-only)
+  const teacherWithPassword = await Teacher.findById(req.user.sub);
+  const hasPassword = !!(teacherWithPassword && teacherWithPassword.password);
+  
+  const response = me.toObject();
+  response.hasPassword = hasPassword;
+  
+  res.json({ data: response });
 });
 
 module.exports = router;

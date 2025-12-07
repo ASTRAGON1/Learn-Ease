@@ -1,48 +1,43 @@
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true
+  },
   title: {
     type: String,
     required: [true, 'Course title is required'],
     trim: true,
     maxlength: [200, 'Title cannot exceed 200 characters']
   },
-  description: {
+  pathId: {
     type: String,
-    required: [true, 'Course description is required'],
-    trim: true
-  },
-  teacher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher',
-    required: false
+    ref: 'Path',
+    required: [true, 'Path reference is required']
   },
   topics: [{
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Topic'
   }],
-  enrolledStudents: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student'
-  }],
-  difficulty: {
-    type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced'],
-    default: 'Beginner'
+  order: {
+    type: Number,
+    default: 0
   },
   isPublished: {
     type: Boolean,
-    default: false
+    default: true
   }
 }, {
   timestamps: true,
-  collection: 'Course'
+  collection: 'Course',
+  _id: false
 });
 
-// Indexes for queries
-courseSchema.index({ teacher: 1 });
+// Indexes
+courseSchema.index({ pathId: 1 });
+courseSchema. index({ order: 1 });
 courseSchema.index({ isPublished: 1 });
-courseSchema.index({ difficulty: 1 });
 
 const Course = mongoose.model('Course', courseSchema);
 

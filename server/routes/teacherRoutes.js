@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const Teacher = require('../models/Teacher');
 const Content = require('../models/Content'); // optional: for "my uploads"
 const auth = require('../middleware/auth');
@@ -20,7 +21,7 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
       return res.status(400).json({ error: 'Invalid user ID format' });
     }
     
-    const allowed = ['fullName', 'cv', 'profilePic', 'bio', 'headline', 'country', 'areasOfExpertise', 'informationGatheringComplete'];
+    const allowed = ['fullName', 'cv', 'profilePic', 'bio', 'headline', 'country', 'website', 'areasOfExpertise', 'informationGatheringComplete'];
     const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
     
     // Validate areasOfExpertise if provided
@@ -94,6 +95,77 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
 router.get('/me/uploads', auth(['teacher']), async (req, res) => {
   const items = await Content.find({ teacher: req.user.sub }).sort({ _id: -1 });
   res.json({ data: items });
+});
+
+// PATCH /api/teachers/me/password — change password
+router.patch('/me/password', auth(['teacher']), async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const userId = req.user.sub;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    // Convert to ObjectId if it's a string
+    let teacherId;
+    try {
+      teacherId = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid user ID format' });
+    }
+
+    // Find teacher with password field included (don't exclude it)
+    let teacher = await Teacher.findById(teacherId);
+    if (!teacher) {
+      teacher = await Teacher.findById(userId);
+    }
+    if (!teacher) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    // Check if teacher has a password in MongoDB
+    // If they have a password, verify it. If not, they might be Firebase-only, which is okay.
+    let shouldUpdateMongoDB = false;
+    
+    if (teacher.password) {
+      // Teacher has MongoDB password, verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, teacher.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+      shouldUpdateMongoDB = true;
+    } else {
+      // Teacher doesn't have MongoDB password (Firebase-only account)
+      // Still update MongoDB with the new password so they can use both
+      shouldUpdateMongoDB = true;
+    }
+
+    // Hash new password and update MongoDB
+    if (shouldUpdateMongoDB) {
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password in MongoDB
+      const updateResult = await Teacher.updateOne({ _id: teacherId }, { $set: { password: hashedNewPassword } });
+      
+      if (updateResult.matchedCount === 0) {
+        const updateResult2 = await Teacher.updateOne({ _id: userId }, { $set: { password: hashedNewPassword } });
+        if (updateResult2.matchedCount === 0) {
+          return res.status(404).json({ error: 'Teacher not found' });
+        }
+      }
+    }
+
+    res.json({ message: 'Password updated successfully in MongoDB' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ error: 'Server error while updating password' });
+  }
 });
 
 // GET /api/teachers/:id — public teacher profile (no password)

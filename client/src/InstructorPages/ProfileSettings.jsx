@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProfileSettings.css";
-
-/* Icons for password visibility */
-const Eye = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" strokeWidth="2" fill="none"/>
-    <circle cx="12" cy="12" r="3" strokeWidth="2" fill="none"/>
-  </svg>
-);
-const EyeOff = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M1 1l22 22" strokeWidth="2" fill="none"/>
-    <path d="M3 7s4-5 9-5 9 5 9 5m-4.5 9.5C14.9 17.8 13.5 18 12 18 7 18 3 12 3 12a26 26 0 0 1 2.5-3.3" strokeWidth="2" fill="none"/>
-    <circle cx="12" cy="12" r="3" strokeWidth="2" fill="none"/>
-  </svg>
-);
+import { uploadFile } from "../utils/uploadFile";
+import { auth } from "../config/firebase";
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 
 const COUNTRIES = [
   "United States","United Kingdom","Germany","France","Canada","India",
@@ -27,56 +15,77 @@ export default function ProfileSettings() {
   const [tab, setTab] = useState("profile");
 
   // LearnEase Profile
-  const [first, setFirst] = useState("");
-  const [last, setLast] = useState("");
+  const [fullName, setFullName] = useState("");
   const [headline, setHeadline] = useState("");
   const [bio, setBio] = useState("");
   const [country, setCountry] = useState("");
   const [website, setWebsite] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarURL, setAvatarURL] = useState("");
+  const [avatarStoragePath, setAvatarStoragePath] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Private setting
   const [email, setEmail] = useState("");
-  const [storedPassword, setStoredPassword] = useState(""); // real old password (not shown)
+  const [hasPassword, setHasPassword] = useState(false); // whether user has a password set
   const [passwordMask] = useState("•••••••••••••••");
-  const [showPassword, setShowPassword] = useState(false);
   const [showPwdModal, setShowPwdModal] = useState(false);
+  const [currentPwd, setCurrentPwd] = useState(""); // current password for verification
   const [newPwd, setNewPwd] = useState("");
   const [newPwd2, setNewPwd2] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const [notif, setNotif] = useState({
     updates: true, admin: true, performance: true, ranking: true, followers: false,
   });
 
-  // ---- Prefill data from backend ----
+  // ---- Fetch data from backend ----
   useEffect(() => {
-    (async () => {
-      // TODO: replace with your real API call
-      // const me = await (await fetch("/api/me")).json();
-      const me = {
-        firstName: "Rojola",
-        lastName: "Doe",
-        headline: "",
-        bio: "",
-        country: "",
-        website: "",
-        email: "rojola@example.com",
-        avatarUrl: "",           // put a URL if you already have one
-        password: "OldSecret1!"  // backend will send hashed or raw per your plan
-      };
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) {
+        navigate('/InstructorLogin');
+        return;
+      }
 
-      setFirst(me.firstName || "");
-      setLast(me.lastName || "");
-      setHeadline(me.headline || "");
-      setBio(me.bio || "");
-      setCountry(me.country || "");
-      setWebsite(me.website || "");
-      setEmail(me.email || "");
-      setAvatarURL(me.avatarUrl || "");
-      setStoredPassword(me.password || ""); // keep it in state, never render
-    })();
-  }, []);
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401) {
+          navigate('/InstructorLogin');
+          return;
+        }
+
+        if (response.ok) {
+          const result = await response.json();
+          const teacher = result.data;
+          
+          setFullName(teacher.fullName || "");
+          setHeadline(teacher.headline || "");
+          setBio(teacher.bio || "");
+          setCountry(teacher.country || "");
+          setWebsite(teacher.website || "");
+          setEmail(teacher.email || "");
+          setAvatarURL(teacher.profilePic || "");
+          setAvatarStoragePath(teacher.profilePicStoragePath || "");
+          setHasPassword(teacher.hasPassword || false);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
 
   // preview selected image
   useEffect(() => {
@@ -93,19 +102,87 @@ export default function ProfileSettings() {
   };
 
   const saveProfile = async () => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to save profile");
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      alert("Please log in to save profile");
+      return;
+    }
+
     try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      let profilePicURL = avatarURL;
+      let profilePicStoragePath = avatarStoragePath;
+      
+      // Upload profile picture to Firebase Storage if changed
       if (avatarFile) {
-        const fd = new FormData();
-        fd.append("avatar", avatarFile);
-        await fetch("/api/me/avatar", { method: "PUT", body: fd });
+        setUploadingAvatar(true);
+        try {
+          // Delete old profile picture if exists
+          if (avatarStoragePath) {
+            try {
+              const { deleteFileByPath } = await import("../utils/uploadFile");
+              await deleteFileByPath(avatarStoragePath);
+            } catch (e) {
+              console.log('Could not delete old profile picture:', e);
+            }
+          }
+          
+          // Upload new profile picture
+          const uploadResult = await uploadFile(
+            avatarFile,
+            'profile',
+            currentUser.uid,
+            null
+          );
+          
+          profilePicURL = uploadResult.url;
+          profilePicStoragePath = uploadResult.path;
+          setAvatarURL(profilePicURL);
+          setAvatarStoragePath(profilePicStoragePath);
+        } catch (error) {
+          console.error('Error uploading profile picture:', error);
+          alert(`Failed to upload profile picture: ${error.message}`);
+          setUploadingAvatar(false);
+          return;
+        } finally {
+          setUploadingAvatar(false);
+        }
       }
-      await fetch("/api/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ first, last, headline, bio, country, website }),
+      
+      // Update profile data
+      const response = await fetch(`${API_URL}/api/teachers/me`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          fullName, 
+          headline, 
+          bio, 
+          country,
+          website,
+          profilePic: profilePicURL
+        }),
       });
-      alert("Profile saved");
-    } catch { alert("Failed to save"); }
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save profile');
+      }
+
+      alert("Profile saved successfully");
+      setAvatarFile(null); // Clear file after successful save
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert(`Failed to save: ${error.message}`);
+    }
   };
 
   // Private settings
@@ -120,18 +197,94 @@ const savePrivate = async () => {
   } catch { alert("Failed to save"); }
 };
 
-  const changePassword = () => {
-    if (!newPwd || newPwd !== newPwd2) {
-      alert("Passwords do not match.");
+  const changePassword = async () => {
+    if (!currentPwd) {
+      alert("Please enter your current password.");
       return;
     }
-    console.log({
-      oldPassword: storedPassword, // backend can verify
-      newPassword: newPwd
-    });
-    setShowPwdModal(false);
-    setNewPwd(""); setNewPwd2("");
-    alert("Password updated");
+    if (!newPwd || newPwd.length < 6) {
+      alert("New password must be at least 6 characters.");
+      return;
+    }
+    if (newPwd !== newPwd2) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to change password");
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      alert("Please log in to change password");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Step 1: Update Firebase password if user has Firebase account
+      let firebaseUpdated = false;
+      if (currentUser.email) {
+        try {
+          // Re-authenticate user with current password
+          const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+          await reauthenticateWithCredential(currentUser, credential);
+          
+          // Update Firebase password
+          await updatePassword(currentUser, newPwd);
+          firebaseUpdated = true;
+          console.log('Firebase password updated successfully');
+        } catch (firebaseError) {
+          // If Firebase update fails, check if it's because user doesn't use Firebase auth
+          if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
+            // User might not have Firebase password, continue to MongoDB update
+            console.log('Firebase password update skipped:', firebaseError.code);
+          } else {
+            throw new Error(`Firebase error: ${firebaseError.message}`);
+          }
+        }
+      }
+
+      // Step 2: Update MongoDB password
+      const response = await fetch(`${API_URL}/api/teachers/me/password`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          currentPassword: currentPwd,
+          newPassword: newPwd,
+          updateFirebase: false // Backend doesn't need to update Firebase, we did it in frontend
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        // If Firebase was updated but MongoDB failed, we have a problem
+        if (firebaseUpdated) {
+          throw new Error(`MongoDB update failed: ${error.error}. Firebase password was updated.`);
+        }
+        throw new Error(error.error || 'Failed to change password');
+      }
+
+      alert("Password updated successfully in both Firebase and MongoDB");
+      setShowPwdModal(false);
+      setCurrentPwd("");
+      setNewPwd("");
+      setNewPwd2("");
+      setHasPassword(true); // Update state since password is now set
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert(`Failed to change password: ${error.message}`);
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const closeAccount = () => {
@@ -155,7 +308,7 @@ const savePrivate = async () => {
         <span className="ps-spacer" aria-hidden />
       </div>
       <div style={{width:"1140px",margin:"0 auto 8px",fontWeight:700}}>
-        Signed in as {first || "—"} {last || ""}
+        Signed in as {fullName || "—"}
       </div>
 
       <div className="ps-tabs">
@@ -169,34 +322,33 @@ const savePrivate = async () => {
 
       {tab === "profile" && (
         <section className="ps-card">
-          <div className="ps-grid">
-            <div className="ps-col">
-              <div className="ps-field">
-                <label>First Name</label>
-                <input className="ps-input" value={first} onChange={e=>setFirst(e.target.value)} placeholder="ex. John" />
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>Loading profile...</div>
+          ) : (
+            <div className="ps-grid">
+              <div className="ps-col">
+                <div className="ps-field">
+                  <label>Full Name</label>
+                  <input className="ps-input" value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="ex. John Doe" />
+                </div>
+                <div className="ps-field">
+                  <label>Headline</label>
+                  <input className="ps-input" value={headline} onChange={e=>setHeadline(e.target.value)} placeholder="Short description that shows on your profile" />
+                  <small className="ps-help">This headline will be shown on your profile</small>
+                </div>
+                <div className="ps-field">
+                  <label>Description (Biography)</label>
+                  <textarea className="ps-textarea" value={bio} onChange={e=>setBio(e.target.value)} placeholder="Tell learners about your experience, style, and goals." />
+                  <small className="ps-help">At least 50 words. Links and coupon codes are not permitted.</small>
+                </div>
+                <div className="ps-field">
+                  <label>Country</label>
+                  <select className="ps-input" value={country} onChange={e=>setCountry(e.target.value)}>
+                    <option value="" disabled>Choose your country</option>
+                    {COUNTRIES.map(c=>(<option key={c} value={c}>{c}</option>))}
+                  </select>
+                </div>
               </div>
-              <div className="ps-field">
-                <label>Last Name</label>
-                <input className="ps-input" value={last} onChange={e=>setLast(e.target.value)} placeholder="ex. Doe" />
-              </div>
-              <div className="ps-field">
-                <label>Headline</label>
-                <input className="ps-input" value={headline} onChange={e=>setHeadline(e.target.value)} placeholder="Short description that shows on your profile" />
-                <small className="ps-help">This headline will be shown on your profile</small>
-              </div>
-              <div className="ps-field">
-                <label>Biography</label>
-                <textarea className="ps-textarea" value={bio} onChange={e=>setBio(e.target.value)} placeholder="Tell learners about your experience, style, and goals." />
-                <small className="ps-help">At least 50 words. Links and coupon codes are not permitted.</small>
-              </div>
-              <div className="ps-field">
-                <label>Country</label>
-                <select className="ps-input" value={country} onChange={e=>setCountry(e.target.value)}>
-                  <option value="" disabled>Choose your country</option>
-                  {COUNTRIES.map(c=>(<option key={c} value={c}>{c}</option>))}
-                </select>
-              </div>
-            </div>
 
             <div className="ps-col">
               <div className="ps-field">
@@ -230,9 +382,12 @@ const savePrivate = async () => {
               </div>
             </div>
           </div>
+          )}
 
           <div className="ps-footer">
-            <button className="ps-primary" onClick={saveProfile}>Save changes</button>
+            <button className="ps-primary" onClick={saveProfile} disabled={loading || uploadingAvatar}>
+              {uploadingAvatar ? "Uploading..." : "Save changes"}
+            </button>
           </div>
         </section>
       )}
@@ -248,22 +403,12 @@ const savePrivate = async () => {
           <div className="ps-pw-row">
             <div className="ps-field sm flex1">
               <label>Password</label>
-              <div className="ps-input-group">
-                <input 
-                  className="ps-input" 
-                  type={showPassword ? "text" : "password"}
-                  value={showPassword ? storedPassword : passwordMask} 
-                  readOnly 
-                />
-                <button
-                  type="button"
-                  className="ps-eye"
-                  onClick={() => setShowPassword((s) => !s)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff /> : <Eye />}
-                </button>
-              </div>
+              <input 
+                className="ps-input" 
+                type="password"
+                value={passwordMask} 
+                readOnly 
+              />
             </div>
             <button className="ps-secondary" onClick={()=>setShowPwdModal(true)}>Edit</button>
           </div>
@@ -339,19 +484,51 @@ const savePrivate = async () => {
           <div className="ps-modal" onClick={(e)=>e.stopPropagation()}>
             <div className="ps-modal-head">
               <h2>Change Password</h2>
-              <button className="ps-x" onClick={()=>setShowPwdModal(false)}>×</button>
+              <button className="ps-x" onClick={()=>{
+                setShowPwdModal(false);
+                setCurrentPwd("");
+                setNewPwd("");
+                setNewPwd2("");
+              }}>×</button>
             </div>
-            {/* old password is kept in state (storedPassword) and not shown */}
+            <div className="ps-field">
+              <label>Current password</label>
+              <input 
+                className="ps-input" 
+                type="password" 
+                value={currentPwd} 
+                onChange={e=>setCurrentPwd(e.target.value)} 
+                placeholder="Enter your current password" 
+              />
+            </div>
             <div className="ps-field">
               <label>New password</label>
-              <input className="ps-input" type="password" value={newPwd} onChange={e=>setNewPwd(e.target.value)} placeholder="Enter new password" />
+              <input 
+                className="ps-input" 
+                type="password" 
+                value={newPwd} 
+                onChange={e=>setNewPwd(e.target.value)} 
+                placeholder="Enter new password (min. 6 characters)" 
+              />
             </div>
             <div className="ps-field">
               <label>Confirm new password</label>
-              <input className="ps-input" type="password" value={newPwd2} onChange={e=>setNewPwd2(e.target.value)} placeholder="Re-type new password" />
+              <input 
+                className="ps-input" 
+                type="password" 
+                value={newPwd2} 
+                onChange={e=>setNewPwd2(e.target.value)} 
+                placeholder="Re-type new password" 
+              />
             </div>
             <div className="ps-modal-foot">
-              <button className="ps-primary" onClick={changePassword}>Change password</button>
+              <button 
+                className="ps-primary" 
+                onClick={changePassword}
+                disabled={changingPassword}
+              >
+                {changingPassword ? "Changing..." : "Change password"}
+              </button>
             </div>
           </div>
         </div>

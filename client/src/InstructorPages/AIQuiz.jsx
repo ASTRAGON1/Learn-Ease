@@ -20,7 +20,7 @@ export default function AIQuiz() {
   const [course, setCourse] = useState("");
   const [topic, setTopic] = useState("");
   const [lesson, setLesson] = useState("");
-  const [numQ, setNumQ] = useState(8);
+  const [numQ, setNumQ] = useState(5);
   const [answersPerQ, setAnswersPerQ] = useState(3);
 
   // Get current path based on category
@@ -83,7 +83,7 @@ export default function AIQuiz() {
   }, []);
 
   const canGenerate = useMemo(
-    () => title.trim() && course && topic && lesson && Number(numQ) > 0 && Number(answersPerQ) >= 3,
+    () => title.trim() && course && topic && lesson && Number(numQ) >= 5 && Number(numQ) <= 15 && Number(answersPerQ) >= 3,
     [title, course, topic, lesson, numQ, answersPerQ]
   );
 
@@ -114,26 +114,84 @@ export default function AIQuiz() {
 
   const clearGenerated = () => setItems([]);
 
-  const pkg = () => ({
-    meta: { title, category, course, topic, lesson, numQ, answersPerQ, createdAt: new Date().toISOString() },
-    items,
-  });
-
-  const saveDraft = () => {
-    if (!hasQuiz) return;
-    const next = [pkg(), ...drafts];
-    setDrafts(next);
-    localStorage.setItem("aiQuizDrafts", JSON.stringify(next));
-    alert("Saved as draft.");
+  // Transform AI-generated quiz to match Quiz model format
+  // Only store question and correctAnswer (AI will generate wrong options later)
+  const transformQuizForAPI = () => {
+    return items.map((item) => ({
+      q: item.q,
+      a: item.answers[item.correctIdx] // Store only the correct answer
+    }));
   };
 
-  const publish = () => {
+  const saveQuiz = async (status) => {
     if (!hasQuiz) return;
-    const next = [pkg(), ...published];
-    setPublished(next);
-    localStorage.setItem("aiQuizPublished", JSON.stringify(next));
-    alert("Published! (mock)");
+    
+    if (!title.trim()) {
+      alert("Quiz title is required");
+      return;
+    }
+    if (!course || !topic || !lesson) {
+      alert("Please select course, topic, and lesson");
+      return;
+    }
+    if (items.length < 5 || items.length > 15) {
+      alert("Quiz must have between 5 and 15 questions");
+      return;
+    }
+    
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to save quiz");
+      return;
+    }
+
+    try {
+      const questionsAndAnswers = transformQuizForAPI();
+      
+      // Don't send difficulty - let controller auto-set based on question count
+      // (same logic as normal quiz: 5=Easy, 6-10=Medium, 11-15=Hard)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/quizzes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title,
+          category,
+          topic,
+          lesson,
+          course,
+          questionsAndAnswers,
+          status: status === "Published" ? "published" : "draft"
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save quiz');
+      }
+
+      alert(status === "Published" ? "Quiz published!" : "Quiz saved as draft.");
+      
+      if (status === "Published") {
+        // Reset form
+        setTitle("");
+        setCategory("Autism");
+        setCourse("");
+        setTopic("");
+        setLesson("");
+        setNumQ(5);
+        setItems([]);
+      }
+    } catch (error) {
+      console.error('Quiz save error:', error);
+      alert(`Error: ${error.message}`);
+    }
   };
+
+  const saveDraft = () => saveQuiz("Draft");
+  const publish = () => saveQuiz("Published");
 
   const delDraft = (idx) => {
     const next = drafts.filter((_, i) => i !== idx);
@@ -165,19 +223,20 @@ export default function AIQuiz() {
               <label>Title of the quiz*</label>
               <input
                 className="qzInst-input"
-                placeholder="Give your question here"
+                placeholder="Give the title of the quiz here"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
             <div className="qzInst-smallmuted">Choose the course, topic and the lesson this quiz will be associated</div>
-            <div className="qzInst-row">
+            <div className="qzInst-row" style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
               <select
                 className="qzInst-input"
                 value={course}
                 onChange={(e) => handleCourseChange(e.target.value)}
                 disabled={!availableCourses.length}
+                style={{ flex: 1 }}
               >
                 <option value="" disabled>
                   Course
@@ -193,6 +252,7 @@ export default function AIQuiz() {
                 value={topic}
                 onChange={(e) => handleTopicChange(e.target.value)}
                 disabled={!course || !availableTopics.length}
+                style={{ flex: 1 }}
               >
                 <option value="" disabled>
                   Topic
@@ -208,6 +268,7 @@ export default function AIQuiz() {
                 value={lesson}
                 onChange={(e) => setLesson(e.target.value)}
                 disabled={!topic || !availableLessons.length}
+                style={{ flex: 1 }}
               >
                 <option value="" disabled>
                   Lesson
@@ -222,9 +283,9 @@ export default function AIQuiz() {
 
             <div className="qzInst-row">
               <div className="qzInst-field">
-                <label>Number of Questions</label>
+                <label>Number of Questions* (5-15)</label>
                 <select className="qzInst-input" value={numQ} onChange={(e) => setNumQ(e.target.value)}>
-                  {[4, 6, 8, 10, 12, 15, 20].map((n) => (
+                  {Array.from({ length: 11 }, (_, i) => i + 5).map((n) => (
                     <option key={n} value={n}>
                       {n}
                     </option>

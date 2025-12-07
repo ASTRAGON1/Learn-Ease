@@ -1,23 +1,16 @@
 // src/pages/InstructorUpload.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./InstructorUpload.css";
 import { USER_CURRICULUM } from "../data/curriculum";
 import { uploadFile } from "../utils/uploadFile";
 import { auth } from "../config/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
-const ALL_TAGS = [
+const FILE_TYPES = [
+  "document",
   "video",
-  "file document",
-  "picture"
-];
-
-const DEFAULT_ROWS = [
-  { title:"Listening Class N24: How to Help Children with Down Syndrome Improve...", category:"Down Syndrome", status:"Published" },
-  { title:"Math Session N15: Supporting Early Number Recognition for Kids...", category:"Autism", status:"Draft" },
-  { title:"Reading Class N10: Building Vocabulary Step-by-Step for Children...", category:"Down Syndrome", status:"Draft" },
-  { title:"Listening Exercise N21: Teaching Active Listening Techniques to A...", category:"Autism", status:"Published" },
-  { title:"Math Skills N18: Practical Counting Strategies for Down Syndrome...", category:"Down Syndrome", status:"Published" },
+  "image"
 ];
 
 export default function InstructorUpload() {
@@ -25,14 +18,15 @@ export default function InstructorUpload() {
   
   // Publishing
   const [title, setTitle] = useState("");
-  const [tags, setTags] = useState([]);
-  const [showTagList, setShowTagList] = useState(false);
+  const [fileType, setFileType] = useState(""); // Single selection: document, video, or image
+  const [showFileTypeList, setShowFileTypeList] = useState(false);
   const [category, setCategory] = useState("Autism");
   const [course, setCourse] = useState("");
   const [topic, setTopic] = useState("");
   const [lesson, setLesson] = useState("");
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
+  const [difficulty, setDifficulty] = useState("");
   const [errors, setErrors] = useState({});
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -82,8 +76,96 @@ export default function InstructorUpload() {
   };
 
   // Tables
-  const [contentRows, setContentRows] = useState(DEFAULT_ROWS);
+  const [contentRows, setContentRows] = useState([]);
   const [archivedRows, setArchivedRows] = useState([]);
+  const [loadingContent, setLoadingContent] = useState(true);
+  const [quizRows, setQuizRows] = useState([]);
+  const [loadingQuizzes, setLoadingQuizzes] = useState(true);
+
+  // Fetch content from database
+  useEffect(() => {
+    const fetchContent = async () => {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/content`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const allContent = result.data || [];
+          
+          // Separate published/draft from archived
+          const active = allContent.filter(c => c.status !== 'archived');
+          const archived = allContent.filter(c => c.status === 'archived');
+          
+          // Map to display format
+          const mapContent = (content) => ({
+            id: content._id,
+            title: content.title,
+            category: content.category === 'autism' ? 'Autism' : 'Down Syndrome',
+            status: content.status === 'published' ? 'Published' : content.status === 'draft' ? 'Draft' : 'Archived'
+          });
+          
+          setContentRows(active.map(mapContent));
+          setArchivedRows(archived.map(mapContent));
+        }
+      } catch (error) {
+        console.error('Error fetching content:', error);
+      } finally {
+        setLoadingContent(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
+  // Fetch quizzes from database
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/quizzes`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const allQuizzes = result.data || [];
+          
+          // Filter out archived quizzes
+          const active = allQuizzes.filter(q => q.status !== 'archived');
+          
+          // Map to display format
+          const mapQuiz = (quiz) => ({
+            id: quiz._id,
+            title: quiz.title,
+            category: quiz.category === 'autism' ? 'Autism' : 'Down Syndrome',
+            status: quiz.status === 'published' ? 'Published' : quiz.status === 'draft' ? 'Draft' : 'Archived',
+            difficulty: quiz.difficulty || '-'
+          });
+          
+          setQuizRows(active.map(mapQuiz));
+        }
+      } catch (error) {
+        console.error('Error fetching quizzes:', error);
+      } finally {
+        setLoadingQuizzes(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, []);
 
   // Quiz
   const [quizTitle, setQuizTitle] = useState("");
@@ -91,7 +173,7 @@ export default function InstructorUpload() {
   const [quizCourse, setQuizCourse] = useState("");
   const [quizTopic, setQuizTopic] = useState("");
   const [quizLesson, setQuizLesson] = useState("");
-  const [pairs, setPairs] = useState([{ q: "", a: "" }]);
+  const [pairs, setPairs] = useState(Array(5).fill(null).map(() => ({ q: "", a: "" }))); // Start with 5 questions (minimum)
 
   // Get current path for quiz based on quiz category
   const quizCurrentPath = useMemo(() => {
@@ -137,14 +219,15 @@ export default function InstructorUpload() {
     setQuizLesson("");
   };
 
-  const toggleTag = (t) => {
-    if (tags.includes(t)) {
-      // Deselect if clicking the same tag
-      setTags([]);
+  const selectFileType = (type) => {
+    if (fileType === type) {
+      // Deselect if clicking the same type
+      setFileType("");
     } else {
-      // For file type tags, only allow one selection
-      setTags([t]);
+      // Select the new type (only one allowed)
+      setFileType(type);
     }
+    setShowFileTypeList(false);
   };
 
   const validate = () => {
@@ -152,40 +235,63 @@ export default function InstructorUpload() {
     if (!title.trim()) e.title = "Title is required";
     if (!desc.trim()) e.desc = "Description is required";
     if (!file) e.file = "File is required";
-    if (tags.length === 0) e.tags = "File type is required";
+    if (!fileType) e.fileType = "File type is required";
     if (!course) e.course = "Course is required";
     if (!topic) e.topic = "Topic is required";
     if (!lesson) e.lesson = "Lesson is required";
+    if (!difficulty) e.difficulty = "Difficulty is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  // Map tag to content type
-  const getContentType = (tag) => {
-    const tagMap = {
-      "video": "video",
-      "file document": "file",
-      "picture": "image"
+  // Map file type to storage folder
+  const getStorageType = (type) => {
+    const folderMap = {
+      "document": "documents",
+      "video": "videos",
+      "image": "images"
     };
-    return tagMap[tag] || "file";
-  };
-
-  // Map tag to storage type
-  const getStorageType = (tag) => {
-    const tagMap = {
-      "video": "video",
-      "file document": "document",
-      "picture": "image"
-    };
-    return tagMap[tag] || "document";
+    return folderMap[type] || "documents";
   };
 
   const saveContent = async (status) => {
     if (!validate()) return;
 
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
       alert("Please log in to upload content");
+      return;
+    }
+
+    // Check Firebase auth - wait for auth state to be determined
+    let currentUser = auth.currentUser;
+    if (!currentUser) {
+      // Wait for Firebase auth state to initialize (up to 2 seconds)
+      await new Promise((resolve) => {
+        let resolved = false;
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (!resolved) {
+            resolved = true;
+            unsubscribe();
+            resolve();
+          }
+        });
+        // Timeout after 2 seconds
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            unsubscribe();
+            resolve();
+          }
+        }, 2000);
+      });
+      currentUser = auth.currentUser;
+    }
+
+    // If still no Firebase user authenticated, we cannot upload
+    // Firebase Storage requires Firebase Auth authentication
+    if (!currentUser) {
+      alert("Firebase authentication required for file uploads. Please log out and log in again, or ensure you're signed in with Firebase.");
       return;
     }
 
@@ -194,7 +300,7 @@ export default function InstructorUpload() {
 
     try {
       // Upload file to Firebase Storage
-      const storageFolder = getStorageType(tags[0]);
+      const storageFolder = getStorageType(fileType);
       const uploadResult = await uploadFile(
         file,
         storageFolder,
@@ -212,16 +318,16 @@ export default function InstructorUpload() {
         body: JSON.stringify({
           title,
           category,
-          type: getContentType(tags[0]),
+          type: fileType, // document, video, or image
           topic,
           lesson,
           course,
           description: desc,
+          difficulty,
           url: uploadResult.url,
           storagePath: uploadResult.path,
           fileType: uploadResult.type,
           size: uploadResult.size,
-          kind: getContentType(tags[0]),
           firebaseUid: uploadResult.firebaseUid,
           status: status === "Published" ? "published" : "draft"
         })
@@ -233,8 +339,28 @@ export default function InstructorUpload() {
       }
 
       const result = await response.json();
-      const newRow = { title: title || "Untitled", category, status };
-      setContentRows(prev => [newRow, ...prev]);
+      
+      // Refresh content list
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/content`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allContent = refreshResult.data || [];
+        const active = allContent.filter(c => c.status !== 'archived');
+        const mapContent = (content) => ({
+          id: content._id,
+          title: content.title,
+          category: content.category === 'autism' ? 'Autism' : 'Down Syndrome',
+          status: content.status === 'published' ? 'Published' : content.status === 'draft' ? 'Draft' : 'Archived'
+        });
+        setContentRows(active.map(mapContent));
+      }
       
       alert(status === "Published" ? "Published!" : "Saved as draft.");
       
@@ -243,10 +369,11 @@ export default function InstructorUpload() {
         setTitle("");
         setDesc("");
         setFile(null);
-        setTags([]);
+        setFileType("");
         setCourse("");
         setTopic("");
         setLesson("");
+        setDifficulty("");
         setUploadProgress(0);
       }
     } catch (error) {
@@ -261,9 +388,114 @@ export default function InstructorUpload() {
   const onSaveDraft = () => saveContent("Draft");
   const onPublish = () => saveContent("Published");
 
-  const addPair = () => setPairs([...pairs, { q: "", a: "" }]);
-  const removePair = (idx) => { if (pairs.length === 1) return; setPairs(pairs.filter((_, i) => i !== idx)); };
-  const onPublishQuiz = () => { alert("Quiz published!"); };
+  const addPair = () => {
+    if (pairs.length >= 15) {
+      alert("Maximum 15 questions allowed");
+      return;
+    }
+    setPairs([...pairs, { q: "", a: "" }]);
+  };
+  
+  const removePair = (idx) => {
+    if (pairs.length <= 5) {
+      alert("Minimum 5 questions required");
+      return;
+    }
+    setPairs(pairs.filter((_, i) => i !== idx));
+  };
+  
+  const saveQuiz = async (status) => {
+    if (!quizTitle.trim()) {
+      alert("Quiz title is required");
+      return;
+    }
+    if (!quizCourse || !quizTopic || !quizLesson) {
+      alert("Please select course, topic, and lesson");
+      return;
+    }
+    if (pairs.length < 5) {
+      alert("Minimum 5 questions required");
+      return;
+    }
+    if (pairs.length > 15) {
+      alert("Maximum 15 questions allowed");
+      return;
+    }
+    if (pairs.some(p => !p.q.trim() || !p.a.trim())) {
+      alert("Please fill in all questions and answers");
+      return;
+    }
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to save quiz");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/quizzes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: quizTitle,
+          category: quizCategory,
+          topic: quizTopic,
+          lesson: quizLesson,
+          course: quizCourse,
+          questionsAndAnswers: pairs,
+          status: status === "Published" ? "published" : "draft"
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save quiz');
+      }
+
+      // Refresh quiz list
+      const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/quizzes`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        const allQuizzes = refreshResult.data || [];
+        const active = allQuizzes.filter(q => q.status !== 'archived');
+        const mapQuiz = (quiz) => ({
+          id: quiz._id,
+          title: quiz.title,
+          category: quiz.category === 'autism' ? 'Autism' : 'Down Syndrome',
+          status: quiz.status === 'published' ? 'Published' : quiz.status === 'draft' ? 'Draft' : 'Archived',
+          difficulty: quiz.difficulty || '-'
+        });
+        setQuizRows(active.map(mapQuiz));
+      }
+
+      alert(status === "Published" ? "Quiz published!" : "Quiz saved as draft.");
+      
+      if (status === "Published") {
+        // Reset form
+        setQuizTitle("");
+        setQuizCategory("Autism");
+        setQuizCourse("");
+        setQuizTopic("");
+        setQuizLesson("");
+        setPairs(Array(5).fill(null).map(() => ({ q: "", a: "" })));
+      }
+    } catch (error) {
+      console.error('Quiz save error:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const onPublishQuiz = () => saveQuiz("Published");
+  const onSaveQuizDraft = () => saveQuiz("Draft");
 
   const handleBack = () => {
     navigate("/InstructorDash");
@@ -291,44 +523,38 @@ export default function InstructorUpload() {
           </div>
 
           <div className="upl-field">
-            <label>Choose a tag for your content*:</label>
+            <label>Choose file type*:</label>
             <div
               className="upl-tagbox"
-              onClick={() => setShowTagList((s) => !s)}
+              onClick={() => setShowFileTypeList((s) => !s)}
               role="button"
               tabIndex={0}
             >
-              {tags.length === 0 ? (
-                <span className="upl-placeholder">choose file type</span>
+              {!fileType ? (
+                <span className="upl-placeholder">Choose file type (document, video, or image)</span>
               ) : (
                 <div className="upl-chips">
-                  {tags.map((t) => (
-                    <span
-                      key={t}
-                      className="upl-chip"
-                      onClick={(e) => { e.stopPropagation(); toggleTag(t); }}
-                    >
-                      #{t}
-                    </span>
-                  ))}
+                  <span className="upl-chip">
+                    {fileType.charAt(0).toUpperCase() + fileType.slice(1)}
+                  </span>
                 </div>
               )}
               <span className="upl-caret">▾</span>
             </div>
-            {errors.tags && <span className="upl-errtxt">{errors.tags}</span>}
+            {errors.fileType && <span className="upl-errtxt">{errors.fileType}</span>}
 
-            {showTagList && (
+            {showFileTypeList && (
               <ul className="upl-taglist" role="listbox" aria-multiselectable="false">
-                {ALL_TAGS.map((t) => (
-                  <li key={t}>
+                {FILE_TYPES.map((type) => (
+                  <li key={type}>
                     <button
                       type="button"
-                      className={`upl-tagitem ${tags.includes(t) ? "selected" : ""}`}
-                      onClick={() => toggleTag(t)}
+                      className={`upl-tagitem ${fileType === type ? "selected" : ""}`}
+                      onClick={() => selectFileType(type)}
                       role="option"
-                      aria-selected={tags.includes(t)}
+                      aria-selected={fileType === type}
                     >
-                      {t}
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
                     </button>
                   </li>
                 ))}
@@ -398,52 +624,69 @@ export default function InstructorUpload() {
           </button>
         </div>
 
-        <div className="upl-field">
-          <label>Select Course:</label>
-          <select 
-            className={`upl-input ${errors.course ? "upl-error" : ""}`}
-            value={course} 
-            onChange={(e) => handleCourseChange(e.target.value)}
-            disabled={!availableCourses.length}
-          >
-            <option value="" disabled>Choose a course</option>
-            {availableCourses.map(c => (
-              <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
-            ))}
-          </select>
-          {errors.course && <span className="upl-errtxt">{errors.course}</span>}
-        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '15px' }}>
+          <div className="upl-field" style={{ marginBottom: 0 }}>
+            <label>Select Course:</label>
+            <select 
+              className={`upl-input ${errors.course ? "upl-error" : ""}`}
+              value={course} 
+              onChange={(e) => handleCourseChange(e.target.value)}
+              disabled={!availableCourses.length}
+            >
+              <option value="" disabled>Choose a course</option>
+              {availableCourses.map(c => (
+                <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
+              ))}
+            </select>
+            {errors.course && <span className="upl-errtxt">{errors.course}</span>}
+          </div>
 
-        <div className="upl-field">
-          <label>Select Topic:</label>
-          <select 
-            className={`upl-input ${errors.topic ? "upl-error" : ""}`}
-            value={topic} 
-            onChange={(e) => handleTopicChange(e.target.value)}
-            disabled={!course || !availableTopics.length}
-          >
-            <option value="" disabled>Choose a topic</option>
-            {availableTopics.map(t => (
-              <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
-            ))}
-          </select>
-          {errors.topic && <span className="upl-errtxt">{errors.topic}</span>}
-        </div>
+          <div className="upl-field" style={{ marginBottom: 0 }}>
+            <label>Select Topic:</label>
+            <select 
+              className={`upl-input ${errors.topic ? "upl-error" : ""}`}
+              value={topic} 
+              onChange={(e) => handleTopicChange(e.target.value)}
+              disabled={!course || !availableTopics.length}
+            >
+              <option value="" disabled>Choose a topic</option>
+              {availableTopics.map(t => (
+                <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
+              ))}
+            </select>
+            {errors.topic && <span className="upl-errtxt">{errors.topic}</span>}
+          </div>
 
-        <div className="upl-field">
-          <label>Select Lesson:</label>
-          <select 
-            className={`upl-input ${errors.lesson ? "upl-error" : ""}`}
-            value={lesson} 
-            onChange={(e) => setLesson(e.target.value)}
-            disabled={!topic || !availableLessons.length}
-          >
-            <option value="" disabled>Choose a lesson</option>
-            {availableLessons.map(l => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
-          {errors.lesson && <span className="upl-errtxt">{errors.lesson}</span>}
+          <div className="upl-field" style={{ marginBottom: 0 }}>
+            <label>Select Lesson:</label>
+            <select 
+              className={`upl-input ${errors.lesson ? "upl-error" : ""}`}
+              value={lesson} 
+              onChange={(e) => setLesson(e.target.value)}
+              disabled={!topic || !availableLessons.length}
+            >
+              <option value="" disabled>Choose a lesson</option>
+              {availableLessons.map(l => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+            {errors.lesson && <span className="upl-errtxt">{errors.lesson}</span>}
+          </div>
+
+          <div className="upl-field" style={{ marginBottom: 0 }}>
+            <label>Select Difficulty*:</label>
+            <select 
+              className={`upl-input ${errors.difficulty ? "upl-error" : ""}`}
+              value={difficulty} 
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              <option value="" disabled>Choose difficulty</option>
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+            {errors.difficulty && <span className="upl-errtxt">{errors.difficulty}</span>}
+          </div>
         </div>
 
         <div className="upl-field">
@@ -509,7 +752,8 @@ export default function InstructorUpload() {
           </div>
         </div>
 
-        <div className="upl-quiz-note">Choose the course, topic and the lesson this quiz will be associated</div>
+        <div className="upl-quiz-note">Choose the course, topic, and lesson this quiz will be associated. Difficulty will be set automatically based on the number of questions (5: Easy, 6-10: Medium, 11-15: Hard).</div>
+        
         <div className="upl-quiz-selects">
           <select 
             className="upl-input upl-quiz-select" 
@@ -545,6 +789,10 @@ export default function InstructorUpload() {
             ))}
           </select>
         </div>
+        
+        <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+          Questions: {pairs.length} / 15 (Minimum: 5)
+        </div>
 
         {pairs.map((p, i)=>(
           <div key={i} className="upl-qa-row">
@@ -571,52 +819,96 @@ export default function InstructorUpload() {
               />
             </div>
 
-            {pairs.length > 1 && (
+            {pairs.length > 5 && (
               <button
                 type="button"
                 className="upl-quiz-remove"
                 onClick={()=>removePair(i)}
-                title="Remove this Q/A"
+                title="Remove this Q/A (Minimum 5 questions required)"
                 style={{marginLeft:8, padding:"0 10px"}}
               >
                 −
               </button>
             )}
 
-            {i === pairs.length-1 && (
-              <button type="button" className="upl-quiz-add" onClick={addPair}>+</button>
+            {i === pairs.length-1 && pairs.length < 15 && (
+              <button type="button" className="upl-quiz-add" onClick={addPair} title="Add question (Maximum 15 questions)">+</button>
             )}
           </div>
         ))}
 
         <div className="upl-actions">
+          <button className="upl-secondary" onClick={onSaveQuizDraft}>Save as Draft</button>
           <button className="upl-primary" onClick={onPublishQuiz}>Publish</button>
+        </div>
+      </div>
+
+      {/* Quizzes List */}
+      <h2 className="upl-section-title">Quizzes</h2>
+      <div className="upl-content-card upl-archive-card upl-section">
+        <div className="upl-content-head upl-archive-head">
+          <span>Quiz title</span>
+          <span>Category</span>
+          <span className="upl-actions-col">Actions</span>
+        </div>
+
+        <div className="upl-content-rows upl-archive-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
+          {loadingQuizzes ? (
+            <div className="upl-empty-archive">
+              <div className="upl-empty-icon">⏳</div>
+              <p className="upl-empty-text">Loading quizzes...</p>
+            </div>
+          ) : quizRows.length === 0 ? (
+            <div className="upl-empty-archive">
+              <div className="upl-empty-icon">📝</div>
+              <p className="upl-empty-text">No quizzes yet</p>
+              <p className="upl-empty-subtext">Create and publish your first quiz to see it here</p>
+            </div>
+          ) : (
+            quizRows.map((row) => (
+              <div key={row.id} className="upl-content-row upl-archive-row">
+                <div className="upl-content-title upl-archive-title" title={row.title}>{row.title}</div>
+
+                <div className="upl-pill upl-pill-archive">{row.category}</div>
+
+                <div className="upl-content-actions upl-archive-actions">
+                  <button type="button" className="upl-btn-arch" onClick={()=>{}}>Archive</button>
+                  <button type="button" className="upl-btn-del"  onClick={()=>{}}>Delete</button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       {/* Content */}
       <h2 className="upl-section-title">Content</h2>
-      <div className="upl-content-card upl-section">
-        <div className="upl-content-head">
+      <div className="upl-content-card upl-archive-card upl-section">
+        <div className="upl-content-head upl-archive-head" data-columns="4">
           <span>Content title</span>
           <span>Category</span>
           <span>Status</span>
-          <span className="upl-actions-col" />
+          <span className="upl-actions-col">Actions</span>
         </div>
 
-        <div className="upl-content-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
-          {contentRows.length === 0 ? (
+        <div className="upl-content-rows upl-archive-rows" style={{ maxHeight: 320, overflowY: "auto" }}>
+          {loadingContent ? (
+            <div className="upl-empty-archive">
+              <div className="upl-empty-icon">⏳</div>
+              <p className="upl-empty-text">Loading content...</p>
+            </div>
+          ) : contentRows.length === 0 ? (
             <div className="upl-empty-archive">
               <div className="upl-empty-icon">📄</div>
               <p className="upl-empty-text">No content yet</p>
               <p className="upl-empty-subtext">Create and publish your first content to see it here</p>
             </div>
           ) : (
-            contentRows.map((row, idx) => (
-              <div key={idx} className="upl-content-row">
-                <div className="upl-content-title" title={row.title}>{row.title}</div>
+            contentRows.map((row) => (
+              <div key={row.id} className="upl-content-row upl-archive-row" data-columns="4">
+                <div className="upl-content-title upl-archive-title" title={row.title}>{row.title}</div>
 
-                <div className="upl-pill upl-pill-gray">{row.category}</div>
+                <div className="upl-pill upl-pill-archive">{row.category}</div>
 
                 <div className={`upl-status-pill ${
                   row.status === "Published" ? "upl-status-green" :
@@ -625,7 +917,7 @@ export default function InstructorUpload() {
                   {row.status}
                 </div>
 
-                <div className="upl-content-actions">
+                <div className="upl-content-actions upl-archive-actions">
                   <button type="button" className="upl-btn-arch" onClick={()=>{}}>Archive</button>
                   <button type="button" className="upl-btn-del"  onClick={()=>{}}>Delete</button>
                 </div>
@@ -652,8 +944,8 @@ export default function InstructorUpload() {
               <p className="upl-empty-subtext">Archived items will appear here</p>
             </div>
           ) : (
-            archivedRows.map((row, idx) => (
-              <div key={idx} className="upl-content-row upl-archive-row">
+            archivedRows.map((row) => (
+              <div key={row.id} className="upl-content-row upl-archive-row">
                 <div className="upl-content-title upl-archive-title" title={row.title}>
                   {row.title}
                 </div>
