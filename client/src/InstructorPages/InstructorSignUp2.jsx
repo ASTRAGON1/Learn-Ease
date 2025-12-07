@@ -4,7 +4,7 @@ import { onAuthStateChanged, reload, sendEmailVerification } from 'firebase/auth
 import { auth } from '../config/firebase';
 import './InstructorSignUp2.css';
 
-const API_URL = import.meta.env. VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Helper function to store auth data in both localStorage and sessionStorage
 const storeAuthData = (token, teacher) => {
