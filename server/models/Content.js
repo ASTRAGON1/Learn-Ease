@@ -49,6 +49,26 @@ const contentSchema = new mongoose.Schema({
     type: String,
     required: [true, 'File URL is required']
   },
+  firebaseUid: {
+    type: String,
+    trim: true
+  },
+  storagePath: {
+    type: String,
+    trim: true
+  },
+  fileType: {
+    type: String,
+    trim: true
+  },
+  size: {
+    type: Number,
+    min: 0
+  },
+  kind: {
+    type: String,
+    trim: true
+  },
   releaseDate: {
     type: Date,
     default: Date.now

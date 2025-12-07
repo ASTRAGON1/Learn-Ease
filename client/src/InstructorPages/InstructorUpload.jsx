@@ -3,6 +3,8 @@ import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./InstructorUpload.css";
 import { USER_CURRICULUM } from "../data/curriculum";
+import { uploadFile } from "../utils/uploadFile";
+import { auth } from "../config/firebase";
 
 const ALL_TAGS = [
   "video",
@@ -32,6 +34,8 @@ export default function InstructorUpload() {
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Get current path based on category
   const currentPath = useMemo(() => {
@@ -147,17 +151,115 @@ export default function InstructorUpload() {
     const e = {};
     if (!title.trim()) e.title = "Title is required";
     if (!desc.trim()) e.desc = "Description is required";
+    if (!file) e.file = "File is required";
+    if (tags.length === 0) e.tags = "File type is required";
+    if (!course) e.course = "Course is required";
+    if (!topic) e.topic = "Topic is required";
+    if (!lesson) e.lesson = "Lesson is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const addContentRow = (statusLabel) => {
-    const newRow = { title: title || "Untitled", category, status: statusLabel };
-    setContentRows(prev => [newRow, ...prev]);
+  // Map tag to content type
+  const getContentType = (tag) => {
+    const tagMap = {
+      "video": "video",
+      "file document": "file",
+      "picture": "image"
+    };
+    return tagMap[tag] || "file";
   };
 
-  const onSaveDraft = () => { if (!validate()) return; addContentRow("Draft"); alert("Saved as draft."); };
-  const onPublish   = () => { if (!validate()) return; addContentRow("Published"); alert("Published!"); window.location.reload(); };
+  // Map tag to storage type
+  const getStorageType = (tag) => {
+    const tagMap = {
+      "video": "video",
+      "file document": "document",
+      "picture": "image"
+    };
+    return tagMap[tag] || "document";
+  };
+
+  const saveContent = async (status) => {
+    if (!validate()) return;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      alert("Please log in to upload content");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Upload file to Firebase Storage
+      const storageFolder = getStorageType(tags[0]);
+      const uploadResult = await uploadFile(
+        file,
+        storageFolder,
+        currentUser.uid,
+        (progress) => setUploadProgress(progress)
+      );
+
+      // Save metadata to server
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          title,
+          category,
+          type: getContentType(tags[0]),
+          topic,
+          lesson,
+          course,
+          description: desc,
+          url: uploadResult.url,
+          storagePath: uploadResult.path,
+          fileType: uploadResult.type,
+          size: uploadResult.size,
+          kind: getContentType(tags[0]),
+          firebaseUid: uploadResult.firebaseUid,
+          status: status === "Published" ? "published" : "draft"
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save content');
+      }
+
+      const result = await response.json();
+      const newRow = { title: title || "Untitled", category, status };
+      setContentRows(prev => [newRow, ...prev]);
+      
+      alert(status === "Published" ? "Published!" : "Saved as draft.");
+      
+      if (status === "Published") {
+        // Reset form
+        setTitle("");
+        setDesc("");
+        setFile(null);
+        setTags([]);
+        setCourse("");
+        setTopic("");
+        setLesson("");
+        setUploadProgress(0);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const onSaveDraft = () => saveContent("Draft");
+  const onPublish = () => saveContent("Published");
 
   const addPair = () => setPairs([...pairs, { q: "", a: "" }]);
   const removePair = (idx) => { if (pairs.length === 1) return; setPairs(pairs.filter((_, i) => i !== idx)); };
@@ -213,6 +315,7 @@ export default function InstructorUpload() {
               )}
               <span className="upl-caret">▾</span>
             </div>
+            {errors.tags && <span className="upl-errtxt">{errors.tags}</span>}
 
             {showTagList && (
               <ul className="upl-taglist" role="listbox" aria-multiselectable="false">
@@ -256,6 +359,25 @@ export default function InstructorUpload() {
           </p>
           <small>video, pdf, doc</small>
           {file && <div className="upl-filename">{file.name}</div>}
+          {errors.file && <span className="upl-errtxt">{errors.file}</span>}
+          {isUploading && (
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ width: '100%', backgroundColor: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ 
+                  width: `${uploadProgress}%`, 
+                  backgroundColor: '#4CAF50', 
+                  height: '20px', 
+                  transition: 'width 0.3s',
+                  textAlign: 'center',
+                  color: 'white',
+                  fontSize: '12px',
+                  lineHeight: '20px'
+                }}>
+                  {Math.round(uploadProgress)}%
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="upl-cats">
@@ -279,7 +401,7 @@ export default function InstructorUpload() {
         <div className="upl-field">
           <label>Select Course:</label>
           <select 
-            className="upl-input" 
+            className={`upl-input ${errors.course ? "upl-error" : ""}`}
             value={course} 
             onChange={(e) => handleCourseChange(e.target.value)}
             disabled={!availableCourses.length}
@@ -289,12 +411,13 @@ export default function InstructorUpload() {
               <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
             ))}
           </select>
+          {errors.course && <span className="upl-errtxt">{errors.course}</span>}
         </div>
 
         <div className="upl-field">
           <label>Select Topic:</label>
           <select 
-            className="upl-input" 
+            className={`upl-input ${errors.topic ? "upl-error" : ""}`}
             value={topic} 
             onChange={(e) => handleTopicChange(e.target.value)}
             disabled={!course || !availableTopics.length}
@@ -304,12 +427,13 @@ export default function InstructorUpload() {
               <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
             ))}
           </select>
+          {errors.topic && <span className="upl-errtxt">{errors.topic}</span>}
         </div>
 
         <div className="upl-field">
           <label>Select Lesson:</label>
           <select 
-            className="upl-input" 
+            className={`upl-input ${errors.lesson ? "upl-error" : ""}`}
             value={lesson} 
             onChange={(e) => setLesson(e.target.value)}
             disabled={!topic || !availableLessons.length}
@@ -319,6 +443,7 @@ export default function InstructorUpload() {
               <option key={l} value={l}>{l}</option>
             ))}
           </select>
+          {errors.lesson && <span className="upl-errtxt">{errors.lesson}</span>}
         </div>
 
         <div className="upl-field">
@@ -333,8 +458,20 @@ export default function InstructorUpload() {
         </div>
 
         <div className="upl-actions">
-          <button className="upl-secondary" onClick={onSaveDraft}>Save as Draft</button>
-          <button className="upl-primary" onClick={onPublish}>Publish</button>
+          <button 
+            className="upl-secondary" 
+            onClick={onSaveDraft}
+            disabled={isUploading}
+          >
+            {isUploading ? "Uploading..." : "Save as Draft"}
+          </button>
+          <button 
+            className="upl-primary" 
+            onClick={onPublish}
+            disabled={isUploading}
+          >
+            {isUploading ? "Uploading..." : "Publish"}
+          </button>
         </div>
       </div>
 
