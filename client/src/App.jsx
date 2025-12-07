@@ -15,6 +15,7 @@ import AchievementPage from "./StudentPages/AchievementPage";
 import QuizInformationPage from "./StudentPages/QuizInformation";
 import StudentProfile from "./StudentPages/StudentProfile";
 import StudentShell from "./StudentPages/StudentShell";
+import StudentDashboard2 from "./StudentPages/StudentDashboard2";
 
 import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
@@ -58,6 +59,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<StudentSignUp />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
+      
+        <Route path="/student-dashboard-2" element={<StudentDashboard2 />} />
         <Route path="/quiz" element={<QuizzApp />} />
         <Route path="/course/:id" element={<CoursePlayer />} />
         <Route path="/achievements" element={<AchievementPage />} />

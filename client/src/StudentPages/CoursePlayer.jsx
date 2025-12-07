@@ -1,548 +1,333 @@
-// CoursePlayer.jsx
-import React, { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import "./CoursePlayer.css";
-
-// one image const
-const SAMPLE_IMAGE =
-  "https://images.unsplash.com/photo-1580582932707-520aed937b7b?q=80&w=1600&auto=format&fit=crop";
-const courseInfo = {
-  title: "Learn C Fast | Start Coding Quickly | Master The Fundamentals of C",
-  rating: 4.4,
-  ratingsCount: 3291,
-  students: 97018,
-  total: "3 hours",
-  updated: "May 2021",
-  language: "English",
-  captions: "English [Auto]",
-};
-
-/* tiny icons */
-function Star() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-6.2 3.4 1.2-6.9L2 8.9l7-1 3-6 3 6 7 1-5 4.9 1.2 6.9z"/></svg>); }
-function Users() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/><path d="M22 21v-2a4 4 0 00-3-3.87" stroke="currentColor" strokeWidth="2"/><path d="M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="2"/></svg>); }
-function Globe() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18" stroke="currentColor" strokeWidth="2"/></svg>); }
-function UpdateIcon() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 10-3.1 6.8" stroke="currentColor" strokeWidth="2"/><path d="M21 3v6h-6" stroke="currentColor" strokeWidth="2"/></svg>); }
-const announcements = [
-  {
-    id: 1,
-    author: "Ali",
-    avatar: "https://i.pravatar.cc/40?img=12",
-    timeAgo: "4 years ago",
-    title: "My GymX software!",
-    body: `Hello dear students!  
-I hope you are doing well.
-
-I created a Gym management system and I would like you to see it and help me share it. Please share it with your friends and nearby gyms and tell them to share it with nearby gyms.
-
-Here is the youtube link: https://youtu.be/y-CEi891lfw
-
-Thanks a lot!  
-Happy programming!`,
-    comments: 9,
-  },
-];
-const reviewsMeta = {
-  average: 4.4,
-  distribution: { 5: 42, 4: 38, 3: 15, 2: 3, 1: 2 }, // percentages
-};
-
-function Stars({ value=5, size=14, color="#c06700" }) {
-  return (
-    <span style={{ display:"inline-flex", gap:4 }}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} width={size} height={size} viewBox="0 0 24 24"
-             fill={i < value ? color : "none"} stroke={color} strokeWidth="2">
-          <path d="M12 17.3l-6.2 3.4 1.2-6.9L2 8.9l7-1 3-6 3 6 7 1-5 4.9 1.2 6.9z"/>
-        </svg>
-      ))}
-    </span>
-  );
-}
 
 export default function CoursePlayer() {
   const navigate = useNavigate();
-  const { id } = useParams(); // e.g. SPEK101
+  const { id } = useParams();
+  const [activeTab, setActiveTab] = useState("description");
+  const [expandedLessons, setExpandedLessons] = useState(new Set(["lesson-1"]));
 
-  const [openIds, setOpenIds] = useState(new Set([]));
-  const [playhead, setPlayhead] = useState(5); // seconds (demo)
-  const [activeTab, setActiveTab] = useState("overview");
+  const courseData = {
+    title: "Public Speaking and Leadership",
+    lessons: 6,
+    duration: "3h 25min",
+    rating: 4.8,
+    reviews: 86,
+    currentLesson: "Lesson 1. Introduction to Public Speaking and Leadership"
+  };
 
-  const sections = useMemo(
-    () => [
-      {
-        id: "sec-1",
-        title: "Get Started",
-        duration: "1 Hour",
-        lessonsCount: 5,
-        lessons: [
-          { id: "l1", title: "Welcome & overview", time: "05:00", done: true },
-          { id: "l2", title: "Setup & tools", time: "12:10", done: false },
-          { id: "l3", title: "Project brief", time: "08:40", done: false },
-        ],
-      },
-      {
-        id: "sec-2",
-        title: "Illustrator Structuros",
-        duration: "2 Hour",
-        lessonsCount: 3,
-        lessons: [
-          { id: "l4", title: "Lorem ipsum dolor sit amet", time: "65:00", done: true },
-          { id: "l5", title: "Lorem ipsum dolor", time: "25:00", done: false },
-          { id: "l6", title: "Lorem ipsum dolor sit amet", time: "30:00", done: false },
-        ],
-      },
-      {
-        id: "sec-3",
-        title: "Using Illustrator",
-        duration: "1 Hour",
-        lessonsCount: 4,
-        lessons: [
-          { id: "l7", title: "Workspace tour", time: "09:30", done: false },
-          { id: "l8", title: "Shapes & paths", time: "13:40", done: false },
-        ],
-      },
-      {
-        id: "sec-4",
-        title: "What is Pandas?",
-        duration: "12:54",
-        lessonsCount: 5,
-        lessons: [{ id: "l9", title: "Series vs DataFrame", time: "12:54", done: false }],
-      },
-      {
-        id: "sec-5",
-        title: "Work with Numpy",
-        duration: "58:00",
-        lessonsCount: 3,
-        lessons: [{ id: "l10", title: "Arrays 101", time: "18:20", done: false }],
-      },
-    ],
-    []
-  );
+  const topics = [
+    { time: "0:00", title: "Introduction to Public Speaking" },
+    { time: "2:34", title: "The Importance of Public Speaking" },
+    { time: "5:12", title: "Building Confidence" },
+    { time: "8:45", title: "Understanding Your Audience" },
+    { time: "12:20", title: "Structuring Your Speech" }
+  ];
 
-  const stats = useMemo(() => {
-    const all = sections.flatMap((s) => s.lessons);
-    const done = all.filter((l) => l.done).length;
-    return { done, total: all.length };
-  }, [sections]);
+  const lessons = [
+    {
+      id: "lesson-1",
+      title: "01. Introduction to Public Speaking and Leadership",
+      duration: "40 min",
+      expanded: true,
+      subLessons: [
+        { title: "Overview of public speaking", duration: "8 min" },
+        { title: "Effective communication", duration: "15 min" },
+        { title: "Personal leadership assessment", duration: "11 min" },
+        { title: "Understanding audience dynamics", duration: "6 min" }
+      ]
+    },
+    {
+      id: "lesson-2",
+      title: "02. Foundations of Public Speaking",
+      duration: "36 min",
+      expanded: false
+    },
+    {
+      id: "lesson-3",
+      title: "03. Creating clear and engaging messages",
+      duration: "24 min",
+      expanded: false
+    },
+    {
+      id: "lesson-4",
+      title: "04. Mastering Non-Verbal Communication",
+      duration: "55 min",
+      expanded: false
+    },
+    {
+      id: "lesson-5",
+      title: "05. Persuasion Techniques in Public Speaking",
+      duration: "32 min",
+      expanded: false
+    },
+    {
+      id: "lesson-6",
+      title: "06. Advanced Speaking Techniques",
+      duration: "18 min",
+      expanded: false
+    }
+  ];
 
-  function toggle(id) {
-    setOpenIds((prev) => {
+  const toggleLesson = (lessonId) => {
+    setExpandedLessons((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(lessonId)) {
+        next.delete(lessonId);
+      } else {
+        next.add(lessonId);
+      }
       return next;
     });
-  }
-
-  // Inline styles for tabs (scoped)
-  const tabsSx = {
-    wrap: {
-      display: "flex",
-      position: "relative",
-      gap: 8,
-      marginTop: 14,
-      background: "#fff",
-      border: "1px solid rgba(0,0,0,.08)",
-      borderRadius: 12,
-      padding: 4,
-    },
-    tab: (on) => ({
-      flex: 1,
-      background: "transparent",
-      border: "none",
-      padding: "10px 12px",
-      cursor: "pointer",
-      fontWeight: 600,
-      color: on ? "#0f172a" : "#6b7280",
-      borderRadius: 10,
-    }),
-    underline: {
-      position: "absolute",
-      left: 4,
-      top: 4,
-      bottom: 4,
-      width: "calc((100% - 8px)/3)",
-      background: "rgba(124,92,255,.12)",
-      border: "1px solid rgba(124,92,255,.35)",
-      borderRadius: 10,
-      transition: "transform .25s ease",
-      pointerEvents: "none",
-    },
-    panel: {
-      background: "#fff",
-      border: "1px solid rgba(0,0,0,.08)",
-      borderRadius: 12,
-      padding: 14,
-      marginTop: 10,
-      lineHeight: 1.5,
-    },
-    bullets: { margin: "6px 0 0 16px" },
   };
 
   return (
-    <div className="cp-page">
-      <div className="cp-shell">
-        {/* LEFT: player */}
-        <section className="cp-player">
-          <header className="cp-topbar">
-            <button
-              className="cp-icon-btn"
-              aria-label="Back"
-              onClick={() => navigate("/student-dashboard")}
-            >
-              <ArrowLeft />
-            </button>
+    <div className="cp-page-new">
+      {/* Left Sidebar */}
+      <aside className="cp-sidebar-new">
+        <Link to="/student-dashboard-2" className="cp-sidebar-icon active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+          </svg>
+        </Link>
+        <Link to="/quiz-information" className="cp-sidebar-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+        </Link>
+        <Link to="/achievements" className="cp-sidebar-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </Link>
+        <Link to="/personalized" className="cp-sidebar-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </Link>
+      </aside>
 
-            <div className="cp-title-wrap">
-              <h1 className="cp-title">{id ? `${id} Course Player` : "Course Player"}</h1>
-            </div>
-
-            <button className="cp-icon-btn" aria-label="Settings">
-              <Gear />
-            </button>
-          </header>
-
-          <div className="cp-media">
-            <img src={SAMPLE_IMAGE} alt="Classroom" />
-            <button className="cp-play" aria-label="Play/Pause">
-              <Play />
-            </button>
-
-            <div className="cp-controls">
-              <span className="cp-time">0:{String(playhead).padStart(2, "0")}</span>
-              <input
-                className="cp-seek"
-                type="range"
-                min="0"
-                max="100"
-                value={playhead}
-                onChange={(e) => setPlayhead(Number(e.target.value))}
+      {/* Main Content */}
+      <div className="cp-main-new">
+        {/* Top Header */}
+        <header className="cp-header-new">
+          <div className="cp-header-left">
+            <h1 className="cp-welcome">
+              Welcome to <span className="cp-brand">LearnEase</span>
+            </h1>
+          </div>
+          <div className="cp-header-center">
+            <div className="cp-search-container">
+              <input 
+                type="text" 
+                placeholder="Search" 
+                className="cp-search-input"
               />
-              <span className="cp-time">03:26</span>
-            </div>
-          </div>
-
-          {/* TABS UNDER VIDEO */}
-          <nav role="tablist" aria-label="Course sections" style={tabsSx.wrap}>
-            <button
-              role="tab"
-              aria-selected={activeTab === "overview"}
-              onClick={() => setActiveTab("overview")}
-              style={tabsSx.tab(activeTab === "overview")}
-            >
-              Overview
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === "announcements"}
-              onClick={() => setActiveTab("announcements")}
-              style={tabsSx.tab(activeTab === "announcements")}
-            >
-              Announcements
-            </button>
-            <button
-              role="tab"
-              aria-selected={activeTab === "reviews"}
-              onClick={() => setActiveTab("reviews")}
-              style={tabsSx.tab(activeTab === "reviews")}
-            >
-              Reviews
-            </button>
-            <span
-              style={{
-                ...tabsSx.underline,
-                transform:
-                  activeTab === "overview"
-                    ? "translateX(0%)"
-                    : activeTab === "announcements"
-                    ? "translateX(100%)"
-                    : "translateX(200%)",
-              }}
-            />
-          </nav>
-
-          <div style={tabsSx.panel}>
-           {activeTab === "overview" && (
-  <div>
-    <h2 style={{margin:"0 0 10px", fontSize: "28px", lineHeight: 1.2}}>
-      {courseInfo.title}
-    </h2>
-
-    <div style={{display:"flex", gap:"28px", flexWrap:"wrap", marginBottom:16}}>
-      <div style={{display:"flex", alignItems:"center", gap:8}}>
-        <Star/><strong>{courseInfo.rating}</strong>
-        <span style={{color:"#6b7280"}}>· {courseInfo.ratingsCount.toLocaleString()} ratings</span>
-      </div>
-      <div style={{display:"flex", alignItems:"center", gap:8}}>
-        <Users/><strong>{courseInfo.students.toLocaleString()}</strong>
-        <span style={{color:"#6b7280"}}>Students</span>
-      </div>
-      <div style={{display:"flex", alignItems:"center", gap:8}}>
-        <Clock/><strong>{courseInfo.total}</strong>
-        <span style={{color:"#6b7280"}}>Total</span>
-      </div>
-    </div>
-
-    <div style={{display:"grid", rowGap:8, color:"#0f172a"}}>
-      <div style={{display:"flex", alignItems:"center", gap:10}}>
-        <UpdateIcon/><span>Last updated <strong>{courseInfo.updated}</strong></span>
-      </div>
-      <div style={{display:"flex", alignItems:"center", gap:10}}>
-        <Globe/><span>{courseInfo.language} · {courseInfo.captions}</span>
-      </div>
-    </div>
-  </div>
-)}
-
-           {activeTab === "announcements" && (
-  <div>
-    {announcements.map((a) => (
-      <div key={a.id} style={{marginBottom:24, borderBottom:"1px solid #eee", paddingBottom:16}}>
-        <div style={{display:"flex", alignItems:"center", gap:10, marginBottom:8}}>
-          <img src={a.avatar} alt={a.author} style={{width:36, height:36, borderRadius:"50%"}}/>
-          <div>
-            <a href="#" style={{fontWeight:600, color:"#6b46c1"}}>{a.author}</a>
-            <div style={{fontSize:13, color:"#6b7280"}}>posted an announcement · {a.timeAgo}</div>
-          </div>
-        </div>
-
-        <h3 style={{margin:"8px 0", fontSize:18}}>{a.title}</h3>
-        <p style={{whiteSpace:"pre-line", marginBottom:12}}>{a.body}</p>
-
-        <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <div style={{width:32, height:32, borderRadius:"50%", background:"#111", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12}}>AH</div>
-          <input placeholder="Enter your comment" style={{flex:1, padding:"6px 10px", border:"1px solid #ccc", borderRadius:6}}/>
-        </div>
-
-        <a href="#" style={{fontSize:13, color:"#6b46c1", marginTop:6, display:"inline-block"}}>
-          Show comments ({a.comments})
-        </a>
-      </div>
-    ))}
-  </div>
-)}
-
-{activeTab === "reviews" && (
-  <div>
-    {/* Student feedback header */}
-    <h3 style={{ fontSize:24, margin:"0 0 16px" }}>Student feedback</h3>
-
-    <div style={{ display:"grid", gridTemplateColumns:"220px 1fr", gap:24, alignItems:"center" }}>
-      {/* Left: average */}
-      <div>
-        <div style={{ fontSize:64, color:"#c06700", lineHeight:1 }}>{reviewsMeta.average}</div>
-        <div style={{ margin:"4px 0" }}><Stars value={4} size={18} /></div>
-        <div style={{ color:"#c06700", fontWeight:700 }}>Course Rating</div>
-      </div>
-
-      {/* Right: distribution bars */}
-      <div style={{ display:"grid", gap:10 }}>
-        {[5,4,3,2,1].map(stars => {
-          const pct = reviewsMeta.distribution[stars] || 0;
-          return (
-            <div key={stars} style={{ display:"grid", gridTemplateColumns:"1fr auto auto", alignItems:"center", gap:12 }}>
-              {/* bar */}
-              <div style={{ height:10, background:"#e5e7eb", borderRadius:8, overflow:"hidden" }}>
-                <div style={{ width:`${pct}%`, height:"100%", background:"#9aa0b4" }} />
-              </div>
-              <Stars value={stars} />
-              <a href="#" style={{ color:"#6b46c1", fontSize:14 }}>{pct}%</a>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-
-    {/* Reviews list header */}
-    <h3 style={{ fontSize:24, margin:"28px 0 12px" }}>Reviews</h3>
-
-    {/* Search + filter row */}
-    <div style={{ display:"grid", gridTemplateColumns:"1fr 44px 220px", gap:12 }}>
-      <input placeholder="Search reviews"
-             style={{ padding:"10px 12px", border:"1px solid #d1d5db", borderRadius:8 }} />
-      <button aria-label="Search"
-              style={{ border:"none", borderRadius:8, background:"#6d28d9", color:"#fff", display:"grid", placeItems:"center" }}>
-        🔍
-      </button>
-      <select defaultValue="all"
-              style={{ padding:"10px 12px", border:"1px solid #d1d5db", borderRadius:8 }}>
-        <option value="all">All ratings</option>
-        <option value="5">5 stars</option>
-        <option value="4">4 stars</option>
-        <option value="3">3 stars</option>
-        <option value="2">2 stars</option>
-        <option value="1">1 star</option>
-      </select>
-    </div>
-  </div>
-)}
-
-          </div>
-        </section>
-
-        {/* RIGHT: contents */}
-        <aside className="cp-sidebar">
-          <div className="cp-card">
-            <div className="cp-card-head">
-              <h3>Course Contents</h3>
-              <button className="cp-icon-btn cp-sm" aria-label="Calendar">
-                <Calendar />
+              <button className="cp-search-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="M21 21l-4.35-4.35"></path>
+                </svg>
               </button>
             </div>
+          </div>
+          <div className="cp-header-right">
+            <button className="cp-notification-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <div className="cp-profile">
+              <div className="cp-profile-avatar">KV</div>
+              <div className="cp-profile-info">
+                <div className="cp-profile-name">Kacie Velasquez</div>
+                <div className="cp-profile-username">@k_velasquez</div>
+              </div>
+            </div>
+          </div>
+        </header>
 
-            <div className="cp-head-progress">
-              <span className="cp-head-text">
-                {stats.done}/{stats.total} COMPLETED
-              </span>
-              <div className="cp-head-bar">
-                <div
-                  style={{
-                    width: `${(stats.done / Math.max(1, stats.total)) * 100}%`,
-                  }}
-                />
+        {/* Main Content Area */}
+        <div className="cp-content-new">
+          {/* Breadcrumbs */}
+          <nav className="cp-breadcrumbs">
+            <Link to="/student-dashboard-2">My courses</Link>
+            <span className="cp-breadcrumb-separator">/</span>
+            <span>{courseData.title}</span>
+            <span className="cp-breadcrumb-separator">/</span>
+            <span>{courseData.currentLesson}</span>
+          </nav>
+
+          {/* Course Title with Back Button */}
+          <div className="cp-course-header">
+            <button className="cp-back-btn" onClick={() => navigate("/student-dashboard-2")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6"></path>
+              </svg>
+            </button>
+            <h2 className="cp-course-title">{courseData.title}</h2>
+          </div>
+
+          {/* Course Badges */}
+          <div className="cp-badges">
+            <div className="cp-badge-item">
+              <span className="cp-badge-value">{courseData.lessons}</span>
+              <span className="cp-badge-label">lessons</span>
+            </div>
+            <div className="cp-badge-item">
+              <span className="cp-badge-value">{courseData.duration}</span>
+            </div>
+            <div className="cp-badge-item">
+              <span className="cp-badge-value">{courseData.rating}</span>
+              <span className="cp-badge-label">({courseData.reviews} reviews)</span>
+            </div>
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="cp-content-grid">
+            {/* Left: Video and Tabs */}
+            <div className="cp-left-content">
+              {/* Video Player */}
+              <div className="cp-video-container">
+                <div className="cp-video-thumbnail">
+                  <img 
+                    src="https://images.unsplash.com/photo-1543269664-7eef42226a21?w=800&h=450&fit=crop" 
+                    alt="Course video"
+                  />
+                  <button className="cp-play-button">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="cp-tabs">
+                <button 
+                  className={`cp-tab ${activeTab === "description" ? "active" : ""}`}
+                  onClick={() => setActiveTab("description")}
+                >
+                  Description
+                </button>
+                <button 
+                  className={`cp-tab ${activeTab === "materials" ? "active" : ""}`}
+                  onClick={() => setActiveTab("materials")}
+                >
+                  Materials
+                </button>
+                <button 
+                  className={`cp-tab ${activeTab === "hometask" ? "active" : ""}`}
+                  onClick={() => setActiveTab("hometask")}
+                >
+                  Home task
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="cp-tab-content">
+                {activeTab === "description" && (
+                  <div>
+                    <p className="cp-description-text">
+                      Public speaking is one of the most important and most dreaded forms of communication. 
+                      In this course, you'll learn how to overcome your fear of public speaking and deliver 
+                      powerful presentations that engage and inspire your audience.
+                    </p>
+                    <div className="cp-topics-list">
+                      {topics.map((topic, index) => (
+                        <div key={index} className="cp-topic-item">
+                          <span className="cp-topic-time">{topic.time}</span>
+                          <span className="cp-topic-title">{topic.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {activeTab === "materials" && (
+                  <div>
+                    <p>Course materials will be available here.</p>
+                  </div>
+                )}
+                {activeTab === "hometask" && (
+                  <div>
+                    <p>Home task assignments will be available here.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Share Lesson */}
+              <div className="cp-share-section">
+                <Link to="#" className="cp-share-link">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                    <polyline points="16 6 12 2 8 6"></polyline>
+                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                  </svg>
+                  Share lesson
+                </Link>
               </div>
             </div>
 
-            <div className="cp-accordion cp-pill">
-              {sections.map((sec, sIdx) => {
-                const open = openIds.has(sec.id);
-                return (
-                  <div key={sec.id} className={`cp-acc-item ${open ? "cp-open" : ""}`}>
-                    <div className="cp-acc-summary">
-                      <div className="cp-sum-left">
-                        <span className="cp-sum-title">{sec.title}</span>
-                        <span className="cp-sum-sub">
-                          <Clock /> {sec.duration}
-                        </span>
-                      </div>
-                      <div className="cp-sum-right">
-                        <span className="cp-sum-badge">{sec.lessonsCount} Lessons</span>
-                        <button
-                          className="cp-chev-btn"
-                          aria-label={open ? "Collapse section" : "Expand section"}
-                          aria-expanded={open}
-                          onClick={() => toggle(sec.id)}
-                        >
-                          <Chevron open={open} />
+            {/* Right: Lesson List */}
+            <aside className="cp-lessons-sidebar">
+              <div className="cp-lessons-list">
+                {lessons.map((lesson) => {
+                  const isExpanded = expandedLessons.has(lesson.id);
+                  return (
+                    <div key={lesson.id} className={`cp-lesson-item ${isExpanded ? "expanded" : ""}`}>
+                      <div 
+                        className="cp-lesson-header"
+                        onClick={() => toggleLesson(lesson.id)}
+                      >
+                        <div className="cp-lesson-info">
+                          <div className="cp-lesson-title">{lesson.title}</div>
+                          <div className="cp-lesson-duration">{lesson.duration}</div>
+                        </div>
+                        <button className="cp-expand-btn">
+                          <svg 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2"
+                            style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+                          >
+                            <path d="M6 9l6 6 6-6"></path>
+                          </svg>
                         </button>
                       </div>
-                    </div>
-
-                    {open && (
-                      <div className="cp-acc-panel">
-                        {sec.lessons.map((l, i) => {
-                          const locked = !l.done && i > 0 && sIdx > 0; // demo rule
-                          return (
-                            <div key={l.id} className={`cp-lesson cp-row ${locked ? "cp-locked" : ""}`}>
-                              <span className="cp-row-num">{i + 1}.</span>
-                              <span className={`cp-check ${l.done ? "cp-on" : ""}`}>
-                                {l.done ? <Check /> : null}
-                              </span>
-                              <span className="cp-l-title">{l.title}</span>
-                              <span className="cp-spacer" />
-                              <span className="cp-l-time">{l.time}</span>
-                              {locked && (
-                                <span className="cp-lock">
-                                  <LockIcon />
-                                </span>
-                              )}
+                      {isExpanded && lesson.subLessons && (
+                        <div className="cp-sublessons">
+                          {lesson.subLessons.map((subLesson, index) => (
+                            <div key={index} className="cp-sublesson-item">
+                              <span className="cp-sublesson-title">{subLesson.title}</span>
+                              <span className="cp-sublesson-duration">{subLesson.duration}</span>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </aside>
           </div>
-        </aside>
+        </div>
       </div>
     </div>
-  );
-}
-
-/* ======= tiny SVG icons ======= */
-function ArrowLeft() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M15 18l-6-6 6-6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function Gear() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 003 15.4 1.65 1.65 0 001.5 14H1a2 2 0 010-4h.09A1.65 1.65 0 003 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06A2 2 0 015.44 3.9l.06.06A1.65 1.65 0 007.32 4.3H7.4A1.65 1.65 0 009 3.5V3a2 2 0 014 0v.09a1.65 1.65 0 001.51 1 1.65 1.65 0 001.82-.33l.06-.06A2 2 0 0119.1 5.44l-.06.06a1.65 1.65 0 00-.33 1.82V7.4A1.65 1.65 0 0020.5 9H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1.0z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function Play() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  );
-}
-function Calendar() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
-}
-function Clock() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 7v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-function Chevron({ open }) {
-  return (
-    <svg
-      className={`cp-chev ${open ? "cp-up" : ""}`}
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
-      <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-function Check() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M20 6L9 17l-5-5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function LockIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
   );
 }
