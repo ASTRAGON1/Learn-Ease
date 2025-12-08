@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./StudentDashboard.css";
 import logo from "../assets/logo.png";
@@ -8,6 +8,8 @@ import Footer from "../components/Footer";
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const [openId, setOpenId] = useState(null);
+  const [scrollDirection, setScrollDirection] = useState("down");
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   // demo recs
   const recs = [
@@ -67,6 +69,28 @@ export default function StudentDashboard() {
     if (!recRowRef.current) return;
     const amt = Math.min(360, recRowRef.current.clientWidth * 0.8);
     recRowRef.current.scrollBy({ left: dir * amt, behavior: "smooth" });
+  };
+
+  // Scroll detection for chatbot animation
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setScrollDirection("down");
+      } else if (currentScrollY < lastScrollY) {
+        setScrollDirection("up");
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  const handleChatbotClick = () => {
+    // You can navigate to a chatbot page or open a modal here
+    console.log("Chatbot clicked");
+    // Example: navigate("/chatbot") or setChatOpen(true)
   };
 
   return (
@@ -265,6 +289,51 @@ export default function StudentDashboard() {
           </div>
         </section>
       </main>
+
+      {/* AI Assistant Chatbot Icon */}
+      <div 
+        className={`ai-chatbot-icon ${scrollDirection}`}
+        onClick={handleChatbotClick}
+        role="button"
+        tabIndex={0}
+        aria-label="AI Assistant"
+      >
+        <div className="ai-chatbot-icon-inner">
+          <svg 
+            width="32" 
+            height="32" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            className="ai-chatbot-svg"
+          >
+            {/* Robot Head */}
+            <rect 
+              x="4" 
+              y="6" 
+              width="16" 
+              height="14" 
+              rx="2" 
+              fill="currentColor"
+            />
+            {/* Antenna */}
+            <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
+            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            {/* Eyes */}
+            <circle cx="9" cy="11" r="1.5" fill="white"/>
+            <circle cx="15" cy="11" r="1.5" fill="white"/>
+            {/* Eye glow effect */}
+            <circle cx="9" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
+            <circle cx="15" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
+            {/* Mouth */}
+            <rect x="9" y="15" width="6" height="2" rx="1" fill="white"/>
+            {/* Decorative elements */}
+            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6"/>
+            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6"/>
+          </svg>
+        </div>
+        <div className="ai-chatbot-pulse"></div>
+      </div>
 
       <Footer />
     </div>

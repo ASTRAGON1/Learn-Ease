@@ -67,10 +67,10 @@ export default function App() {
         <Route path="/quiz-information" element={<QuizInformationPage />} />
         <Route path="/CoursePlayer" element={<CoursePlayer />} />
         <Route path="/StudentProfile" element={<StudentProfile />} />
+        <Route path="/personalized" element={<PersonalizedPath />} />
 
         <Route element={<StudentShell />}>
           <Route path="/courses" element={<Courses />} />
-          <Route path="/personalized" element={<PersonalizedPath />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:id" element={<MessageThread />} />
         </Route>

@@ -1,11 +1,19 @@
-import React, { useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./StudentDashboard2.css";
 import { USER_CURRICULUM } from "../data/curriculum";
+import fullLogo from "../assets/OrangeLogo.png";
+import smallLogo from "../assets/OrangeIconLogo.png";
+import icCourse from "../assets/course.png";
+import icPersonalizedPath from "../assets/Path.svg";
 
 export default function StudentDashboard2() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeQuizTab, setActiveQuizTab] = useState("all");
+  const [scrollDirection, setScrollDirection] = useState("down");
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   // Get student's path type (this should come from user profile/API)
   // For now, using a default - you'll need to fetch this from backend
@@ -153,48 +161,144 @@ export default function StudentDashboard2() {
     return status;
   };
 
+  // Scroll detection for chatbot animation
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setScrollDirection("down");
+      } else if (currentScrollY < lastScrollY) {
+        setScrollDirection("up");
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  const handleChatbotClick = () => {
+    // You can navigate to a chatbot page or open a modal here
+    console.log("Chatbot clicked");
+    // Example: navigate("/chatbot") or setChatOpen(true)
+  };
+
+  // Determine active route
+  const getActiveKey = () => {
+    if (location.pathname === "/student-dashboard-2") return "dashboard";
+    if (location.pathname.startsWith("/personalized")) return "personalized";
+    if (location.pathname.startsWith("/achievements")) return "achievements";
+    if (location.pathname.startsWith("/courses")) return "courses";
+    return "dashboard";
+  };
+
+  const activeKey = getActiveKey();
+
+  // Sidebar items
+  const sidebarItems = [
+    { 
+      key: "dashboard", 
+      label: "Dashboard", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      ), 
+      to: "/student-dashboard-2" 
+    },
+    { 
+      key: "personalized", 
+      label: "Personalized Path", 
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
+      to: "/personalized" 
+    },
+    { 
+      key: "achievements", 
+      label: "Achievements", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+      ), 
+      to: "/achievements" 
+    },
+    { 
+      key: "courses", 
+      label: "Courses", 
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+      to: "/courses" 
+    },
+  ];
+
+  const handleSidebarEnter = () => {
+    if (sidebarCollapsed) setSidebarCollapsed(false);
+  };
+
+  const handleSidebarLeave = () => {
+    if (!sidebarCollapsed) setSidebarCollapsed(true);
+  };
+
   return (
     <div className="ld-page">
-      {/* Left Sidebar */}
-      <aside className="ld-sidebar">
-        <Link to="/quiz-information" className="ld-sidebar-icon" title="Quizzes">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-        </Link>
-        <Link to="/achievements" className="ld-sidebar-icon" title="Achievement">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-            <path d="M4 22h16"></path>
-            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-          </svg>
-        </Link>
-        <Link to="/personalized" className="ld-sidebar-icon" title="Personalized path">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-          </svg>
-        </Link>
-        <button 
-          className="ld-sidebar-icon ld-logout-btn" 
-          title="Logout"
-          onClick={handleLogout}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-        </button>
+      {/* Left Sidebar with Hover Animation */}
+      <aside 
+        className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
+        onMouseEnter={handleSidebarEnter}
+        onMouseLeave={handleSidebarLeave}
+      >
+        <div className="ld-sidebar-inner">
+          {/* Logo */}
+          <Link to="/student-dashboard-2" className="ld-sidebar-brand">
+            <img
+              className="ld-sidebar-logo"
+              src={sidebarCollapsed ? smallLogo : fullLogo}
+              alt="LearnEase"
+            />
+          </Link>
+
+          {/* Navigation Items */}
+          <ul className="ld-sidebar-nav">
+            {sidebarItems.map((item) => (
+              <li key={item.key} className={activeKey === item.key ? "active" : ""}>
+                <Link to={item.to} className="ld-sidebar-link">
+                  <span className="ld-sidebar-icon-wrapper">
+                    {item.icon}
+                  </span>
+                  <span className="ld-sidebar-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Logout Button */}
+          <div className="ld-sidebar-footer">
+            <button 
+              className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
+              onClick={handleLogout}
+            >
+              <span className="ld-sidebar-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </span>
+              <span className="ld-sidebar-label">Logout</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <div className="ld-main">
+      <div className={`ld-main ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
         {/* Top Header */}
         <header className="ld-header">
           <div className="ld-header-left">
@@ -536,6 +640,51 @@ export default function StudentDashboard2() {
             )}
           </section>
         </div>
+      </div>
+
+      {/* AI Assistant Chatbot Icon */}
+      <div 
+        className={`ai-chatbot-icon ${scrollDirection}`}
+        onClick={handleChatbotClick}
+        role="button"
+        tabIndex={0}
+        aria-label="AI Assistant"
+      >
+        <div className="ai-chatbot-icon-inner">
+          <svg 
+            width="32" 
+            height="32" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            className="ai-chatbot-svg"
+          >
+            {/* Robot Head */}
+            <rect 
+              x="4" 
+              y="6" 
+              width="16" 
+              height="14" 
+              rx="2" 
+              fill="currentColor"
+            />
+            {/* Antenna */}
+            <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
+            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            {/* Eyes */}
+            <circle cx="9" cy="11" r="1.5" fill="white"/>
+            <circle cx="15" cy="11" r="1.5" fill="white"/>
+            {/* Eye glow effect */}
+            <circle cx="9" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
+            <circle cx="15" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
+            {/* Mouth */}
+            <rect x="9" y="15" width="6" height="2" rx="1" fill="white"/>
+            {/* Decorative elements */}
+            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6"/>
+            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6"/>
+          </svg>
+        </div>
+        <div className="ai-chatbot-pulse"></div>
       </div>
     </div>
   );
