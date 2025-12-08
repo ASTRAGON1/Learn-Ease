@@ -18,6 +18,8 @@ import StudentShell from "./StudentPages/StudentShell";
 import StudentDashboard2 from "./StudentPages/StudentDashboard2";
 
 import InstructorDashboard from "./InstructorPages/InstructorDash";
+import InstructorDashboard2 from "./instructorPages2/InstructorDashboard2";
+import InstructorUpload2 from "./instructorPages2/InstructorUpload2";
 import InstructorLogin from "./InstructorPages/InstructorLogin";
 import InstructorSignUp1 from "./InstructorPages/InstructorSignUp1";
 import InstructorSignUp2 from "./InstructorPages/InstructorSignUp2";
@@ -77,6 +79,8 @@ export default function App() {
 
         <Route path="/InstructorLogin" element={<InstructorLogin />} />
         <Route path="/InstructorDash" element={<InstructorDashboard />} />
+        <Route path="/instructor-dashboard-2" element={<InstructorDashboard2 />} />
+        <Route path="/instructor-upload-2" element={<InstructorUpload2 />} />
         <Route path="/InstructorSignUp1" element={<InstructorSignUp1 />} />
         <Route path="/InstructorSignUp2" element={<InstructorSignUp2 />} />
         <Route path="/InformationGathering1" element={<InformationGathering1 />} />
