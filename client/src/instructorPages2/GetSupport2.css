@@ -1,0 +1,364 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ld-bg-primary: #ffffff;
+  --ld-bg-secondary: #f8f9fa;
+  --ld-bg-card: #ffffff;
+  --ld-text-primary: #1a1a1a;
+  --ld-text-secondary: #6b7280;
+  --ld-accent-orange: #4A0FAD;
+  --ld-accent-primary: #4A0FAD;
+  --ld-accent-purple: #4A0FAD;
+  --ld-accent-purple-light: #6B2FD4;
+  --ld-border: #e5e7eb;
+  --ld-border-black: #3F3D56;
+}
+
+/* Override content padding for GetSupport page */
+.ld-content {
+  padding: 20px 32px;
+  overflow: visible;
+}
+
+/* Grid Layout */
+.gs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Card Styles */
+.gs-card {
+  background: var(--ld-bg-card);
+  border: 1px solid var(--ld-border-black);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  max-height: calc(100vh - 200px);
+}
+
+.gs-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #3F3D56;
+}
+
+/* Chat Section */
+.gs-chat-container {
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 12px;
+}
+
+.gs-chat {
+  background: var(--ld-bg-secondary);
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  min-height: 200px;
+  max-height: 280px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.gs-chat::-webkit-scrollbar {
+  width: 6px;
+}
+
+.gs-chat::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gs-chat::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+.gs-chat::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.gs-message {
+  display: flex;
+  max-width: 80%;
+}
+
+.gs-message.bot {
+  align-self: flex-start;
+}
+
+.gs-message.me {
+  align-self: flex-end;
+}
+
+.gs-message-content {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ld-text-primary);
+}
+
+.gs-message.bot .gs-message-content {
+  background: var(--ld-bg-card);
+  border: 1px solid var(--ld-border);
+  color: var(--ld-accent-orange);
+}
+
+.gs-message.me .gs-message-content {
+  background: var(--ld-accent-orange);
+  color: white;
+  border: 1px solid var(--ld-accent-orange);
+}
+
+/* Chat Input */
+.gs-chat-input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.gs-chat-input {
+  flex: 1;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--ld-text-primary);
+  transition: all 0.2s ease;
+}
+
+.gs-chat-input:focus {
+  outline: none;
+  border-color: var(--ld-accent-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.gs-chat-input::placeholder {
+  color: var(--ld-text-secondary);
+}
+
+.gs-send-btn {
+  padding: 0 24px;
+  height: 44px;
+  background: var(--ld-accent-orange);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.gs-send-btn:hover {
+  background: #6B2FD4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Form Fields */
+.gs-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.gs-form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ld-text-primary);
+}
+
+.gs-form-input,
+.gs-form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--ld-text-primary);
+  transition: all 0.2s ease;
+  background: var(--ld-bg-card);
+}
+
+.gs-form-input {
+  height: 44px;
+}
+
+.gs-form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.gs-form-input:focus,
+.gs-form-textarea:focus {
+  outline: none;
+  border-color: var(--ld-accent-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.gs-form-input::placeholder,
+.gs-form-textarea::placeholder {
+  color: var(--ld-text-secondary);
+}
+
+/* Form Actions */
+.gs-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.gs-primary-btn {
+  padding: 12px 24px;
+  background: var(--ld-accent-orange);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.gs-primary-btn:hover {
+  background: #6B2FD4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Tickets Section */
+.gs-tickets-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #3F3D56;
+}
+
+.gs-tickets-container {
+  flex: 1;
+  min-height: 0;
+}
+
+.gs-tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.gs-tickets-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.gs-tickets-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gs-tickets-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+
+.gs-tickets-list::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.gs-ticket-item {
+  display: grid;
+  grid-template-columns: 90px 1fr 80px;
+  gap: 12px;
+  align-items: center;
+  background: var(--ld-bg-secondary);
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+}
+
+.gs-ticket-item:hover {
+  border-color: var(--ld-accent-orange);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.gs-ticket-id {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ld-text-primary);
+}
+
+.gs-ticket-subject {
+  font-size: 14px;
+  color: var(--ld-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-ticket-status {
+  justify-self: end;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: center;
+}
+
+.gs-ticket-status.open {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.gs-ticket-status.closed {
+  background: #d1fae5;
+  color: #059669;
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .gs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .gs-card {
+    padding: 24px;
+  }
+
+  .gs-card-title {
+    font-size: 20px;
+  }
+
+  .gs-ticket-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .gs-ticket-status {
+    justify-self: start;
+  }
+
+  .gs-chat {
+    min-height: 250px;
+    max-height: 300px;
+  }
+}
+

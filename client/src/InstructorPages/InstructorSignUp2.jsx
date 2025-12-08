@@ -1,8 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, reload, sendEmailVerification } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import './InstructorSignUp2.css';
+
+/* Icons */
+const EmailIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="48" height="48">
+    <rect x="2" y="4" width="20" height="16" rx="2"/>
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+  </svg>
+);
+
+const LightbulbIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+    <path d="M9 21h6M12 3a6 6 0 0 0-4.5 9.5c0 .5.08 1 .22 1.5a1 1 0 0 1-.22 1.5 2 2 0 0 0 0 2 2 2 0 0 1 0 2 1 1 0 0 1-.22 1.5c-.14.5-.22 1-.22 1.5H8.5a6 6 0 0 1-.5-9.5 6 6 0 0 1 9.5-1"/>
+  </svg>
+);
+
+const ArrowLeftIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+);
 
 const API_URL = import.meta.env. VITE_API_URL || 'http://localhost:5000';
 
@@ -93,27 +113,27 @@ export default function InstructorSignUp2() {
               // Navigate based on information gathering status
               setTimeout(async () => {
                 if (isInfoGatheringComplete) {
-                  navigate('/InstructorDash');
+                  navigate('/instructor-dashboard-2');
                 } else {
                   const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
-                  const cv = data.data. teacher.cv || '';
+                  const cv = data.data.teacher.cv || '';
                   
                   if (areasOfExpertise.length === 0 || cv.trim() === '') {
-                    navigate('/InformationGathering1');
+                    navigate('/InformationGathering-1');
                   } else {
                     try {
                       await fetch(`${API_URL}/api/teachers/me`, {
                         method: 'PATCH',
                         headers: {
                           'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${data.data. token}`
+                          'Authorization': `Bearer ${data.data.token}`
                         },
                         body: JSON.stringify({ informationGatheringComplete: true })
                       });
-                      navigate('/InstructorDash');
+                      navigate('/instructor-dashboard-2');
                     } catch (error) {
                       console.error('Error marking information gathering as complete:', error);
-                      navigate('/InstructorDash');
+                      navigate('/instructor-dashboard-2');
                     }
                   }
                 }
@@ -177,30 +197,30 @@ export default function InstructorSignUp2() {
               storeAuthData(data.data.token, data.data. teacher);
 
               // Check if information gathering is complete
-              const isInfoGatheringComplete = data.data.teacher. informationGatheringComplete === true;
+              const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
               
               if (isInfoGatheringComplete) {
-                navigate('/InstructorDash');
+                navigate('/instructor-dashboard-2');
               } else {
-                const areasOfExpertise = data.data.teacher. areasOfExpertise || [];
-                const cv = data. data.teacher.cv || '';
+                const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
+                const cv = data.data.teacher.cv || '';
                 
-                if (areasOfExpertise. length === 0 || cv.trim() === '') {
-                  navigate('/InformationGathering1');
+                if (areasOfExpertise.length === 0 || cv.trim() === '') {
+                  navigate('/InformationGathering-1');
                 } else {
                   try {
                     await fetch(`${API_URL}/api/teachers/me`, {
                       method: 'PATCH',
                       headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${data. data.token}`
+                        'Authorization': `Bearer ${data.data.token}`
                       },
-                      body: JSON. stringify({ informationGatheringComplete: true })
+                      body: JSON.stringify({ informationGatheringComplete: true })
                     });
-                    navigate('/InstructorDash');
+                    navigate('/instructor-dashboard-2');
                   } catch (error) {
-                    console. error('Error marking information gathering as complete:', error);
-                    navigate('/InstructorDash');
+                    console.error('Error marking information gathering as complete:', error);
+                    navigate('/instructor-dashboard-2');
                   }
                 }
               }
@@ -249,8 +269,8 @@ export default function InstructorSignUp2() {
     return (
       <div className="signupInst2-wrap">
         <div className="signupInst2-card">
-          <h1 className="signupInst2-title">Checking Verification... </h1>
-          <p className="signupInst2-subtitle">Please wait while we verify your email. </p>
+          <h1 className="signupInst2-title">Checking Verification...</h1>
+          <p className="signupInst2-subtitle">Please wait while we verify your email.</p>
         </div>
       </div>
     );
@@ -261,7 +281,7 @@ export default function InstructorSignUp2() {
       <div className="signupInst2-wrap">
         <div className="signupInst2-card">
           <h1 className="signupInst2-title">Email Verified!</h1>
-          <p className="signupInst2-subtitle">Your email has been verified.  Redirecting... </p>
+          <p className="signupInst2-subtitle">Your email has been verified. Redirecting...</p>
         </div>
       </div>
     );
@@ -270,29 +290,49 @@ export default function InstructorSignUp2() {
   return (
     <div className="signupInst2-wrap">
       <div className="signupInst2-card">
-        <Link to="/InstructorSignUp1" className="signupInst2-back">
-          ‹ Go Back
-        </Link>
+        {/* Go Back Button */}
+        <button
+          type="button"
+          className="signupInst2-back-btn"
+          onClick={() => navigate('/all-signup')}
+        >
+          <ArrowLeftIcon />
+          <span>Go back</span>
+        </button>
 
-        <h1 className="signupInst2-title">Confirm Your Email</h1>
-        <p className="signupInst2-subtitle">
-          We've sent a verification link to <strong>{email}</strong>. Please click the link in the email to verify your account.
-        </p>
-        <p style={{ fontSize: '13px', color: '#64748b', marginTop: '8px', textAlign: 'center' }}>
-          💡 <strong>Tip:</strong> Check your spam/junk folder if you don't see the email.
-        </p>
-
-        {generalError && (
-          <div className={`signupInst2-alert ${generalError.includes('sent') ? 'signupInst2-alert-success' : ''}`} role="alert">
-            {generalError}
+        {/* Curved Purple Header */}
+        <div className="signupInst2-form-header">
+          <div className="signupInst2-icon-wrapper">
+            <EmailIcon />
           </div>
-        )}
+          <h2 className="signupInst2-user-type">Confirm Your Email</h2>
+        </div>
 
-        <div className="signupInst2-form">
+        {/* Verification Content */}
+        <div className="signupInst2-content">
+          <p className="signupInst2-message">
+            We've sent a verification link to <strong>{email}</strong>. Please click the link in the email to verify your account.
+          </p>
+
+          {/* Tip Section */}
+          <div className="signupInst2-tip">
+            <LightbulbIcon />
+            <span><strong>Tip:</strong> Check your spam/junk folder if you don't see the email.</span>
+          </div>
+
+          {/* Status Info */}
           <div className="signupInst2-info-box">
-            <p>After clicking the verification link in your email, this page will automatically update. </p>
+            <p>After clicking the verification link in your email, this page will automatically update.</p>
           </div>
 
+          {/* Error Messages */}
+          {generalError && (
+            <div className={`signupInst2-alert ${generalError.includes('sent') || generalError.includes('success') ? 'signupInst2-alert-success' : ''}`} role="alert">
+              {generalError}
+            </div>
+          )}
+
+          {/* Resend Button */}
           <button
             className="signupInst2-btn"
             onClick={handleResendVerification}
@@ -302,17 +342,17 @@ export default function InstructorSignUp2() {
             {loading ? 'Sending…' : 'Resend Verification Email'}
           </button>
 
-          <p className="signupInst2-resend">
-            Already verified? {' '}
+          {/* Check Again Link */}
+          <div className="signupInst2-check-again">
+            <span>Already verified? </span>
             <button
               type="button"
               className="signupInst2-link"
               onClick={async () => {
-                const user = auth. currentUser;
+                const user = auth.currentUser;
                 if (user) {
                   await reload(user);
                   if (user.emailVerified) {
-                    // Automatically log in using the same flow as regular login
                     try {
                       const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
                         method: 'POST',
@@ -325,39 +365,37 @@ export default function InstructorSignUp2() {
                         }),
                       });
 
-                      const contentType = response. headers.get('content-type');
+                      const contentType = response.headers.get('content-type');
                       let data;
                       
                       if (contentType && contentType.includes('application/json')) {
                         data = await response.json();
                       } else {
-                        const text = await response. text();
+                        const text = await response.text();
                         console.error('Non-JSON response during auto-login:', text);
                         setGeneralError('Failed to authenticate. Please try again.');
                         return;
                       }
 
-                      if (! response.ok) {
-                        console. error('Auto-login failed:', data.error);
+                      if (!response.ok) {
+                        console.error('Auto-login failed:', data.error);
                         setGeneralError(data.error || 'Failed to authenticate. Please try again.');
                         return;
                       }
 
-                      if (data.data && data.data. token) {
-                        // Store authentication data in BOTH localStorage and sessionStorage
-                        storeAuthData(data.data.token, data.data. teacher);
+                      if (data.data && data.data.token) {
+                        storeAuthData(data.data.token, data.data.teacher);
 
-                        // Check if information gathering is complete
-                        const isInfoGatheringComplete = data. data.teacher.informationGatheringComplete === true;
+                        const isInfoGatheringComplete = data.data.teacher.informationGatheringComplete === true;
                         
                         if (isInfoGatheringComplete) {
-                          navigate('/InstructorDash');
+                          navigate('/instructor-dashboard-2');
                         } else {
                           const areasOfExpertise = data.data.teacher.areasOfExpertise || [];
                           const cv = data.data.teacher.cv || '';
                           
                           if (areasOfExpertise.length === 0 || cv.trim() === '') {
-                            navigate('/InformationGathering1');
+                            navigate('/InformationGathering-1');
                           } else {
                             try {
                               await fetch(`${API_URL}/api/teachers/me`, {
@@ -368,10 +406,10 @@ export default function InstructorSignUp2() {
                                 },
                                 body: JSON.stringify({ informationGatheringComplete: true })
                               });
-                              navigate('/InstructorDash');
+                              navigate('/instructor-dashboard-2');
                             } catch (error) {
                               console.error('Error marking information gathering as complete:', error);
-                              navigate('/InstructorDash');
+                              navigate('/instructor-dashboard-2');
                             }
                           }
                         }
@@ -390,7 +428,7 @@ export default function InstructorSignUp2() {
             >
               Check Again
             </button>
-          </p>
+          </div>
         </div>
       </div>
     </div>

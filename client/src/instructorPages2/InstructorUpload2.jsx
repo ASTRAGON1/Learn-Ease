@@ -8,7 +8,6 @@ import icCourse from "../assets/course.png";
 import icPerformance from "../assets/performance2.png";
 import icCurriculum from "../assets/curriculum.png";
 import icResources from "../assets/resources.png";
-import icProfile from "../assets/Profile.png";
 
 const FILE_TYPES = ["document", "video", "image"];
 
@@ -334,12 +333,6 @@ export default function InstructorUpload2() {
       icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "profile", 
-      label: "Profile", 
-      icon: <img src={icProfile} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/ProfileSettings"
-    },
   ];
 
   const handleSidebarEnter = () => {
@@ -453,12 +446,12 @@ export default function InstructorUpload2() {
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>
-                  <Link to="/ProfileSettings" className="ld-profile-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
+                  <Link to="/profile-2" className="ld-profile-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <span>Profile Settings</span>
+                    <span>Profile</span>
                   </Link>
                   <button className="ld-profile-dropdown-item" onClick={handleLogout}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

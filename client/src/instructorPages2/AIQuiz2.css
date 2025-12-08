@@ -1,0 +1,327 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ld-bg-primary: #ffffff;
+  --ld-bg-secondary: #f8f9fa;
+  --ld-bg-card: #ffffff;
+  --ld-text-primary: #1a1a1a;
+  --ld-text-secondary: #6b7280;
+  --ld-accent-orange: #4A0FAD;
+  --ld-accent-primary: #4A0FAD;
+  --ld-accent-purple: #4A0FAD;
+  --ld-accent-purple-light: #6B2FD4;
+  --ld-border: #e5e7eb;
+  --ld-border-black: #3F3D56;
+}
+
+/* Form Card */
+.aq-form-card {
+  background: var(--ld-bg-card);
+  border: 1px solid var(--ld-border-black);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.aq-card-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #3F3D56;
+}
+
+/* Form Grid */
+.aq-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+/* Form Fields */
+.aq-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.aq-form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ld-text-primary);
+}
+
+.aq-form-input,
+.aq-form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--ld-text-primary);
+  transition: all 0.2s ease;
+  background: var(--ld-bg-card);
+}
+
+.aq-form-input {
+  height: 44px;
+}
+
+.aq-form-select {
+  height: 44px;
+  cursor: pointer;
+}
+
+.aq-form-input:focus,
+.aq-form-select:focus {
+  outline: none;
+  border-color: var(--ld-accent-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.aq-form-input::placeholder {
+  color: var(--ld-text-secondary);
+}
+
+.aq-form-select:disabled {
+  background: var(--ld-bg-secondary);
+  cursor: not-allowed;
+  color: var(--ld-text-secondary);
+}
+
+/* Form Hint */
+.aq-form-hint {
+  font-size: 13px;
+  color: var(--ld-text-secondary);
+  margin-bottom: 16px;
+}
+
+/* Selects Row */
+.aq-selects-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Number Row */
+.aq-number-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Category Pills */
+.aq-category-pills {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.aq-category-pill {
+  padding: 10px 20px;
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  background: var(--ld-bg-card);
+  color: var(--ld-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aq-category-pill:hover {
+  border-color: var(--ld-accent-orange);
+  background: rgba(255, 107, 53, 0.05);
+}
+
+.aq-category-pill.active {
+  background: var(--ld-accent-orange);
+  color: white;
+  border-color: var(--ld-accent-orange);
+}
+
+/* Form Actions */
+.aq-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.aq-primary-btn {
+  padding: 12px 24px;
+  background: var(--ld-accent-orange);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.aq-primary-btn:hover:not(:disabled) {
+  background: #6B2FD4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.aq-primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.aq-secondary-btn {
+  padding: 12px 24px;
+  background: var(--ld-bg-card);
+  color: var(--ld-text-primary);
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.aq-secondary-btn:hover {
+  border-color: var(--ld-accent-orange);
+  background: rgba(255, 107, 53, 0.05);
+}
+
+/* Results Section */
+.aq-results-header {
+  margin-bottom: 24px;
+}
+
+.aq-results-meta {
+  font-size: 14px;
+  color: var(--ld-text-secondary);
+  margin-top: 8px;
+}
+
+/* Questions List */
+.aq-questions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  counter-reset: question-counter;
+}
+
+.aq-question-card {
+  counter-increment: question-counter;
+  background: var(--ld-bg-secondary);
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.aq-question-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ld-text-primary);
+  margin-bottom: 16px;
+}
+
+.aq-answers-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aq-answer-item {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--ld-text-primary);
+  border: 1px solid var(--ld-border);
+  background: var(--ld-bg-card);
+}
+
+.aq-answer-item.correct {
+  background: #d1fae5;
+  border-color: #22c55e;
+  color: #059669;
+}
+
+.aq-answer-item.wrong {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* Legend */
+.aq-legend {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--ld-bg-secondary);
+  border-radius: 10px;
+}
+
+.aq-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ld-text-primary);
+}
+
+.aq-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.aq-legend-dot.correct {
+  background: #22c55e;
+}
+
+.aq-legend-dot.wrong {
+  background: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .aq-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .aq-selects-row {
+    grid-template-columns: 1fr;
+  }
+
+  .aq-number-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .aq-form-card {
+    padding: 24px;
+  }
+
+  .aq-card-title {
+    font-size: 20px;
+  }
+
+  .aq-form-actions {
+    flex-direction: column;
+  }
+
+  .aq-primary-btn,
+  .aq-secondary-btn {
+    width: 100%;
+  }
+}
+
