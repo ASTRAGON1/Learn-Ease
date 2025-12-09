@@ -62,6 +62,14 @@ const contentSchema = new mongoose.Schema({
     },
     default: 'draft'
   },
+  previousStatus: {
+    type: String,
+    enum: {
+      values: ['draft', 'published'],
+      message: 'Previous status must be draft or published'
+    },
+    default: null
+  },
   fileURL: {
     type: String,
     required: [true, 'File URL is required']
@@ -87,6 +95,11 @@ const contentSchema = new mongoose.Schema({
     default: Date.now
   },
   views: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  likes: {
     type: Number,
     default: 0,
     min: 0

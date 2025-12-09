@@ -20,6 +20,7 @@ const testRoutes = require('./routes/testRoutes');
 const teacherAuthRoutes = require('./routes/teacherAuthRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const storageRoutes = require('./routes/storageRoutes');
+const postRoutes = require('./routes/postRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 
 // Test route
@@ -33,6 +34,7 @@ app.use('/api/teachers', teacherAuthRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/content', storageRoutes);
 app.use('/api/quizzes', quizRoutes);
+app.use('/api/posts', postRoutes);
 
 
 // Start server

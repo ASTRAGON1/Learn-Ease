@@ -217,6 +217,66 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
   }
 });
 
+// GET /api/teachers/ranking — get all instructors ranked by total likes
+router.get('/ranking', async (req, res) => {
+  try {
+    // Get all active teachers that have Firebase UID (verified accounts)
+    // Only include teachers that have both MongoDB account and Firebase account
+    const allTeachers = await Teacher.find({ 
+      userStatus: 'active',
+      firebaseUID: { $exists: true, $ne: null } // Only teachers with Firebase accounts
+    })
+      .select('_id fullName profilePic firebaseUID')
+      .lean();
+
+    console.log(`Found ${allTeachers.length} active teachers with Firebase accounts`);
+
+    // Aggregate total likes for each teacher from their published content
+    const ranking = await Content.aggregate([
+      {
+        $match: {
+          status: 'published' // Only count likes from published content
+        }
+      },
+      {
+        $group: {
+          _id: '$teacher',
+          totalLikes: { $sum: '$likes' }
+        }
+      }
+    ]);
+
+    // Create a map of teacher ID to total likes
+    const likesMap = new Map();
+    ranking.forEach(r => {
+      likesMap.set(r._id.toString(), r.totalLikes);
+    });
+
+    // Combine all teachers with their likes count
+    // Filter out any teachers without a valid fullName (must not be empty, null, or "Unknown")
+    const allRanking = allTeachers
+      .filter(teacher => {
+        const name = teacher.fullName ? teacher.fullName.trim() : '';
+        return name !== '' && name.toLowerCase() !== 'unknown';
+      })
+      .map(teacher => ({
+        id: teacher._id,
+        name: teacher.fullName.trim(),
+        profilePic: teacher.profilePic || '',
+        likes: likesMap.get(teacher._id.toString()) || 0
+      }))
+      .sort((a, b) => b.likes - a.likes); // Sort by total likes descending
+
+    console.log(`Found ${allTeachers.length} teachers with Firebase UID`);
+    console.log(`Returning ${allRanking.length} instructors in ranking (after filtering)`);
+    console.log('Instructor names:', allRanking.map(r => r.name));
+    res.json({ data: allRanking });
+  } catch (error) {
+    console.error('Error fetching instructor ranking:', error);
+    res.status(500).json({ error: 'Server error while fetching ranking' });
+  }
+});
+
 // GET /api/teachers/:id — public teacher profile (no password)
 router.get('/:id', async (req, res) => {
   const t = await Teacher.findById(req.params.id).select('-password');

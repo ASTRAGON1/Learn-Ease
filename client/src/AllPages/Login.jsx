@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../config/firebase";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -33,13 +33,6 @@ const LockIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-  </svg>
-);
-
-const ProfileIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="48" height="48">
-    <circle cx="12" cy="8" r="4"/>
-    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
   </svg>
 );
 
@@ -245,14 +238,55 @@ export default function Login() {
 
       // For instructors: Use Firebase Auth only, no storage
       if (loginResult.userType === 'teacher') {
-        // Sign in with Firebase
+        // Sign in with Firebase - this is REQUIRED for instructors
+        let firebaseUID = null;
         try {
           const firebaseCredential = await signInWithEmailAndPassword(auth, loginResult.user?.email || email || username, password);
-          const firebaseUID = firebaseCredential.user.uid;
+          firebaseUID = firebaseCredential.user.uid;
+          
+          // Wait for Firebase Auth state to propagate (up to 2 seconds)
+          await new Promise((resolve) => {
+            let resolved = false;
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+              if (user && user.uid === firebaseUID && !resolved) {
+                resolved = true;
+                unsubscribe();
+                resolve();
+              }
+            });
+            // If already authenticated, resolve immediately
+            if (auth.currentUser && auth.currentUser.uid === firebaseUID) {
+              if (!resolved) {
+                resolved = true;
+                unsubscribe();
+                resolve();
+              }
+            }
+            // Timeout after 2 seconds
+            setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                unsubscribe();
+                resolve();
+              }
+            }, 2000);
+          });
+          
+          // Verify Firebase Auth is properly initialized
+          if (!auth.currentUser || auth.currentUser.uid !== firebaseUID) {
+            throw new Error('Firebase authentication not properly initialized');
+          }
+          
+          // Verify token is available
+          try {
+            await auth.currentUser.getIdToken();
+          } catch (tokenError) {
+            throw new Error('Firebase token not available');
+          }
           
           // Update MongoDB with firebaseUID if not already set
-        try {
-            await fetch(`${API_URL}/api/teachers/me`, {
+          try {
+            const updateResponse = await fetch(`${API_URL}/api/teachers/me`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
@@ -260,20 +294,40 @@ export default function Login() {
               },
               body: JSON.stringify({ firebaseUID })
             });
+            
+            if (!updateResponse.ok) {
+              console.log('Could not update firebaseUID (may already be set)');
+            }
           } catch (updateError) {
             console.log('Could not update firebaseUID (may already be set):', updateError);
             // Continue anyway - firebaseUID might already be set
           }
         } catch (firebaseError) {
-          console.error('Firebase authentication failed:', firebaseError.code);
-          // If Firebase fails but MongoDB login succeeded, still allow access
-          // User might not have Firebase account yet
-          if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
-            setServerError('Firebase account not found. Please sign up first or contact support.');
-            setLoading(false);
-            return;
+          console.error('Firebase authentication failed:', firebaseError.code, firebaseError.message);
+          
+          // Provide specific error messages
+          let errorMessage = 'Firebase authentication failed. Please try again.';
+          
+          if (firebaseError.code === 'auth/user-not-found') {
+            errorMessage = 'Firebase account not found. Please sign up first or contact support.';
+          } else if (firebaseError.code === 'auth/wrong-password') {
+            errorMessage = 'Incorrect password for Firebase account. Please check your password.';
+          } else if (firebaseError.code === 'auth/invalid-email') {
+            errorMessage = 'Invalid email address. Please check your email.';
+          } else if (firebaseError.code === 'auth/too-many-requests') {
+            errorMessage = 'Too many failed login attempts. Please try again later.';
+          } else if (firebaseError.message && firebaseError.message.includes('not properly initialized')) {
+            errorMessage = 'Authentication error. Please refresh the page and try again.';
           }
-          setServerError('Firebase authentication failed. Please try again.');
+          
+          setServerError(errorMessage);
+          setLoading(false);
+          return;
+        }
+        
+        // Double-check Firebase Auth is still valid before proceeding
+        if (!auth.currentUser) {
+          setServerError('Firebase authentication session expired. Please try again.');
           setLoading(false);
           return;
         }
@@ -350,26 +404,19 @@ export default function Login() {
   return (
     <div className="all-login-wrap">
       <div className="all-login-card">
-          {/* Go Back Button */}
+        <div className="all-login-title-section">
           <button
             type="button"
             className="all-login-back-btn"
             onClick={() => navigate("/")}
           >
             <ArrowLeftIcon />
-            <span>Go back</span>
           </button>
+          <h1 className="all-login-page-title">Login into your account</h1>
+        </div>
 
-          {/* Curved Purple Header */}
-          <div className="all-login-form-header">
-            <div className="all-login-profile-icon-wrapper">
-              <ProfileIcon />
-            </div>
-            <h2 className="all-login-user-type">Sign into your account</h2>
-          </div>
-
-          {/* Login Form */}
-          <form className="all-login-form" onSubmit={handleSubmit}>
+        {/* Login Form */}
+        <form className="all-login-form" onSubmit={handleSubmit}>
             {serverError && (
               <div className="all-login-server-error" role="alert">
                 {serverError}

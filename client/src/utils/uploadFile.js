@@ -1,5 +1,6 @@
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage, auth } from '../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const makePath = (folder, uid, file) => {
   // Sanitize filename: replace special characters but keep extension
@@ -9,17 +10,58 @@ const makePath = (folder, uid, file) => {
 };
 
 export const uploadFile = (file, folder = 'documents', firebaseUid = null, onProgress = null) =>
-  new Promise((resolve, reject) => {
+  new Promise(async (resolve, reject) => {
     if (!file) {
       return reject(new Error('No file provided'));
     }
     
-    const uid = firebaseUid || (auth.currentUser && auth.currentUser.uid);
-    if (!uid) return reject(new Error('Not authenticated (firebase uid)'));
+    // Wait for Firebase Auth to be ready if needed
+    let uid = firebaseUid || (auth.currentUser && auth.currentUser.uid);
+    
+    if (!uid) {
+      // Wait for auth state to initialize (up to 2 seconds)
+      await new Promise((resolveAuth) => {
+        let resolved = false;
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (!resolved) {
+            resolved = true;
+            unsubscribe();
+            resolveAuth();
+          }
+        });
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            unsubscribe();
+            resolveAuth();
+          }
+        }, 2000);
+      });
+      uid = firebaseUid || (auth.currentUser && auth.currentUser.uid);
+    }
+    
+    if (!uid) {
+      return reject(new Error('Not authenticated (firebase uid)'));
+    }
+    
+    // Verify user has a valid token
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || currentUser.uid !== uid) {
+        return reject(new Error('Firebase authentication not valid'));
+      }
+      
+      // Force token refresh to ensure it's valid
+      await currentUser.getIdToken(true);
+    } catch (tokenError) {
+      console.error('Firebase token error:', tokenError);
+      return reject(new Error('Firebase authentication token invalid. Please log in again.'));
+    }
     
     const path = makePath(folder, uid, file);
     console.log('Upload path:', path);
     console.log('Original filename:', file.name);
+    console.log('Firebase UID:', uid);
     
     const storageRef = ref(storage, path);
     const task = uploadBytesResumable(storageRef, file);

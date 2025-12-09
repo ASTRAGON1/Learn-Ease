@@ -10,14 +10,19 @@ router.post('/', auth(['teacher']), ctrl.createContent);
 // PATCH /api/content/:id - Update content (for archiving)
 router.patch('/:id', auth(['teacher']), async (req, res) => {
   try {
-    const allowed = ['title', 'type', 'fileURL', 'course', 'topic', 'lesson', 'category', 'description', 'status'];
+    const allowed = ['title', 'type', 'fileURL', 'course', 'topic', 'lesson', 'category', 'description', 'status', 'previousStatus'];
     const update = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => allowed.includes(k))
     );
 
+    // If restoring from archived, clear previousStatus
+    if (update.status && update.status !== 'archived' && req.body.previousStatus === null) {
+      update.previousStatus = null;
+    }
+
     const updated = await Content.findOneAndUpdate(
       { _id: req.params.id, teacher: req.user.sub },
-      update,
+      { $set: update },
       { new: true }
     );
 

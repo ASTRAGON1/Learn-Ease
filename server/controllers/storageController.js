@@ -12,7 +12,7 @@ exports.getContent = async (req, res) => {
     
     const content = await Content.find(query)
       .sort({ createdAt: -1 }) // Newest first
-      .select('title category status createdAt');
+      .select('title category status createdAt previousStatus storagePath');
     
     return res.status(200).json({ data: content });
   } catch (e) {

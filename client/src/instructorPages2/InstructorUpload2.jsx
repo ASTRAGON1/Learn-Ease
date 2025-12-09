@@ -91,10 +91,16 @@ export default function InstructorUpload2() {
           title: item.title,
           category: item.category === 'autism' ? 'Autism' : item.category === 'downSyndrome' ? 'Down Syndrome' : item.category,
           status: item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : item.status === 'archived' ? 'Archived' : item.status,
-          storagePath: item.storagePath
+          storagePath: item.storagePath,
+          previousStatus: item.previousStatus || null // Track previous status for archived items
         }));
         
-        setContentRows(transformed);
+        // Separate archived and non-archived content
+        const activeContent = transformed.filter(item => item.status !== 'Archived');
+        const archivedContent = transformed.filter(item => item.status === 'Archived');
+        
+        setContentRows(activeContent);
+        setArchivedRows(archivedContent);
       }
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -234,6 +240,16 @@ export default function InstructorUpload2() {
     if (!desc.trim()) e.desc = "Description is required";
     if (!file) {
       e.file = "File is required";
+    } else {
+      // Validate file type matches selected type
+      const fileMimeType = file.type || '';
+      if (fileType === 'video' && !fileMimeType.startsWith('video/')) {
+        e.file = "Selected file is not a video. Please select a video file or change the file type.";
+      } else if (fileType === 'image' && !fileMimeType.startsWith('image/')) {
+        e.file = "Selected file is not an image. Please select an image file or change the file type.";
+      } else if (fileType === 'document' && (fileMimeType.startsWith('video/') || fileMimeType.startsWith('image/'))) {
+        e.file = "Selected file type doesn't match. Please select the correct file type.";
+      }
     }
     if (!fileType) e.fileType = "File type is required";
     if (!course) e.course = "Course is required";
@@ -252,9 +268,49 @@ export default function InstructorUpload2() {
       return;
     }
 
-    const currentUser = auth.currentUser;
+    // Check Firebase auth - wait for auth state to be determined
+    let currentUser = auth.currentUser;
     if (!currentUser) {
-      showToast("You must be logged in to upload content", "error");
+      // Wait for Firebase auth state to initialize (up to 3 seconds)
+      await new Promise((resolve) => {
+        let resolved = false;
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (!resolved) {
+            resolved = true;
+            unsubscribe();
+            resolve();
+          }
+        });
+        // Timeout after 3 seconds
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            unsubscribe();
+            resolve();
+          }
+        }, 3000);
+      });
+      currentUser = auth.currentUser;
+    }
+
+    // If still no Firebase user authenticated, we cannot upload
+    // Firebase Storage requires Firebase Auth authentication
+    if (!currentUser) {
+      showToast("Firebase authentication required. Please log out and log in again.", "error");
+      navigate('/all-login');
+      return;
+    }
+
+    // Verify the user has a valid Firebase Auth token
+    try {
+      const token = await currentUser.getIdToken();
+      if (!token) {
+        throw new Error('No Firebase token available');
+      }
+    } catch (tokenError) {
+      console.error('Firebase token error:', tokenError);
+      showToast("Authentication expired. Please log out and log in again.", "error");
+      navigate('/all-login');
       return;
     }
 
@@ -262,8 +318,47 @@ export default function InstructorUpload2() {
     setUploadProgress(0);
     
     try {
-      // Step 1: Upload file to Firebase Storage
-      const storageFolder = fileType; // 'documents', 'videos', or 'images'
+      // Step 1: Determine the correct storage folder based on actual file type
+      // Check the file's MIME type to ensure it matches the selected type
+      const fileMimeType = file.type || '';
+      let actualFileType = fileType;
+      
+      // Auto-detect file type from MIME type if it doesn't match selection
+      if (fileMimeType.startsWith('video/')) {
+        actualFileType = 'video';
+      } else if (fileMimeType.startsWith('image/')) {
+        actualFileType = 'image';
+      } else if (fileMimeType.startsWith('application/') || fileMimeType.startsWith('text/') || !fileMimeType) {
+        // PDFs, Word docs, text files, or files without MIME type go to documents
+        actualFileType = 'document';
+      }
+      
+      // Warn if selected type doesn't match actual file type
+      if (actualFileType !== fileType) {
+        console.warn(`File type mismatch: Selected "${fileType}" but file is "${actualFileType}". Using "${actualFileType}".`);
+        showToast(`File type auto-corrected from "${fileType}" to "${actualFileType}" based on file content.`, "error");
+      }
+      
+      // Map fileType to Firebase Storage folder names (plural)
+      const folderMap = {
+        'document': 'documents',
+        'video': 'videos',
+        'image': 'images'
+      };
+      const storageFolder = folderMap[actualFileType] || 'documents'; // Default to documents
+      
+      if (!storageFolder) {
+        throw new Error('Invalid file type selected');
+      }
+      
+      console.log('File upload details:', {
+        selectedType: fileType,
+        actualType: actualFileType,
+        mimeType: fileMimeType,
+        folder: storageFolder,
+        fileName: file.name
+      });
+      
       const uploadResult = await uploadFile(
         file,
         storageFolder,
@@ -279,6 +374,9 @@ export default function InstructorUpload2() {
       const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
       const normalizedCategory = categoryMap[category] || category.toLowerCase();
 
+      // Use the actual detected file type for MongoDB, not the user's selection
+      const mongoType = actualFileType || fileType;
+
       const response = await fetch(`${API_URL}/api/content`, {
         method: 'POST',
         headers: {
@@ -288,7 +386,7 @@ export default function InstructorUpload2() {
         body: JSON.stringify({
           title: title.trim(),
           category: normalizedCategory,
-          type: fileType,
+          type: mongoType, // Use actual detected type
           topic: topic,
           lesson: lesson,
           course: course,
@@ -344,6 +442,134 @@ export default function InstructorUpload2() {
 
   const onSaveDraft = () => saveContent("Draft");
   const onPublish = () => saveContent("Published");
+
+  // Archive content
+  const archiveContent = async (contentId) => {
+    if (!mongoToken) {
+      showToast("Please log in to archive content", "error");
+      return;
+    }
+
+    // Find the content item to get its current status
+    const contentItem = contentRows.find(item => item.id === contentId);
+    if (!contentItem) {
+      showToast("Content not found", "error");
+      return;
+    }
+
+    // Determine previous status (Published or Draft)
+    const previousStatus = contentItem.status === 'Published' ? 'published' : 'draft';
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({ 
+          status: 'archived',
+          previousStatus: previousStatus // Store the previous status
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to archive content');
+      }
+
+      showToast("Content archived successfully", "success");
+      await fetchContent(); // Refresh content list
+    } catch (error) {
+      console.error('Error archiving content:', error);
+      showToast(`Failed to archive content: ${error.message}`, "error");
+    }
+  };
+
+  // Restore archived content to its previous status
+  const restoreContent = async (contentId, previousStatus) => {
+    if (!mongoToken) {
+      showToast("Please log in to restore content", "error");
+      return;
+    }
+
+    // If no previous status, default to 'published'
+    const restoreStatus = previousStatus || 'published';
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({ 
+          status: restoreStatus,
+          previousStatus: null // Clear previous status since it's no longer archived
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to restore content');
+      }
+
+      const statusText = restoreStatus === 'published' ? 'published' : 'draft';
+      showToast(`Content restored to ${statusText} successfully`, "success");
+      await fetchContent(); // Refresh content list
+    } catch (error) {
+      console.error('Error restoring content:', error);
+      showToast(`Failed to restore content: ${error.message}`, "error");
+    }
+  };
+
+  // Delete content
+  const deleteContent = async (contentId, storagePath) => {
+    if (!mongoToken) {
+      showToast("Please log in to delete content", "error");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this content? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${mongoToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete content');
+      }
+
+      const result = await response.json();
+      
+      // Delete file from Firebase Storage if storagePath is provided
+      if (result.storagePath && storagePath) {
+        try {
+          const { deleteFileByPath } = await import('../utils/uploadFile');
+          await deleteFileByPath(storagePath);
+        } catch (storageError) {
+          console.error('Error deleting file from Firebase Storage:', storageError);
+          // Continue anyway - file might already be deleted
+        }
+      }
+
+      showToast("Content deleted successfully", "success");
+      await fetchContent(); // Refresh content list
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      showToast(`Failed to delete content: ${error.message}`, "error");
+    }
+  };
 
   const addPair = () => {
     if (pairs.length >= 15) {
@@ -490,6 +716,7 @@ export default function InstructorUpload2() {
 
   // Sample data for content and quizzes (no backend)
   const [contentRows, setContentRows] = useState([]);
+  const [archivedRows, setArchivedRows] = useState([]);
   const [quizRows, setQuizRows] = useState([]);
 
   return (
@@ -1032,11 +1259,78 @@ export default function InstructorUpload2() {
                         {row.status}
                       </div>
                       <div className="ld-upload-content-actions">
-                        <button type="button" className="ld-upload-btn-arch">Archive</button>
-                        <button type="button" className="ld-upload-btn-del">Delete</button>
+                        <button 
+                          type="button" 
+                          className="ld-upload-btn-arch"
+                          onClick={() => archiveContent(row.id)}
+                        >
+                          Archive
+                        </button>
+                        <button 
+                          type="button" 
+                          className="ld-upload-btn-del"
+                          onClick={() => deleteContent(row.id, row.storagePath)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   ))
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Archive Section */}
+          <section className="ld-upload-section-main">
+            <h2 className="ld-upload-section-title">Archived Content</h2>
+            <div className="ld-upload-content-card">
+              <div className="ld-upload-content-head">
+                <span>Content title</span>
+                <span>Category</span>
+                <span>Status</span>
+                <span className="ld-upload-actions-col">Actions</span>
+              </div>
+              <div className="ld-upload-content-rows">
+                {archivedRows.length === 0 ? (
+                  <div className="ld-upload-empty">
+                    <div className="ld-upload-empty-icon">📦</div>
+                    <p className="ld-upload-empty-text">No archived content</p>
+                    <p className="ld-upload-empty-subtext">Archived content will appear here</p>
+                  </div>
+                ) : (
+                  archivedRows.map((row) => {
+                    // Determine previous status - check if it's stored, otherwise default to 'published'
+                    const previousStatus = row.previousStatus || 'published';
+                    const restoreStatusText = previousStatus === 'published' ? 'Published' : 'Draft';
+                    
+                    return (
+                      <div key={row.id} className="ld-upload-content-row">
+                        <div className="ld-upload-content-title">{row.title}</div>
+                        <div className="ld-upload-pill">{row.category}</div>
+                        <div className={`ld-upload-status-pill ld-upload-status-yellow`}>
+                          {row.status}
+                        </div>
+                        <div className="ld-upload-content-actions">
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-arch"
+                            onClick={() => restoreContent(row.id, previousStatus)}
+                            title={`Restore to ${restoreStatusText}`}
+                          >
+                            Restore
+                          </button>
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-del"
+                            onClick={() => deleteContent(row.id, row.storagePath)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
+import signUpStudentImage from "../instructorPages2/assets/signUPStudent.png";
+import signUpInstructorImage from "../instructorPages2/assets/signUpInstructor.png";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -40,13 +42,6 @@ const LockIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-  </svg>
-);
-
-const ProfileIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="48" height="48">
-    <circle cx="12" cy="8" r="4"/>
-    <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
   </svg>
 );
 
@@ -309,23 +304,27 @@ export default function Signup() {
 
   return (
     <div className="all-signup-wrap">
-      <div className="all-signup-card">
-          {/* Go Back Button */}
-          <button
-            type="button"
-            className="all-signup-back-btn"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeftIcon />
-            <span>Go back</span>
-          </button>
+      <div className={`all-signup-card ${userType === "student" ? "form-left-card" : "form-right-card"}`}>
+        {/* Image Section */}
+        <div className={`all-signup-image-section ${userType === "student" ? "image-right" : "image-left"}`}>
+          <img 
+            src={userType === "student" ? signUpStudentImage : signUpInstructorImage} 
+            alt={userType === "student" ? "Student Signup" : "Instructor Signup"}
+            className="all-signup-image"
+          />
+        </div>
 
-          {/* Curved Purple Header */}
-          <div className="all-signup-form-header">
-            <div className="all-signup-profile-icon-wrapper">
-              <ProfileIcon />
-            </div>
-            <h2 className="all-signup-user-type">Create Account</h2>
+        {/* Signup Form Section */}
+        <div className={`all-signup-form-section ${userType === "student" ? "form-left" : "form-right"}`}>
+          <div className="all-signup-title-section">
+            <button
+              type="button"
+              className="all-signup-back-btn"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeftIcon />
+            </button>
+            <h1 className="all-signup-page-title">Create your account</h1>
           </div>
 
           {/* Signup Form */}
@@ -513,6 +512,7 @@ export default function Signup() {
               </button>
             </div>
           </form>
+        </div>
         </div>
     </div>
   );

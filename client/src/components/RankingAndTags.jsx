@@ -1,7 +1,7 @@
 import React from "react";
 import "./RankingAndTags.css";
 
-export default function RankingTagsPanel({ instructors, categories }) {
+export default function RankingTagsPanel({ instructors, categories, currentUserId }) {
   return (
     <div className="rtp-container">
       {/* LEFT: Instructors Ranking */}
@@ -20,11 +20,42 @@ export default function RankingTagsPanel({ instructors, categories }) {
             else if (pos === 2) medal = "🥈";
             else if (pos === 3) medal = "🥉";
 
+            // Check if this is the current user
+            const isCurrentUser = currentUserId && (inst.id?.toString() === currentUserId || inst.id === currentUserId);
+
             return (
               <div key={inst.id || i} className="rtp-item">
                 <div className="rtp-student">
-                  <div className="rtp-avatar" />
-                  {inst.name}
+                  <div className="rtp-avatar">
+                    {inst.profilePic ? (
+                      <img 
+                        src={inst.profilePic} 
+                        alt={inst.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '50%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        backgroundColor: '#e5e7eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#6b7280',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}>
+                        {inst.name ? inst.name.charAt(0).toUpperCase() : '?'}
+                      </div>
+                    )}
+                  </div>
+                  {inst.name} {isCurrentUser && <span style={{ color: '#4A0FAD', fontWeight: '600', marginLeft: '4px' }}>(You)</span>}
                 </div>
                 <div className="rtp-likes">{inst.likes.toLocaleString()}</div>
                 <div className="rtp-rank">
