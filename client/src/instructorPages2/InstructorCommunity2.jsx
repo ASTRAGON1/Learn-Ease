@@ -122,33 +122,43 @@ export default function InstructorCommunity2() {
 
       try {
         const token = await getMongoDBToken();
-        if (token) {
-          setMongoToken(token);
+        if (!token) {
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
 
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
+        setMongoToken(token);
 
-          if (response.ok) {
-            const data = await response.json();
-            const teacher = data.data || data;
-            
-            if (teacher._id) {
-              setCurrentUserId(teacher._id.toString());
-            }
-            
-            if (teacher.fullName) {
-              const firstName = teacher.fullName.split(' ')[0];
-              setInstructorName(firstName);
-            }
-            
-            if (teacher.email) {
-              setEmail(teacher.email);
-            }
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          const teacher = data.data || data;
+          
+          if (teacher._id) {
+            setCurrentUserId(teacher._id.toString());
+          }
+          
+          if (teacher.fullName) {
+            const firstName = teacher.fullName.split(' ')[0];
+            setInstructorName(firstName);
+          }
+          
+          if (teacher.email) {
+            setEmail(teacher.email);
           }
         }
         
@@ -156,6 +166,7 @@ export default function InstructorCommunity2() {
       } catch (error) {
         console.error('Error checking auth:', error);
         setLoading(false);
+        navigate('/all-login');
       }
     });
 
@@ -292,8 +303,8 @@ export default function InstructorCommunity2() {
   };
 
   if (loading) {
-    return (
-      <div className="ld-page">
+  return (
+    <div className="ld-page">
         <div className="ld-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
           <div>Loading...</div>
         </div>
@@ -309,7 +320,7 @@ export default function InstructorCommunity2() {
         {/* Header */}
         <header className="ld-header">
           <div className="ld-header-left">
-            <button className="ld-back-btn" onClick={() => navigate("/instructor-dashboard-2")}>
+            <button className="ld-back-btn" onClick={() => navigate("/instructor-dashboard-2", { state: { section: 'resources' } })}>
               <span className="ld-back-chev">‹</span> Dashboard
             </button>
           </div>
@@ -401,7 +412,7 @@ export default function InstructorCommunity2() {
                           <div className="ld-notification-popover-time">{notif.time}</div>
                         </div>
                         {!notif.read && <div className="ld-notification-unread-dot"></div>}
-                        <button 
+          <button
                           className="ld-notification-delete-btn"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -794,7 +805,7 @@ function ProfileDrawer({ user, onClose }) {
               onClick={()=>setFollowing(v=>!v)}
             >
               {following? "Following":"Follow"}
-            </button>
+          </button>
           </div>
         </div>
 

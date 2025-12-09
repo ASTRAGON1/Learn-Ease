@@ -24,6 +24,7 @@ export default function GetSupport2() {
     { who: "bot", text: "Hi! Ask anything about LearnEase." },
   ]);
   const [q, setQ] = useState("");
+  const [isAILoading, setIsAILoading] = useState(false);
   const chatEndRef = useRef(null);
   const chatInputRef = useRef(null);
 
@@ -44,56 +45,190 @@ export default function GetSupport2() {
   const [instructorName, setInstructorName] = useState('Instructor');
   const [email, setEmail] = useState('');
   const [profilePic, setProfilePic] = useState('');
+  const [loading, setLoading] = useState(true);
   const { showToast, ToastComponent } = useSimpleToast();
 
   // Get instructor name from Firebase Auth
   useEffect(() => {
+    let isMounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+      
       if (!firebaseUser) {
+        setLoading(false);
         navigate('/all-login');
         return;
       }
 
       const token = await getMongoDBToken();
-      if (token) {
-        try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            const teacher = data.data || data;
-            if (teacher.fullName) {
-              setInstructorName(teacher.fullName.split(' ')[0]);
-            }
-            if (teacher.email) {
-              setEmail(teacher.email);
-            }
-            if (teacher.profilePic) {
-              setProfilePic(teacher.profilePic);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching instructor name:', error);
-        }
+      if (!token) {
+        setLoading(false);
+        navigate('/all-login');
+        return;
       }
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
+        
+        if (response.ok) {
+          const data = await response.json();
+          const teacher = data.data || data;
+          if (teacher.fullName) {
+            setInstructorName(teacher.fullName.split(' ')[0]);
+          }
+          if (teacher.email) {
+            setEmail(teacher.email);
+          }
+          if (teacher.profilePic) {
+            setProfilePic(teacher.profilePic);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching instructor name:', error);
+        setLoading(false);
+        navigate('/all-login');
+        return;
+      }
+      
+      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [navigate]);
 
-  const sendAI = () => {
-    if (!q.trim()) return;
-    setChat((c) => [...c, { who: "me", text: q }]);
-    setTimeout(() => {
-      setChat((c) => [
-        ...c,
-        { who: "bot", text: "Thanks! AI will be wired soon." },
-      ]);
-    }, 400);
+  const sendAI = async () => {
+    if (!q.trim() || isAILoading) return;
+    
+    const userMessage = q.trim();
+    const currentChat = [...chat, { who: "me", text: userMessage }];
+    setChat(currentChat);
     setQ("");
+    setIsAILoading(true);
+
+    // Add placeholder bot message that we'll update
+    setChat((c) => [...c, { who: "bot", text: "" }]);
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Prepare conversation history (exclude the placeholder we just added)
+      const conversationHistory = currentChat.filter(msg => msg.text);
+
+      // Try streaming first
+      try {
+        const response = await fetch(`${API_URL}/api/ai/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            conversationHistory: conversationHistory
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Streaming failed, trying fallback');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedText = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+                
+                if (data.done) {
+                  break;
+                }
+                
+                if (data.content) {
+                  accumulatedText += data.content;
+                  // Update the last message (bot message) with accumulated text
+                  setChat((c) => {
+                    const newChat = [...c];
+                    newChat[newChat.length - 1] = { who: "bot", text: accumulatedText };
+                    return newChat;
+                  });
+                }
+              } catch (parseError) {
+                // Skip invalid JSON lines
+                continue;
+              }
+            }
+          }
+        }
+
+        setIsAILoading(false);
+      } catch (streamError) {
+        // Fallback to non-streaming
+        console.log('Streaming failed, using non-streaming fallback:', streamError);
+        
+        const response = await fetch(`${API_URL}/api/ai/chat/non-streaming`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            conversationHistory: conversationHistory
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setChat((c) => {
+            const newChat = [...c];
+            newChat[newChat.length - 1] = { who: "bot", text: data.data.response };
+            return newChat;
+          });
+        } else {
+          throw new Error(data.error || 'Failed to get AI response');
+        }
+
+        setIsAILoading(false);
+      }
+    } catch (error) {
+      console.error('Error sending AI message:', error);
+      setChat((c) => {
+        const newChat = [...c];
+        newChat[newChat.length - 1] = { 
+          who: "bot", 
+          text: "Sorry, I'm having trouble right now. Please try again later or contact support." 
+        };
+        return newChat;
+      });
+      setIsAILoading(false);
+    }
   };
 
   // Auto-scroll chat to bottom
@@ -182,6 +317,16 @@ export default function GetSupport2() {
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="ld-page">
+        <div className="ld-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <div>Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ld-page">
@@ -350,9 +495,16 @@ export default function GetSupport2() {
                   placeholder="Type your question…"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendAI()}
+                  onKeyDown={(e) => e.key === "Enter" && !isAILoading && sendAI()}
+                  disabled={isAILoading}
                 />
-                <button className="gs-send-btn" onClick={sendAI}>Send</button>
+                <button 
+                  className="gs-send-btn" 
+                  onClick={sendAI}
+                  disabled={isAILoading || !q.trim()}
+                >
+                  {isAILoading ? "..." : "Send"}
+                </button>
               </div>
             </section>
 

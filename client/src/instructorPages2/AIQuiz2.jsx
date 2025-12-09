@@ -26,44 +26,69 @@ export default function AIQuiz2() {
   const [instructorName, setInstructorName] = useState('Instructor');
   const [email, setEmail] = useState('');
   const [profilePic, setProfilePic] = useState('');
+  const [loading, setLoading] = useState(true);
   const { showToast, ToastComponent } = useSimpleToast();
 
   // Get instructor name from Firebase Auth
   useEffect(() => {
+    let isMounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+      
       if (!firebaseUser) {
+        setLoading(false);
         navigate('/all-login');
         return;
       }
 
       const token = await getMongoDBToken();
-      if (token) {
-        try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            const teacher = data.data || data;
-            if (teacher.fullName) {
-              setInstructorName(teacher.fullName.split(' ')[0]);
-            }
-            if (teacher.email) {
-              setEmail(teacher.email);
-            }
-            if (teacher.profilePic) {
-              setProfilePic(teacher.profilePic);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching instructor name:', error);
-        }
+      if (!token) {
+        setLoading(false);
+        navigate('/all-login');
+        return;
       }
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
+        
+        if (response.ok) {
+          const data = await response.json();
+          const teacher = data.data || data;
+          if (teacher.fullName) {
+            setInstructorName(teacher.fullName.split(' ')[0]);
+          }
+          if (teacher.email) {
+            setEmail(teacher.email);
+          }
+          if (teacher.profilePic) {
+            setProfilePic(teacher.profilePic);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching instructor name:', error);
+        setLoading(false);
+        navigate('/all-login');
+        return;
+      }
+      
+      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [navigate]);
 
   // Form state
@@ -286,6 +311,16 @@ export default function AIQuiz2() {
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="ld-page">
+        <div className="ld-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <div>Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ld-page">

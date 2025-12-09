@@ -13,7 +13,9 @@ const {
   Quiz,
   Path,
   ContentFeedback,
-  QuizResult
+  QuizResult,
+  Feedback,
+  Report
 } = require('../models');
 
 // Test: Get all courses
@@ -164,6 +166,105 @@ router.get('/contentfeedback', async (req, res) => {
       success: true,
       count: contentFeedback.length,
       data: contentFeedback
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test: Get all feedback
+router.get('/feedback', async (req, res) => {
+  try {
+    const feedback = await Feedback.find();
+    res.json({
+      success: true,
+      count: feedback.length,
+      data: feedback
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test: Get all reports
+router.get('/reports', async (req, res) => {
+  try {
+    const reports = await Report.find();
+    res.json({
+      success: true,
+      count: reports.length,
+      data: reports
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test: Create sample feedback
+router.post('/feedback/sample', async (req, res) => {
+  try {
+    const sampleFeedback = [
+      {
+        userName: 'John Doe',
+        topic: 'Content',
+        description: 'Loving the new dashboard! Great work on the interface.'
+      },
+      {
+        userName: 'Jane Smith',
+        topic: 'Navigation',
+        description: 'The interface is very user-friendly. Great work!'
+      },
+      {
+        userName: 'Mike Johnson',
+        topic: 'Stats or analytics',
+        description: 'The analytics dashboard is very helpful for tracking progress.'
+      }
+    ];
+
+    const createdFeedback = await Feedback.insertMany(sampleFeedback);
+    res.json({
+      success: true,
+      count: createdFeedback.length,
+      data: createdFeedback,
+      message: 'Sample feedback created successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test: Create sample reports
+router.post('/reports/sample', async (req, res) => {
+  try {
+    const sampleReports = [
+      {
+        userName: 'Sarah Williams',
+        topic: 'Login or account issues',
+        description: 'Cannot reset password. The reset link is not working.'
+      },
+      {
+        userName: 'David Brown',
+        topic: 'Uploading',
+        description: 'Video encoding issue when uploading large files.'
+      },
+      {
+        userName: 'Emily Davis',
+        topic: 'Content',
+        description: 'Inappropriate message in chat section.'
+      },
+      {
+        userName: 'Chris Wilson',
+        topic: 'Navigation',
+        description: 'Menu items not loading correctly on mobile devices.'
+      }
+    ];
+
+    const createdReports = await Report.insertMany(sampleReports);
+    res.json({
+      success: true,
+      count: createdReports.length,
+      data: createdReports,
+      message: 'Sample reports created successfully'
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

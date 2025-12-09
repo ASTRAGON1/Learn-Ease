@@ -55,7 +55,7 @@ export default function RankingTagsPanel({ instructors, categories, currentUserI
                       </div>
                     )}
                   </div>
-                  {inst.name} {isCurrentUser && <span style={{ color: '#4A0FAD', fontWeight: '600', marginLeft: '4px' }}>(You)</span>}
+                  {inst.name} {isCurrentUser && <span style={{ color: '#1a1a1a', fontWeight: '600', marginLeft: '4px' }}>(You)</span>}
                 </div>
                 <div className="rtp-likes">{inst.likes.toLocaleString()}</div>
                 <div className="rtp-rank">

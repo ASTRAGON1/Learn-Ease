@@ -48,12 +48,16 @@
 
 .all-signup-card.form-left-card {
   border-top-left-radius: 24px;
-  border-top-right-radius: 0;
+  border-top-right-radius: 24px;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
 }
 
 .all-signup-card.form-right-card {
-  border-top-left-radius: 0;
+  border-top-left-radius: 24px;
   border-top-right-radius: 24px;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
 }
 
 .all-signup-image-section {
@@ -115,13 +119,13 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 24px 32px;
-  margin-bottom: 8px;
+  padding: 16px 24px;
+  margin-bottom: 4px;
   border-bottom: 1px solid rgba(74, 15, 173, 0.08);
 }
 
 .all-signup-page-title {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 800;
   font-family: 'Poppins', sans-serif;
   color: var(--all-text-primary);
@@ -158,16 +162,16 @@
 
 /* Form */
 .all-signup-form {
-  padding: 32px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .all-signup-form-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .all-signup-field-label {
@@ -193,13 +197,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 2px solid transparent;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: transparent;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--all-text-secondary);
   position: relative;
@@ -244,11 +248,11 @@
 
 .all-signup-input {
   width: 100%;
-  height: 52px;
+  height: 46px;
   padding: 0 50px 0 48px;
   border: 2px solid var(--all-border);
-  border-radius: 14px;
-  font-size: 15px;
+  border-radius: 12px;
+  font-size: 14px;
   font-family: 'Poppins', sans-serif;
   color: var(--all-text-primary);
   background: var(--all-bg-secondary);
@@ -263,7 +267,7 @@
 .all-signup-input:focus {
   border-color: var(--all-primary);
   background: var(--all-bg);
-  box-shadow: 0 0 0 4px var(--all-primary-lighter), 0 4px 12px rgba(74, 15, 173, 0.1);
+  box-shadow: 0 0 0 3px var(--all-primary-lighter), 0 2px 8px rgba(74, 15, 173, 0.1);
   transform: translateY(-1px);
 }
 
@@ -356,15 +360,15 @@
 .all-signup-terms-label {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--all-text-secondary);
-  line-height: 1.6;
+  line-height: 1.5;
   user-select: none;
-  padding: 12px;
+  padding: 10px;
   background: var(--all-bg-secondary);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.2s ease;
 }
 
@@ -395,17 +399,17 @@
 /* Sign Up Button */
 .all-signup-signup-btn {
   width: 100%;
-  height: 56px;
+  height: 48px;
   background: linear-gradient(135deg, var(--all-primary) 0%, var(--all-primary-light) 100%);
   color: #ffffff;
   border: none;
-  border-radius: 14px;
-  font-size: 16px;
+  border-radius: 12px;
+  font-size: 15px;
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 8px;
+  margin-top: 4px;
   box-shadow: 0 8px 24px rgba(74, 15, 173, 0.3), 0 0 0 0 rgba(74, 15, 173, 0.5);
   letter-spacing: 0.3px;
 }
@@ -427,6 +431,58 @@
 .all-signup-signup-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Divider */
+.all-signup-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 12px 0;
+  color: var(--all-text-secondary);
+  font-size: 13px;
+}
+
+.all-signup-divider::before,
+.all-signup-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--all-border);
+}
+
+.all-signup-divider span {
+  padding: 0 16px;
+}
+
+/* Google Sign Up Button */
+.all-signup-google-btn {
+  width: 100%;
+  height: 48px;
+  background: var(--all-bg);
+  color: var(--all-text-primary);
+  border: 2px solid var(--all-border);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.all-signup-google-btn:hover {
+  border-color: var(--all-primary);
+  background: var(--all-primary-lighter);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 15, 173, 0.15);
+}
+
+.all-signup-google-btn:active {
+  transform: translateY(0);
 }
 
 /* Sign In Link */

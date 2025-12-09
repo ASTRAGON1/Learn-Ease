@@ -68,15 +68,21 @@ export default function Profile2() {
   });
   
   useEffect(() => {
+    let isMounted = true;
+    
     // Fetch profile data from API using Firebase Auth
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+      
       if (!firebaseUser) {
+        setLoading(false);
         navigate('/all-login');
         return;
       }
 
       const token = await getMongoDBToken();
       if (!token) {
+        setLoading(false);
         navigate('/all-login');
         return;
       }
@@ -91,6 +97,7 @@ export default function Profile2() {
         });
 
         if (response.status === 401 || response.status === 403) {
+          setLoading(false);
           navigate('/all-login');
           return;
         }
@@ -152,12 +159,19 @@ export default function Profile2() {
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
-      } finally {
         setLoading(false);
+        navigate('/all-login');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [navigate]);
 
   useEffect(() => {

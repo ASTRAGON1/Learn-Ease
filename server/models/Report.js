@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const feedbackSchema = new mongoose.Schema({
+const reportSchema = new mongoose.Schema({
   userName: {
     type: String,
     required: [true, 'User name is required'],
@@ -18,13 +18,13 @@ const feedbackSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  collection: 'Feedback'
+  collection: 'Report'
 });
 
 // Indexes for faster queries
-feedbackSchema.index({ userName: 1 });
-feedbackSchema.index({ topic: 1 });
-feedbackSchema.index({ createdAt: -1 });
+reportSchema.index({ userName: 1 });
+reportSchema.index({ topic: 1 });
+reportSchema.index({ createdAt: -1 });
 
-module.exports = mongoose.model('Feedback', feedbackSchema);
+module.exports = mongoose.model('Report', reportSchema);
 

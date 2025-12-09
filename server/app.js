@@ -22,6 +22,9 @@ const teacherRoutes = require('./routes/teacherRoutes');
 const storageRoutes = require('./routes/storageRoutes');
 const postRoutes = require('./routes/postRoutes');
 const quizRoutes = require('./routes/quizRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -35,49 +38,15 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/content', storageRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/posts', postRoutes);
-
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

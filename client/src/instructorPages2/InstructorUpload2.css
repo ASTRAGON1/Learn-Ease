@@ -201,7 +201,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 32px;
+  padding: 20px 28px;
   border-bottom: 1px solid var(--ld-border);
   background: var(--ld-bg-primary);
 }
@@ -244,7 +244,7 @@
 }
 
 .ld-upload-header-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   margin: 0;
   color: var(--ld-text-primary);
@@ -455,27 +455,27 @@
 
 /* Content Area */
 .ld-content {
-  padding: 32px;
+  padding: 24px;
   overflow-y: auto;
   background: var(--ld-bg-primary);
 }
 
 /* Upload Section */
 .ld-upload-section-main {
-  margin-bottom: 40px;
+  margin-bottom: 28px;
 }
 
 .ld-upload-section-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  margin: 0 0 24px 0;
+  margin: 0 0 16px 0;
   color: var(--ld-text-primary);
 }
 
 .ld-upload-card-main {
   background: var(--ld-bg-card);
   border-radius: 16px;
-  padding: 32px;
+  padding: 24px;
   border: 1px solid var(--ld-border-black);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -483,8 +483,8 @@
 .ld-upload-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .ld-upload-field {
@@ -517,8 +517,8 @@
 }
 
 .ld-upload-textarea {
-  min-height: 170px;
-  padding: 12px;
+  min-height: 120px;
+  padding: 10px;
   resize: vertical;
 }
 
@@ -641,8 +641,8 @@
 /* Upload Area */
 .ld-upload-area {
   width: 100%;
-  min-height: 180px;
-  margin: 24px 0;
+  min-height: 140px;
+  margin: 16px 0;
   border: 2px dashed var(--ld-border);
   border-radius: 16px;
   background: #ffffff;
@@ -650,10 +650,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   text-align: center;
   transition: all 0.3s ease;
-  padding: 32px 24px;
+  padding: 24px 20px;
   position: relative;
 }
 
@@ -671,8 +671,13 @@
 
 .ld-upload-icon {
   color: var(--ld-accent-orange);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   opacity: 0.8;
+}
+
+.ld-upload-icon svg {
+  width: 40px;
+  height: 40px;
 }
 
 .ld-upload-content-text {
@@ -684,7 +689,7 @@
 
 .ld-upload-text {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--ld-text-primary);
 }
@@ -804,8 +809,8 @@
 /* Categories */
 .ld-upload-categories {
   display: flex;
-  gap: 20px;
-  margin: 16px 0 24px;
+  gap: 16px;
+  margin: 12px 0 16px;
   align-items: center;
 }
 
@@ -846,20 +851,20 @@
 .ld-upload-selects-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 /* Quiz Section */
 .ld-upload-quiz-top {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .ld-upload-quiz-note {
-  margin: 12px 0 16px;
+  margin: 8px 0 12px;
   font-size: 12px;
   color: var(--ld-text-secondary);
   line-height: 1.5;
@@ -867,8 +872,8 @@
 
 .ld-upload-quiz-selects {
   display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .ld-upload-quiz-select {
@@ -877,7 +882,7 @@
 }
 
 .ld-upload-quiz-count {
-  margin: 10px 0 16px;
+  margin: 8px 0 12px;
   font-size: 12px;
   color: var(--ld-text-secondary);
 }
@@ -885,9 +890,9 @@
 .ld-upload-qa-row {
   display: grid;
   grid-template-columns: 1fr 1fr auto auto;
-  gap: 24px;
+  gap: 16px;
   align-items: end;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .ld-upload-quiz-add {
@@ -938,7 +943,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .ld-upload-secondary {
@@ -993,7 +998,7 @@
 .ld-upload-content-card {
   background: var(--ld-bg-card);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--ld-border-black);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -1014,9 +1019,9 @@
 .ld-upload-content-rows {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin-top: 8px;
-  max-height: 320px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 6px;
 }
@@ -1024,10 +1029,10 @@
 .ld-upload-content-row {
   background: #fff;
   border-radius: 12px;
-  padding: 14px;
+  padding: 12px;
   display: grid;
   grid-template-columns: 1fr 180px 160px 220px;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   border: 1px solid var(--ld-border);
   transition: all 0.2s ease;

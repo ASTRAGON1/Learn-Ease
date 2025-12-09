@@ -1021,17 +1021,21 @@
 
 .ld-notification-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   background: var(--ld-accent-primary);
   color: white;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 18px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  min-width: 14px;
+  height: 14px;
   text-align: center;
-  line-height: 14px;
+  line-height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ld-notification-popover {

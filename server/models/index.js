@@ -10,6 +10,8 @@ const Content = require('./Content');
 const ContentFeedback = require('./ContentFeedback');
 const QuizResult = require('./QuizResult');
 const Post = require('./Post');
+const Feedback = require('./Feedback');
+const Report = require('./Report');
 
 module.exports = {
   Admin,
@@ -23,5 +25,7 @@ module.exports = {
   Content,
   ContentFeedback,
   QuizResult,
-  Post
+  Post,
+  Feedback,
+  Report
 };

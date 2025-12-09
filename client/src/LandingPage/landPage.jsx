@@ -63,8 +63,8 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
             <a href="#newsletter">Newsletter</a>
             <a href="#reviews">Reviews</a>
             <a href="#start-teaching" className="landPage-pill">Start Teaching</a>
-            <a href="/login" className="landPage-btn landPage-ghost">Log in</a>
-            <a href="/signup" className="landPage-btn">Sign up</a>
+            <a href="/all-login" className="landPage-btn landPage-ghost">Log in</a>
+            <a href="/all-signup" className="landPage-btn landPage-ghost">Sign up</a>
           </div>
         </nav>
       </div>
@@ -81,7 +81,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
             <h1 className="landPage-title">Personalized learning for every unique mind.</h1>
             <p className="landPage-subtitle">Our platform connects students with autism and Down syndrome to caring teachers. AI adapts lessons to each learner. Families see progress. Teachers get tools.</p>
             <div className="landPage-cta-row">
-              <a className="landPage-btn" href="/signup">Get Started</a>
+              <a className="landPage-btn landPage-ghost" href="/all-signup">Get Started</a>
               <a className="landPage-btn landPage-outline" href="#who">Learn more</a>
             </div>
           </div>
@@ -107,23 +107,64 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
       </header>
 
       {/* WHO WE ARE */}
-      <section id="who" className="landPage-section">
-        <div className="landPage-container landPage-two-col">
-          <div>
+      <section id="who" className="landPage-section landPage-who-section">
+        <div className="landPage-container">
+          <div className="landPage-who-header">
             <h2 className="landPage-title">Who we are</h2>
-            <p className="landPage-subtitle">We’re an inclusive learning platform built with specialists. Our mission: empower teachers and families to deliver consistent, joyful learning experiences for students with autism and Down syndrome.</p>
-            <div className="landPage-grid-2">
-              <div className="landPage-card">
-                <strong>Special-education focus</strong>
-                <p className="landPage-muted">Structured routines, visual schedules, PECS-style prompts, and behavioral supports.</p>
+            <p className="landPage-subtitle landPage-who-subtitle">
+              We're an inclusive learning platform built with specialists. Our mission is to empower teachers and families to deliver consistent, joyful learning experiences for students with autism and Down syndrome.
+            </p>
+          </div>
+          
+          <div className="landPage-who-features">
+            <div className="landPage-who-feature-card">
+              <div className="landPage-who-feature-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
               </div>
-              <div className="landPage-card">
-                <strong>AI personalization</strong>
-                <p className="landPage-muted">Adaptive activities and pacing based on student attention, sensory needs, and mastery.</p>
+              <h3>Special-Education Focus</h3>
+              <p>Structured routines, visual schedules, PECS-style prompts, and behavioral supports designed by experts in special education.</p>
+            </div>
+            
+            <div className="landPage-who-feature-card">
+              <div className="landPage-who-feature-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                  <path d="M2 17l10 5 10-5"></path>
+                  <path d="M2 12l10 5 10-5"></path>
+                </svg>
               </div>
+              <h3>AI Personalization</h3>
+              <p>Adaptive activities and pacing based on student attention, sensory needs, and mastery levels for truly personalized learning.</p>
+            </div>
+            
+            <div className="landPage-who-feature-card">
+              <div className="landPage-who-feature-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <h3>Family-Centered</h3>
+              <p>Simple progress reports, goal tracking, and seamless communication between teachers and families for complete transparency.</p>
+            </div>
+            
+            <div className="landPage-who-feature-card">
+              <div className="landPage-who-feature-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+              </div>
+              <h3>Expert-Built</h3>
+              <p>Co-designed with specialists, therapists, and families to ensure every feature meets real-world needs and best practices.</p>
             </div>
           </div>
-          <img className="landPage-illus" src={illus} alt="LearnEase illustration" />
         </div>
       </section>
 
@@ -139,18 +180,43 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               <li><span className="landPage-icon">✔</span>Secure messaging with families</li>
             </ul>
             <div className="landPage-cta-row landPage-mt-14">
-              <button className="landPage-btn" onClick={becomeInstructor}>Become an Instructor</button>
+              <a className="landPage-btn landPage-ghost" href="/all-signup">Become an Instructor</a>
               <a className="landPage-btn landPage-outline" href="#faq">See teacher FAQs</a>
             </div>
           </div>
-          <div className="landPage-card">
-            <strong>What you’ll need</strong>
-              <ol className="landPage-muted landPage-pad-left-18">
-              <li>Teaching background or caregiving experience</li>
-              <li>Willingness to follow IEP-friendly routines</li>
-              <li>Commitment to accessibility & patience</li>
-            </ol>
-            <div className="landPage-muted landPage-mt-10">You can set availability and pricing. We’ll support you with resources and community.</div>
+          <div className="landPage-teaching-card">
+            <div className="landPage-teaching-card-header">
+              <div className="landPage-teaching-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+              </div>
+              <strong>What you'll need</strong>
+            </div>
+            <div className="landPage-teaching-requirements">
+              <div className="landPage-requirement-item">
+                <div className="landPage-requirement-number">1</div>
+                <div className="landPage-requirement-content">
+                  <strong>Teaching background</strong>
+                  <p>Teaching background or caregiving experience</p>
+                </div>
+              </div>
+              <div className="landPage-requirement-item">
+                <div className="landPage-requirement-number">2</div>
+                <div className="landPage-requirement-content">
+                  <strong>IEP-friendly approach</strong>
+                  <p>Willingness to follow IEP-friendly routines</p>
+                </div>
+              </div>
+              <div className="landPage-requirement-item">
+                <div className="landPage-requirement-number">3</div>
+                <div className="landPage-requirement-content">
+                  <strong>Commitment & patience</strong>
+                  <p>Commitment to accessibility & patience</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -158,7 +224,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
       {/* REVIEWS */}
       <section id="reviews" className="landPage-section landPage-reviews">
         <div className="landPage-container">
-          <h2 className="landPage-title">What families & teachers say</h2>
+          <h2 className="landPage-title">What users have to say</h2>
           <p className="landPage-subtitle">Real feedback from our community.</p>
 
           <div className="landPage-rev-viewport">
@@ -169,9 +235,17 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
                   className="landPage-rev-card"
                   aria-hidden={i >= reviews.length ? "true" : undefined}
                 >
+                  <div className="landPage-rev-card-header">
+                    <div className="landPage-rev-avatar">
+                      {r.authorName ? r.authorName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div className="landPage-rev-author-info">
+                      <div className="landPage-rev-author-name">{r.authorName}</div>
+                      <div className="landPage-rev-author-role">{r.authorRole}</div>
+                    </div>
+                  </div>
                   <div className="landPage-stars">{stars(r.rating)}</div>
-                  <p>“{r.text}”</p>
-                  <small className="landPage-muted">— {r.authorName}, {r.authorRole}</small>
+                  <p className="landPage-rev-text">"{r.text}"</p>
                 </article>
               ))}
             </div>
@@ -250,7 +324,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
             <strong>For teachers</strong>
             <div className="landPage-link-col">
               <a href="#start-teaching">Start teaching</a>
-              <a href="/signup">Sign up</a>
+              <a href="/all-signup">Sign up</a>
               <a href="#newsletter">Newsletter</a>
             </div>
           </div>

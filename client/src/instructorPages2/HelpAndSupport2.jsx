@@ -39,46 +39,74 @@ export default function HelpAndSupport2() {
   const MAX = 250;
 
   const [instructorName, setInstructorName] = useState('Instructor');
+  const [instructorFullName, setInstructorFullName] = useState('');
   const [email, setEmail] = useState('');
   const [profilePic, setProfilePic] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const { showToast, ToastComponent } = useSimpleToast();
 
   // Get instructor name from Firebase Auth
   useEffect(() => {
+    let isMounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+      
       if (!firebaseUser) {
+        setLoading(false);
         navigate('/all-login');
         return;
       }
 
       const token = await getMongoDBToken();
-      if (token) {
-        try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            const teacher = data.data || data;
-            if (teacher.fullName) {
-              setInstructorName(teacher.fullName.split(' ')[0]);
-            }
-            if (teacher.email) {
-              setEmail(teacher.email);
-            }
-            if (teacher.profilePic) {
-              setProfilePic(teacher.profilePic);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching instructor name:', error);
-        }
+      if (!token) {
+        setLoading(false);
+        navigate('/all-login');
+        return;
       }
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
+        
+        if (response.ok) {
+          const data = await response.json();
+          const teacher = data.data || data;
+          if (teacher.fullName) {
+            setInstructorFullName(teacher.fullName);
+            setInstructorName(teacher.fullName.split(' ')[0]);
+          }
+          if (teacher.email) {
+            setEmail(teacher.email);
+          }
+          if (teacher.profilePic) {
+            setProfilePic(teacher.profilePic);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching instructor name:', error);
+        setLoading(false);
+        navigate('/all-login');
+        return;
+      }
+      
+      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [navigate]);
 
   const topics = section === "report" ? REPORT_TOPICS : FEEDBACK_TOPICS;
@@ -89,9 +117,84 @@ export default function HelpAndSupport2() {
     setText("");
   };
 
-  const send = () => {
-    console.log({ type: section, topic, message: text });
-    showToast("Thanks! We got your message.", "success");
+  const send = async () => {
+    // Validate form
+    if (!text.trim()) {
+      showToast("Please enter a description", "error");
+      return;
+    }
+
+    if (!topic) {
+      showToast("Please select a topic", "error");
+      return;
+    }
+
+    if (!instructorFullName) {
+      showToast("Unable to get your name. Please try again.", "error");
+      return;
+    }
+
+    setSending(true);
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const endpoint = section === "report" ? "/api/reports" : "/api/feedback";
+      
+      console.log('Sending request to:', `${API_URL}${endpoint}`);
+      console.log('Request body:', {
+        userName: instructorFullName,
+        topic: topic,
+        description: text.trim()
+      });
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userName: instructorFullName,
+          topic: topic,
+          description: text.trim()
+        })
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      let data;
+      try {
+        data = await response.json();
+        console.log('Response data:', data);
+      } catch (jsonError) {
+        console.error('Error parsing JSON response:', jsonError);
+        const textResponse = await response.text();
+        console.error('Response text:', textResponse);
+        showToast("Server error. Please try again.", "error");
+        setSending(false);
+        return;
+      }
+
+      if (response.ok && data.success) {
+        showToast("Thanks! We got your message.", "success");
+        // Clear form
+        setText("");
+        setTopic((section === "report" ? REPORT_TOPICS : FEEDBACK_TOPICS)[0]);
+      } else {
+        console.error('Error response:', data);
+        showToast(data.error || "Failed to send message. Please try again.", "error");
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      showToast("Failed to send message. Please check your connection and try again.", "error");
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -153,6 +256,16 @@ export default function HelpAndSupport2() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="ld-page">
+        <div className="ld-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+          <div>Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="ld-page">
       {/* Left Sidebar */}
@@ -208,7 +321,7 @@ export default function HelpAndSupport2() {
         {/* Header */}
         <header className="ld-header">
           <div className="ld-header-left">
-            <button className="ld-back-btn" onClick={() => navigate("/instructor-dashboard-2")}>
+            <button className="ld-back-btn" onClick={() => navigate("/instructor-dashboard-2", { state: { section: 'resources' } })}>
               <span className="ld-back-chev">‹</span> Dashboard
             </button>
           </div>
@@ -392,7 +505,13 @@ export default function HelpAndSupport2() {
               </div>
 
               <div className="hs-form-actions">
-                <button className="hs-send-button" onClick={send}>Send</button>
+                <button 
+                  className="hs-send-button" 
+                  onClick={send}
+                  disabled={sending}
+                >
+                  {sending ? "Sending..." : "Send"}
+                </button>
               </div>
             </div>
           </section>
