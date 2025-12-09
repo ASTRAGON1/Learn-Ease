@@ -35,6 +35,7 @@ export default function InstructorDashboard2() {
   const [profilePic, setProfilePic] = useState('');
   const [mongoToken, setMongoToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
@@ -82,6 +83,11 @@ export default function InstructorDashboard2() {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
+            
+            // Store current user ID
+            if (teacher._id) {
+              setCurrentUserId(teacher._id.toString());
+            }
             
             // Update instructor name from API
             if (teacher.fullName) {
@@ -200,24 +206,9 @@ export default function InstructorDashboard2() {
     { student: "Jessica Lee", date: "Mar 15, 2025", grade: "--%", status: "Paused" },
   ];
 
-  // Sample instructor ranking data
-  const sampleInstructors = [
-    { id: 1, name: "Alice", likes: 3200 },
-    { id: 2, name: "Bob", likes: 2900 },
-    { id: 3, name: "Charlie", likes: 2700 },
-    { id: 4, name: "Dave", likes: 2200 },
-    { id: 5, name: "Eve", likes: 2100 },
-    { id: 6, name: "Frank", likes: 2000 },
-    { id: 7, name: "Grace", likes: 1800 },
-    { id: 8, name: "Henry", likes: 1700 },
-    { id: 9, name: "Ivy", likes: 1500 },
-    { id: 10, name: "Jack", likes: 1400 },
-    { id: 11, name: "Kate", likes: 1300 },
-    { id: 12, name: "You", likes: 123 },
-    { id: 13, name: "Liam", likes: 100 },
-    { id: 14, name: "Mia", likes: 95 },
-    { id: 15, name: "Noah", likes: 87 },
-  ];
+  // Instructor ranking data (fetched from API)
+  const [instructorsRanking, setInstructorsRanking] = useState([]);
+  const [loadingRanking, setLoadingRanking] = useState(true);
 
   const handleLogout = async () => {
     // Sign out from Firebase
@@ -258,6 +249,36 @@ export default function InstructorDashboard2() {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [profileDropdownOpen]);
+
+  // Fetch instructor ranking
+  useEffect(() => {
+    const fetchRanking = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/ranking`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setInstructorsRanking(data.data || []);
+        } else {
+          console.error('Failed to fetch instructor ranking');
+          setInstructorsRanking([]);
+        }
+      } catch (error) {
+        console.error('Error fetching instructor ranking:', error);
+        setInstructorsRanking([]);
+      } finally {
+        setLoadingRanking(false);
+      }
+    };
+
+    fetchRanking();
+  }, []);
 
   const handleChatbotClick = () => {
     navigate("/getSupport-2", { state: { focusInput: true } });
@@ -516,7 +537,11 @@ export default function InstructorDashboard2() {
             <QuizResults data={sampleQuizResults} />
           </div>
           <div className="ld-ranking-wrapper">
-            <RankingTagsPanel instructors={sampleInstructors} categories={[]} />
+            {loadingRanking ? (
+              <div className="ld-loading">Loading ranking...</div>
+            ) : (
+              <RankingTagsPanel instructors={instructorsRanking} categories={[]} currentUserId={currentUserId} />
+            )}
             </div>
         </div>
       </section>

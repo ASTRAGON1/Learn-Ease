@@ -28,8 +28,6 @@ import InstructorCommunity2 from "./instructorPages2/InstructorCommunity2";
 import InformationGathering1_2 from "./instructorPages2/InformationGathering1";
 import InformationGathering2_2 from "./instructorPages2/InformationGathering2";
 import InformationGathering3_2 from "./instructorPages2/InformationGathering3";
-import InstructorUpload from "./InstructorPages/InstructorUpload";
-import InstructorCommunity from "./InstructorPages/InstructorCommunity";
 
 import AdminPanel from "./AdminPages/AdminPanel";
 
@@ -89,8 +87,6 @@ export default function App() {
         <Route path="/InformationGathering-1" element={<InformationGathering1_2 />} />
         <Route path="/InformationGathering-2" element={<InformationGathering2_2 />} />
         <Route path="/InformationGathering-3" element={<InformationGathering3_2 />} />
-        <Route path="/InstructorUpload" element={<InstructorUpload />} />
-        <Route path="/InstructorCommunity" element={<InstructorCommunity />} />
 
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/all-login" element={<AllPagesLogin />} />
