@@ -54,13 +54,12 @@ export default function App() {
     <Router>
       <DevAuth />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+
         
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<StudentSignUp />} />
         
         <Route path="/student-dashboard" element={<StudentDashboard />} />
-      
         <Route path="/student-dashboard-2" element={<StudentDashboard2 />} />
         <Route path="/quiz" element={<QuizzApp />} />
         <Route path="/course/:id" element={<CoursePlayer />} />
@@ -70,7 +69,6 @@ export default function App() {
         <Route path="/StudentProfile" element={<StudentProfile />} />
         <Route path="/personalized" element={<PersonalizedPath />} />
         <Route path="/courses" element={<Courses />} />
-
         <Route element={<StudentShell />}>
           {/* <Route path="/messages" element={<MessagesPage />} /> */}
           {/* <Route path="/messages/:id" element={<MessageThread />} /> */}
@@ -91,7 +89,9 @@ export default function App() {
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/all-login" element={<AllPagesLogin />} />
         <Route path="/all-signup" element={<AllPagesSignup />} />
+        <Route path="/" element={<LandingPage />} />
 
+        {/* Redirect to landing page if route is not found */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
