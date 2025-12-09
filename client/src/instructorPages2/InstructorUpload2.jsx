@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./InstructorUpload2.css";
 import { USER_CURRICULUM } from "../data/curriculum";
@@ -8,6 +8,11 @@ import icCourse from "../assets/course.png";
 import icPerformance from "../assets/performance2.png";
 import icCurriculum from "../assets/curriculum.png";
 import icResources from "../assets/resources.png";
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { getMongoDBToken } from "../utils/auth";
+import { useSimpleToast } from "../utils/toast";
+import { uploadFile } from "../utils/uploadFile";
 
 const FILE_TYPES = ["document", "video", "image"];
 
@@ -18,15 +23,90 @@ export default function InstructorUpload2() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Get instructor name
-  const [instructorName] = useState(() => {
-    const fullName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || 
-                     'Instructor';
-    return fullName.split(' ')[0];
-  });
+  const [instructorName, setInstructorName] = useState('Instructor');
+  const [email, setEmail] = useState('');
+  const [profilePic, setProfilePic] = useState('');
+  const [mongoToken, setMongoToken] = useState(null);
+  const { showToast, ToastComponent } = useSimpleToast();
+
+  // Get instructor name from Firebase Auth
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate('/all-login');
+        return;
+      }
+
+      const token = await getMongoDBToken();
+      if (token) {
+        setMongoToken(token);
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const teacher = data.data || data;
+            if (teacher.fullName) {
+              setInstructorName(teacher.fullName.split(' ')[0]);
+            }
+            if (teacher.email) {
+              setEmail(teacher.email);
+            }
+            if (teacher.profilePic) {
+              setProfilePic(teacher.profilePic);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching instructor name:', error);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Fetch content from database
+  const fetchContent = useCallback(async () => {
+    if (!mongoToken) return;
+    
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${mongoToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.data || [];
+        
+        // Transform content to match the display format
+        const transformed = content.map(item => ({
+          id: item._id,
+          title: item.title,
+          category: item.category === 'autism' ? 'Autism' : item.category === 'downSyndrome' ? 'Down Syndrome' : item.category,
+          status: item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : item.status === 'archived' ? 'Archived' : item.status,
+          storagePath: item.storagePath
+        }));
+        
+        setContentRows(transformed);
+      }
+    } catch (error) {
+      console.error('Error fetching content:', error);
+    }
+  }, [mongoToken]);
+
+  // Fetch content when token is available
+  useEffect(() => {
+    if (mongoToken) {
+      fetchContent();
+    }
+  }, [mongoToken, fetchContent]);
 
   // Publishing state
   const [title, setTitle] = useState("");
@@ -167,18 +247,78 @@ export default function InstructorUpload2() {
   const saveContent = async (status) => {
     if (!validate()) return;
     
-    // Simulate upload (no backend connection)
+    if (!mongoToken) {
+      showToast("Please log in to save content", "error");
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      showToast("You must be logged in to upload content", "error");
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
     
-    // Simulate progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsUploading(false);
-          alert(status === "Published" ? "Published! (Simulated)" : "Saved as draft. (Simulated)");
+    try {
+      // Step 1: Upload file to Firebase Storage
+      const storageFolder = fileType; // 'documents', 'videos', or 'images'
+      const uploadResult = await uploadFile(
+        file,
+        storageFolder,
+        currentUser.uid,
+        (progress) => setUploadProgress(progress)
+      );
+
+      // Step 2: Save content to MongoDB
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const contentStatus = status === "Published" ? "published" : "draft";
+      
+      // Normalize category
+      const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
+      const normalizedCategory = categoryMap[category] || category.toLowerCase();
+
+      const response = await fetch(`${API_URL}/api/content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          category: normalizedCategory,
+          type: fileType,
+          topic: topic,
+          lesson: lesson,
+          course: course,
+          description: desc.trim(),
+          difficulty: difficulty || null,
+          url: uploadResult.url,
+          storagePath: uploadResult.path,
+          fileType: file.type || '',
+          size: file.size,
+          firebaseUid: currentUser.uid,
+          status: contentStatus
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save content');
+      }
+
+      const savedContent = await response.json();
+      
+      showToast(
+        status === "Published" ? "Content published successfully!" : "Content saved as draft",
+        "success"
+      );
+
+      // Refresh content list
+      await fetchContent();
           
+      // Clear form if published
           if (status === "Published") {
             setTitle("");
             setDesc("");
@@ -189,12 +329,17 @@ export default function InstructorUpload2() {
             setLesson("");
             setDifficulty("");
             setUploadProgress(0);
-          }
-          return 100;
+      } else {
+        // For drafts, just reset progress
+        setUploadProgress(0);
         }
-        return prev + 10;
-      });
-    }, 200);
+    } catch (error) {
+      console.error('Error saving content:', error);
+      showToast(`Failed to save content: ${error.message}`, "error");
+      setUploadProgress(0);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const onSaveDraft = () => saveContent("Draft");
@@ -202,7 +347,7 @@ export default function InstructorUpload2() {
 
   const addPair = () => {
     if (pairs.length >= 15) {
-      alert("Maximum 15 questions allowed");
+      showToast("Maximum 15 questions allowed", "error");
       return;
     }
     setPairs([...pairs, { q: "", a: "" }]);
@@ -210,7 +355,7 @@ export default function InstructorUpload2() {
   
   const removePair = (idx) => {
     if (pairs.length <= 5) {
-      alert("Minimum 5 questions required");
+      showToast("Minimum 5 questions required", "error");
       return;
     }
     setPairs(pairs.filter((_, i) => i !== idx));
@@ -218,24 +363,24 @@ export default function InstructorUpload2() {
   
   const saveQuiz = async (status) => {
     if (!quizTitle.trim()) {
-      alert("Quiz title is required");
+      showToast("Quiz title is required", "error");
       return;
     }
     if (!quizCourse || !quizTopic || !quizLesson) {
-      alert("Please select course, topic, and lesson");
+      showToast("Please select course, topic, and lesson", "error");
       return;
     }
     if (pairs.length < 5) {
-      alert("Minimum 5 questions required");
+      showToast("Minimum 5 questions required", "error");
       return;
     }
     if (pairs.some(p => !p.q.trim() || !p.a.trim())) {
-      alert("Please fill in all questions and answers");
+      showToast("Please fill in all questions and answers", "error");
       return;
     }
 
     // Simulate save (no backend connection)
-    alert(status === "Published" ? "Quiz published! (Simulated)" : "Quiz saved as draft. (Simulated)");
+    showToast(status === "Published" ? "Quiz published! (Simulated)" : "Quiz saved as draft. (Simulated)", "success");
     
     if (status === "Published") {
       setQuizTitle("");
@@ -250,13 +395,13 @@ export default function InstructorUpload2() {
   const onPublishQuiz = () => saveQuiz("Published");
   const onSaveQuizDraft = () => saveQuiz("Draft");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("le_instructor_token");
-    localStorage.removeItem("le_instructor_name");
-    navigate("/InstructorLogin");
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate("/all-login");
   };
 
   // Scroll detection for chatbot animation
@@ -344,8 +489,8 @@ export default function InstructorUpload2() {
   };
 
   // Sample data for content and quizzes (no backend)
-  const [contentRows] = useState([]);
-  const [quizRows] = useState([]);
+  const [contentRows, setContentRows] = useState([]);
+  const [quizRows, setQuizRows] = useState([]);
 
   return (
     <div className="ld-page">
@@ -416,12 +561,26 @@ export default function InstructorUpload2() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
+                  {profilePic ? (
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
                   <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  )}
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
-                  <div className="ld-profile-username">@instructor</div>
+                  {email && <div className="ld-profile-email">{email}</div>}
                 </div>
                 <svg 
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
@@ -439,10 +598,18 @@ export default function InstructorUpload2() {
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
                     <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    )}
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
-                      <div className="ld-profile-dropdown-email">instructor@learnease.com</div>
+                      <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>
@@ -940,6 +1107,7 @@ export default function InstructorUpload2() {
         </div>
         <div className="ai-chatbot-pulse"></div>
       </div>
+      <ToastComponent />
     </div>
   );
 }

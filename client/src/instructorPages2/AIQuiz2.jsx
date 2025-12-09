@@ -9,6 +9,10 @@ import icCourse from "../assets/course.png";
 import icPerformance from "../assets/performance2.png";
 import icCurriculum from "../assets/curriculum.png";
 import icResources from "../assets/resources.png";
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { getMongoDBToken } from "../utils/auth";
+import { useSimpleToast } from "../utils/toast";
 
 const CATS = ["Down Syndrome", "Autism"];
 
@@ -19,15 +23,48 @@ export default function AIQuiz2() {
   
   const normalizeKey = (str = "") => str.toLowerCase().replace(/\s+/g, " ").trim();
 
-  // Get instructor name
-  const [instructorName] = useState(() => {
-    const fullName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || 
-                     'Instructor';
-    return fullName.split(' ')[0];
-  });
+  const [instructorName, setInstructorName] = useState('Instructor');
+  const [email, setEmail] = useState('');
+  const [profilePic, setProfilePic] = useState('');
+  const { showToast, ToastComponent } = useSimpleToast();
+
+  // Get instructor name from Firebase Auth
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate('/all-login');
+        return;
+      }
+
+      const token = await getMongoDBToken();
+      if (token) {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const teacher = data.data || data;
+            if (teacher.fullName) {
+              setInstructorName(teacher.fullName.split(' ')[0]);
+            }
+            if (teacher.email) {
+              setEmail(teacher.email);
+            }
+            if (teacher.profilePic) {
+              setProfilePic(teacher.profilePic);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching instructor name:', error);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -92,7 +129,10 @@ export default function AIQuiz2() {
   const genSentence = (base, n) => `${base} - scenario ${n + 1} for ${category}.`;
 
   const generate = () => {
-    if (!canGenerate) return alert("Please fill all required fields.");
+    if (!canGenerate) {
+      showToast("Please fill all required fields.", "error");
+      return;
+    }
     const qs = [];
     for (let i = 0; i < Number(numQ); i++) {
       const correctIdx = Math.floor(Math.random() * Number(answersPerQ));
@@ -126,21 +166,22 @@ export default function AIQuiz2() {
     if (!hasQuiz) return;
     
     if (!title.trim()) {
-      alert("Quiz title is required");
+      showToast("Quiz title is required", "error");
       return;
     }
     if (!course || !topic || !lesson) {
-      alert("Please select course, topic, and lesson");
+      showToast("Please select course, topic, and lesson", "error");
       return;
     }
     if (items.length < 5 || items.length > 15) {
-      alert("Quiz must have between 5 and 15 questions");
+      showToast("Quiz must have between 5 and 15 questions", "error");
       return;
     }
     
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const token = await getMongoDBToken();
     if (!token) {
-      alert("Please log in to save quiz");
+      showToast("Please log in to save quiz", "error");
+      navigate('/all-login');
       return;
     }
 
@@ -169,7 +210,7 @@ export default function AIQuiz2() {
         throw new Error(error.error || 'Failed to save quiz');
       }
 
-      alert(status === "Published" ? "Quiz published!" : "Quiz saved as draft.");
+      showToast(status === "Published" ? "Quiz published!" : "Quiz saved as draft.", "success");
       
       if (status === "Published") {
         setTitle("");
@@ -182,20 +223,20 @@ export default function AIQuiz2() {
       }
     } catch (error) {
       console.error('Quiz save error:', error);
-      alert(`Error: ${error.message}`);
+      showToast(`Error: ${error.message}`, "error");
     }
   };
 
   const saveDraft = () => saveQuiz("Draft");
   const publish = () => saveQuiz("Published");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("le_instructor_token");
-    localStorage.removeItem("le_instructor_name");
-    navigate("/InstructorLogin");
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate("/all-login");
   };
 
   const handleSidebarEnter = () => {
@@ -315,12 +356,26 @@ export default function AIQuiz2() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
+                  {profilePic ? (
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
                   <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  )}
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
-                  <div className="ld-profile-username">@instructor</div>
+                  {email && <div className="ld-profile-email">{email}</div>}
                 </div>
                 <svg 
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
@@ -338,10 +393,18 @@ export default function AIQuiz2() {
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
                     <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    )}
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
-                      <div className="ld-profile-dropdown-email">instructor@learnease.com</div>
+                      <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>
@@ -528,6 +591,7 @@ export default function AIQuiz2() {
           )}
         </div>
       </div>
+      <ToastComponent />
     </div>
   );
 }

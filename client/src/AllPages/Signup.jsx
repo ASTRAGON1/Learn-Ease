@@ -266,18 +266,18 @@ export default function Signup() {
 
       // Success - handle navigation based on user type
       if (userType === "instructor") {
-        // For instructors, go to email verification page (similar to InstructorSignUp1)
-        sessionStorage.setItem('instructorSignupEmail', email);
+        // For instructors, Firebase Auth is already done, go to email verification page
+        // No storage needed - Firebase Auth maintains the session
         navigate("/InstructorSignUp2");
       } else {
         // For students, go directly to dashboard (or login if verification needed)
         // Store basic auth info
         if (data.data?.token) {
-          localStorage.setItem("token", data.data.token);
-          localStorage.setItem("role", "student");
-          localStorage.setItem("userId", data.data.student?.id || "");
-          localStorage.setItem("userName", data.data.student?.fullName || fullName);
-          localStorage.setItem("userEmail", email);
+          sessionStorage.setItem("token", data.data.token);
+          sessionStorage.setItem("role", "student");
+          sessionStorage.setItem("userId", data.data.student?.id || "");
+          sessionStorage.setItem("userName", data.data.student?.fullName || fullName);
+          sessionStorage.setItem("userEmail", email);
           navigate("/student-dashboard");
         } else {
           // If no token, redirect to login

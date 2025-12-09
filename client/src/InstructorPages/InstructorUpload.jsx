@@ -1,7 +1,6 @@
 // src/pages/InstructorUpload.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./InstructorUpload.css";
 import { USER_CURRICULUM } from "../data/curriculum";
 import { uploadFile } from "../utils/uploadFile";
 import { auth } from "../config/firebase";
@@ -940,7 +939,7 @@ export default function InstructorUpload() {
                 <div className="upl-chips">
                   <span className="upl-chip">
                     {fileType.charAt(0).toUpperCase() + fileType.slice(1)}
-                  </span>
+                    </span>
                 </div>
               )}
               <span className="upl-caret">▾</span>
@@ -1011,7 +1010,7 @@ export default function InstructorUpload() {
                 </svg>
               </div>
               <div className="upl-upload-content">
-                <p className="upl-upload-text">
+          <p className="upl-upload-text">
                   <label htmlFor="upl-file" className="upl-link">Click to upload</label> or drag and drop
                 </p>
                 <small className="upl-upload-hint">PDF, DOC, DOCX, MP4, MOV, JPG, PNG, GIF (Max 800MB)</small>
@@ -1067,50 +1066,50 @@ export default function InstructorUpload() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '15px' }}>
           <div className="upl-field" style={{ marginBottom: 0 }}>
-            <label>Select Course:</label>
-            <select 
+          <label>Select Course:</label>
+          <select 
               className={`upl-input ${errors.course ? "upl-error" : ""}`}
-              value={course} 
-              onChange={(e) => handleCourseChange(e.target.value)}
-              disabled={!availableCourses.length}
-            >
-              <option value="" disabled>Choose a course</option>
-              {availableCourses.map(c => (
-                <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
-              ))}
-            </select>
+            value={course} 
+            onChange={(e) => handleCourseChange(e.target.value)}
+            disabled={!availableCourses.length}
+          >
+            <option value="" disabled>Choose a course</option>
+            {availableCourses.map(c => (
+              <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
+            ))}
+          </select>
             {errors.course && <span className="upl-errtxt">{errors.course}</span>}
-          </div>
+        </div>
 
           <div className="upl-field" style={{ marginBottom: 0 }}>
-            <label>Select Topic:</label>
-            <select 
+          <label>Select Topic:</label>
+          <select 
               className={`upl-input ${errors.topic ? "upl-error" : ""}`}
-              value={topic} 
-              onChange={(e) => handleTopicChange(e.target.value)}
-              disabled={!course || !availableTopics.length}
-            >
-              <option value="" disabled>Choose a topic</option>
-              {availableTopics.map(t => (
-                <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
-              ))}
-            </select>
+            value={topic} 
+            onChange={(e) => handleTopicChange(e.target.value)}
+            disabled={!course || !availableTopics.length}
+          >
+            <option value="" disabled>Choose a topic</option>
+            {availableTopics.map(t => (
+              <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
+            ))}
+          </select>
             {errors.topic && <span className="upl-errtxt">{errors.topic}</span>}
-          </div>
+        </div>
 
           <div className="upl-field" style={{ marginBottom: 0 }}>
-            <label>Select Lesson:</label>
-            <select 
+          <label>Select Lesson:</label>
+          <select 
               className={`upl-input ${errors.lesson ? "upl-error" : ""}`}
-              value={lesson} 
-              onChange={(e) => setLesson(e.target.value)}
-              disabled={!topic || !availableLessons.length}
-            >
-              <option value="" disabled>Choose a lesson</option>
-              {availableLessons.map(l => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
+            value={lesson} 
+            onChange={(e) => setLesson(e.target.value)}
+            disabled={!topic || !availableLessons.length}
+          >
+            <option value="" disabled>Choose a lesson</option>
+            {availableLessons.map(l => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
             {errors.lesson && <span className="upl-errtxt">{errors.lesson}</span>}
           </div>
 

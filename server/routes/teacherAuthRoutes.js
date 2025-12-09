@@ -72,10 +72,15 @@ router.post('/auth/login', async (req, res) => {
     const t = await Teacher.findOne({ email });
     if (!t) return res.status(404).json({ error: 'Teacher not found' });
 
-    // If firebaseUID is provided, verify it matches
+    // If firebaseUID is provided, verify it matches or update it
     if (firebaseUID) {
-      if (t.firebaseUID !== firebaseUID) {
+      if (t.firebaseUID && t.firebaseUID !== firebaseUID) {
         return res.status(401).json({ error: 'Invalid Firebase credentials' });
+      }
+      // If firebaseUID is not set in MongoDB, update it
+      if (!t.firebaseUID) {
+        t.firebaseUID = firebaseUID;
+        await t.save();
       }
     } else {
       // Traditional password login

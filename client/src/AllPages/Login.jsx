@@ -243,28 +243,39 @@ export default function Login() {
         return;
       }
 
-      // Store authentication data
-      const storage = remember ? window.localStorage : window.sessionStorage;
-      if (loginResult.token) {
-        storage.setItem("token", loginResult.token);
-      }
-      storage.setItem("role", loginResult.userType);
-      storage.setItem("userId", loginResult.user?.id || "");
-      storage.setItem("userName", loginResult.user?.name || (loginResult.userType === 'teacher' ? 'Instructor' : 'Student'));
-      storage.setItem("userEmail", loginResult.user?.email || "");
-
-      // For teachers, also store compatibility fields
+      // For instructors: Use Firebase Auth only, no storage
       if (loginResult.userType === 'teacher') {
-        storage.setItem("le_instructor_token", loginResult.token);
-        storage.setItem("le_instructor_id", loginResult.user?.id || "");
-        storage.setItem("le_instructor_name", loginResult.user?.name || "Instructor");
-
-        // Try Firebase authentication (optional, won't block login if it fails)
+        // Sign in with Firebase
         try {
-          await signInWithEmailAndPassword(auth, loginResult.user?.email || email || username, password);
+          const firebaseCredential = await signInWithEmailAndPassword(auth, loginResult.user?.email || email || username, password);
+          const firebaseUID = firebaseCredential.user.uid;
+          
+          // Update MongoDB with firebaseUID if not already set
+        try {
+            await fetch(`${API_URL}/api/teachers/me`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${loginResult.token}`
+              },
+              body: JSON.stringify({ firebaseUID })
+            });
+          } catch (updateError) {
+            console.log('Could not update firebaseUID (may already be set):', updateError);
+            // Continue anyway - firebaseUID might already be set
+          }
         } catch (firebaseError) {
-          console.log('Firebase authentication not available:', firebaseError.code);
-          // Don't block login - user can still access the app
+          console.error('Firebase authentication failed:', firebaseError.code);
+          // If Firebase fails but MongoDB login succeeded, still allow access
+          // User might not have Firebase account yet
+          if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
+            setServerError('Firebase account not found. Please sign up first or contact support.');
+            setLoading(false);
+            return;
+          }
+          setServerError('Firebase authentication failed. Please try again.');
+          setLoading(false);
+          return;
         }
 
         // Check if information gathering is complete for teachers
@@ -274,14 +285,19 @@ export default function Login() {
           const areasOfExpertise = loginResult.user?.areasOfExpertise || [];
           const cv = loginResult.user?.cv || '';
           
-          if (areasOfExpertise.length === 0 || cv.trim() === '') {
-            // Missing data - redirect to Step 1
+          // Determine which step to redirect to based on what data is missing
+          if (areasOfExpertise.length === 0) {
+            // Missing areas of expertise - redirect to Step 1
             navigate('/InformationGathering-1');
+            return;
+          } else if (!cv || cv.trim() === '') {
+            // Has areas of expertise but missing CV - redirect to Step 2
+            navigate('/InformationGathering-2');
             return;
           } else {
             // All data exists but not marked complete - automatically mark as complete
             try {
-              await fetch(`${API_URL}/api/teachers/me`, {
+              const completeResponse = await fetch(`${API_URL}/api/teachers/me`, {
                 method: 'PATCH',
                 headers: {
                   'Content-Type': 'application/json',
@@ -289,15 +305,37 @@ export default function Login() {
                 },
                 body: JSON.stringify({ informationGatheringComplete: true })
               });
+              
+              if (completeResponse.ok) {
+                // Successfully marked as complete - go to dashboard
+                navigate('/instructor-dashboard-2');
+                return;
+              } else {
+                // Failed to mark complete - redirect to Step 3 to let user complete manually
+                navigate('/InformationGathering-3');
+                return;
+              }
             } catch (error) {
               console.error('Error marking information gathering as complete:', error);
+              // On error, redirect to Step 3 to let user complete manually
+              navigate('/InformationGathering-3');
+              return;
             }
           }
         }
 
-        // Navigate to instructor dashboard
+        // Information gathering is complete - navigate to instructor dashboard
         navigate('/instructor-dashboard-2');
       } else {
+        // For students, store in sessionStorage (as per user request, only fix instructor pages)
+        const storage = window.sessionStorage;
+        if (loginResult.token) {
+          storage.setItem("token", loginResult.token);
+        }
+        storage.setItem("role", loginResult.userType);
+        storage.setItem("userId", loginResult.user?.id || "");
+        storage.setItem("userName", loginResult.user?.name || 'Student');
+        storage.setItem("userEmail", loginResult.user?.email || "");
         // Navigate to student dashboard
         navigate('/student-dashboard');
       }

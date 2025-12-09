@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './InformationGathering1.css';
+import { auth } from '../config/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { getMongoDBToken } from '../utils/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -21,21 +24,26 @@ export default function InformationGathering1({ onNext, onLogout }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
-  // Check token and information gathering status on component mount
+  // Check Firebase Auth and fetch user info
   useEffect(() => {
-    const checkTokenAndStatus = async () => {
-      const token = localStorage.getItem('token') || localStorage.getItem('le_instructor_token') || 
-                    sessionStorage.getItem('token') || sessionStorage.getItem('le_instructor_token');
-      
-      if (!token) {
-        setError('No authentication token found. Please log in again.');
-        setTimeout(() => navigate('/all-login'), 2000);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate('/all-login');
         return;
       }
 
-      // Check if information gathering is already complete
+      // Get MongoDB token
+      const token = await getMongoDBToken();
+      if (!token) {
+        setError('Failed to authenticate. Please log in again.');
+        return;
+      }
+
+      // Fetch user info from MongoDB
       try {
         const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
           method: 'GET',
@@ -44,46 +52,35 @@ export default function InformationGathering1({ onNext, onLogout }) {
           }
         });
 
+        if (response.status === 401 || response.status === 403) {
+          setError('Invalid or expired token. Please log in again.');
+          navigate('/all-login');
+          return;
+        }
+
         if (response.ok) {
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
             
-            // If information gathering is complete, redirect to dashboard
-            if (teacher.informationGatheringComplete === true) {
-              navigate('/instructor-dashboard-2');
-              return;
+            if (teacher.fullName) {
+              setFullName(teacher.fullName);
             }
-
-            // Load existing areas of expertise if available
-            if (teacher.areasOfExpertise && teacher.areasOfExpertise.length > 0) {
-              // Map existing expertise to selected state
-              const existingSelected = teacher.areasOfExpertise
-                .filter(area => OPTIONS.includes(area))
-                .slice(0, 4);
-              
-              const hasOther = teacher.areasOfExpertise.some(area => !OPTIONS.includes(area));
-              if (hasOther) {
-                const otherArea = teacher.areasOfExpertise.find(area => !OPTIONS.includes(area));
-                if (otherArea) {
-                  setSelected([...existingSelected, 'Others']);
-                  setOtherText(otherArea);
-                  setShowOtherInput(true);
-                }
-              } else {
-                setSelected(existingSelected);
-              }
+            
+            if (teacher.email) {
+              setEmail(teacher.email);
+            } else if (firebaseUser.email) {
+              setEmail(firebaseUser.email);
             }
           }
         }
-      } catch (error) {
-        console.error('Error checking information gathering status:', error);
-        // Continue anyway - user can still fill out the form
+      } catch (err) {
+        console.error('Error fetching user info:', err);
       }
-    };
+    });
 
-    checkTokenAndStatus();
+    return () => unsubscribe();
   }, [navigate]);
 
   const toggle = opt => {
@@ -121,18 +118,23 @@ export default function InformationGathering1({ onNext, onLogout }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('le_instructor_token') || 
-                    sessionStorage.getItem('token') || sessionStorage.getItem('le_instructor_token');
+      // Get MongoDB token using Firebase Auth
+      const token = await getMongoDBToken();
 
       if (!token) {
         setError('Authentication required. Please log in again.');
+        setLoading(false);
+        navigate('/all-login');
         return;
       }
 
+      // Prepare areas of expertise array
+      // Replace "Others" with the custom text if provided
       const areasOfExpertise = selected.map(area => 
         area === 'Others' && otherText.trim() ? otherText.trim() : area
       );
 
+      // Save to backend
       const response = await fetch(`${API_URL}/api/teachers/me`, {
         method: 'PATCH',
         headers: {
@@ -142,17 +144,21 @@ export default function InformationGathering1({ onNext, onLogout }) {
         body: JSON.stringify({ areasOfExpertise })
       });
 
+      // Check if response is JSON before parsing
       const contentType = response.headers.get('content-type');
       let data;
       
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
+        // If not JSON, get text to see what we got
         const text = await response.text();
         console.error('Non-JSON response:', text);
         
         if (response.status === 401) {
           throw new Error('Invalid or expired token. Please log in again.');
+        } else if (response.status === 404) {
+          throw new Error('User not found. Please contact support.');
         } else {
           throw new Error('Server error. Please try again later.');
         }
@@ -161,11 +167,14 @@ export default function InformationGathering1({ onNext, onLogout }) {
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Invalid or expired token. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Please log in again.');
         } else {
           throw new Error(data.error || 'Failed to save areas of expertise');
         }
       }
 
+      // Success - proceed to next step
       if (typeof onNext === 'function') {
         onNext({ selected, otherText });
       }
@@ -173,6 +182,7 @@ export default function InformationGathering1({ onNext, onLogout }) {
     } catch (err) {
       console.error('Error saving areas of expertise:', err);
       
+      // More specific error messages
       if (err.message.includes('token') || err.message.includes('Authentication') || err.message.includes('401')) {
         setError('Your session has expired. Please log in again.');
       } else if (err.message.includes('Network') || err.message.includes('fetch')) {
@@ -189,14 +199,17 @@ export default function InformationGathering1({ onNext, onLogout }) {
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     if (typeof onLogout === 'function') {
       onLogout();
     }
-    // Clear all storage
-    localStorage.clear();
-    sessionStorage.clear();
-    navigate('/all-signup');
+    // Sign out from Firebase
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate('/all-login');
   };
 
   const cancelLogout = () => {
@@ -235,126 +248,104 @@ export default function InformationGathering1({ onNext, onLogout }) {
           </div>
         </div>
       )}
-      
-      <div className="ig1-container">
-        {/* Illustration Section */}
-        <div className="ig1-illustration-section">
-          <div className="ig1-illustration-content">
-            {/* You can add an illustration image here if available */}
-            <div className="ig1-illustration-placeholder">
-              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="100" cy="100" r="80" fill="#F3EFFF" stroke="#4A0FAD" strokeWidth="3"/>
-                <path d="M70 100 L90 120 L130 80" stroke="#4A0FAD" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
+      <div className="ig1-card">
+        <div className="ig1-header">
+          <h1 className="ig1-title">Select Your Expertise</h1>
+          <button 
+            type="button"
+            className="ig1-logout" 
+            onClick={handleLogout}
+          >
+            <span>‹</span> Log out
+          </button>
         </div>
 
-        {/* Content Section */}
-        <div className="ig1-content-section">
-          <div className="ig1-card">
-            {/* Progress Indicators */}
-            <div className="ig1-progress-dots">
-              <div className="ig1-dot ig1-dot-active"></div>
-              <div className="ig1-dot"></div>
-              <div className="ig1-dot"></div>
-            </div>
-
-            {/* Header */}
-            <div className="ig1-header">
-              <button 
-                type="button"
-                className="ig1-back-btn"
-                onClick={handleLogout}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                  <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                <span>Log out</span>
-              </button>
-            </div>
-
-            <h1 className="ig1-title">Select Your Expertise</h1>
-            <p className="ig1-subtitle">
-              Choose your areas of expertise (max 4 selections)
-            </p>
-
-            {error && (
-              <div className="ig1-error" role="alert">
-                {error}
-              </div>
-            )}
-
-            {/* Selected Tags */}
-            {selected.length > 0 && (
-              <div className="ig1-tags">
-                {selected.map(t => (
-                  <span key={t} className="ig1-tag">
-                    {t === 'Others' && otherText ? otherText : t}
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        toggle(t);
-                        if (t === 'Others') {
-                          setOtherText('');
-                        }
-                      }}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Other Input */}
-            {showOtherInput && (
-              <div className="ig1-other-input">
-                <label htmlFor="other-expertise">Describe your expertise:</label>
-                <textarea
-                  id="other-expertise"
-                  className="ig1-textarea"
-                  value={otherText}
-                  onChange={(e) => setOtherText(e.target.value)}
-                  placeholder="Please describe your area of expertise..."
-                  rows={3}
-                />
-              </div>
-            )}
-
-            {/* Options Grid */}
-            <div className="ig1-grid">
-              {OPTIONS.map(opt => (
-                <label 
-                  key={opt} 
-                  className={`ig1-option ${selected.includes(opt) ? 'ig1-option-selected' : ''} ${!selected.includes(opt) && selected.length >= 4 && opt !== 'Others' ? 'ig1-option-disabled' : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(opt)}
-                    onChange={() => toggle(opt)}
-                    disabled={!selected.includes(opt) && selected.length >= 4 && opt !== 'Others'}
-                  />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-
-            {/* Actions */}
-            <div className="ig1-actions">
-              <button
-                type="button"
-                className="ig1-next-btn"
-                onClick={handleNext}
-                disabled={loading || selected.length === 0}
-              >
-                {loading ? 'Saving...' : 'Next'}
-              </button>
-            </div>
+        {(fullName || email) && (
+          <div className="ig1-user-info">
+            {fullName && <div className="ig1-user-name">{fullName}</div>}
+            {email && <div className="ig1-user-email">{email}</div>}
           </div>
+        )}
+
+        <p className="ig1-subtitle">
+          Choose your areas of expertise (max 4 selections)
+        </p>
+
+        {error && (
+          <div className="ig1-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        {selected.length > 0 && (
+          <div className="ig1-tags">
+            {selected.map(t => (
+              <span key={t} className="ig1-tag">
+                {t === 'Others' && otherText ? otherText : t}
+                <button 
+                  type="button"
+                  onClick={() => {
+                    toggle(t);
+                    if (t === 'Others') {
+                      setOtherText('');
+                    }
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {showOtherInput && (
+          <div className="ig1-other-input">
+            <label htmlFor="other-expertise">Describe your expertise:</label>
+            <textarea
+              id="other-expertise"
+              className="ig1-textarea"
+              value={otherText}
+              onChange={(e) => setOtherText(e.target.value)}
+              placeholder="Please describe your area of expertise..."
+              rows={3}
+            />
+          </div>
+        )}
+
+        <div className="ig1-grid">
+          {OPTIONS.map(opt => (
+            <label key={opt} className="ig1-option">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                disabled={!selected.includes(opt) && selected.length >= 4 && opt !== 'Others'}
+              />
+              <span>{opt}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="ig1-progress">
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className={`ig1-bar${i === 0 ? ' ig1-bar-active' : ''}`}
+            />
+          ))}
+        </div>
+
+        <div className="ig1-actions">
+          <button
+            type="button"
+            className="ig1-next"
+            onClick={handleNext}
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Next'}
+          </button>
         </div>
       </div>
     </div>
   );
 }
-

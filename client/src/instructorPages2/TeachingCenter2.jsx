@@ -13,6 +13,9 @@ import TeachingPic2 from "../assets/teachingCenterPic2.png";
 import TeachingPic3 from "../assets/teachingCenterPic3.png";
 import TeachingPic4 from "../assets/teachingCenterPic4.png";
 import TeachingPic5 from "../assets/teachingCenterPic5.png";
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { getMongoDBToken } from "../utils/auth";
 
 export default function TeachingCenter2() {
   const navigate = useNavigate();
@@ -21,15 +24,47 @@ export default function TeachingCenter2() {
   const [tab, setTab] = useState("teaching"); // "teaching" | "publishing" | "community" | "news"
   const [page, setPage] = useState(1); // 1 or 2
 
-  // Get instructor name
-  const [instructorName] = useState(() => {
-    const fullName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || 
-                     'Instructor';
-    return fullName.split(' ')[0];
-  });
+  const [instructorName, setInstructorName] = useState('Instructor');
+  const [email, setEmail] = useState('');
+  const [profilePic, setProfilePic] = useState('');
+
+  // Get instructor name from Firebase Auth
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate('/all-login');
+        return;
+      }
+
+      const token = await getMongoDBToken();
+      if (token) {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const teacher = data.data || data;
+            if (teacher.fullName) {
+              setInstructorName(teacher.fullName.split(' ')[0]);
+            }
+            if (teacher.email) {
+              setEmail(teacher.email);
+            }
+            if (teacher.profilePic) {
+              setProfilePic(teacher.profilePic);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching instructor name:', error);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   // --- DATA ------------------------------------------------------------------
   const TEACHING = {
@@ -188,13 +223,13 @@ export default function TeachingCenter2() {
     if (next !== "teaching") setPage(1);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("le_instructor_token");
-    localStorage.removeItem("le_instructor_name");
-    navigate("/InstructorLogin");
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate("/all-login");
   };
 
   const handleSidebarEnter = () => {
@@ -313,12 +348,26 @@ export default function TeachingCenter2() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
+                  {profilePic ? (
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
                   <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  )}
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
-                  <div className="ld-profile-username">@instructor</div>
+                  {email && <div className="ld-profile-email">{email}</div>}
                 </div>
                 <svg 
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
@@ -336,10 +385,18 @@ export default function TeachingCenter2() {
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
                     <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    )}
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
-                      <div className="ld-profile-dropdown-email">instructor@learnease.com</div>
+                      <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>

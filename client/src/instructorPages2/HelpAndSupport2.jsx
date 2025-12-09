@@ -8,6 +8,10 @@ import icCourse from "../assets/course.png";
 import icPerformance from "../assets/performance2.png";
 import icCurriculum from "../assets/curriculum.png";
 import icResources from "../assets/resources.png";
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { getMongoDBToken } from "../utils/auth";
+import { useSimpleToast } from "../utils/toast";
 
 const REPORT_TOPICS = [
   "Login or account issues",
@@ -34,15 +38,48 @@ export default function HelpAndSupport2() {
   const [text, setText] = useState("");
   const MAX = 250;
 
-  // Get instructor name
-  const [instructorName] = useState(() => {
-    const fullName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || 
-                     'Instructor';
-    return fullName.split(' ')[0];
-  });
+  const [instructorName, setInstructorName] = useState('Instructor');
+  const [email, setEmail] = useState('');
+  const [profilePic, setProfilePic] = useState('');
+  const { showToast, ToastComponent } = useSimpleToast();
+
+  // Get instructor name from Firebase Auth
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate('/all-login');
+        return;
+      }
+
+      const token = await getMongoDBToken();
+      if (token) {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const teacher = data.data || data;
+            if (teacher.fullName) {
+              setInstructorName(teacher.fullName.split(' ')[0]);
+            }
+            if (teacher.email) {
+              setEmail(teacher.email);
+            }
+            if (teacher.profilePic) {
+              setProfilePic(teacher.profilePic);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching instructor name:', error);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const topics = section === "report" ? REPORT_TOPICS : FEEDBACK_TOPICS;
 
@@ -54,16 +91,16 @@ export default function HelpAndSupport2() {
 
   const send = () => {
     console.log({ type: section, topic, message: text });
-    alert("Thanks! We got your message.");
+    showToast("Thanks! We got your message.", "success");
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("le_instructor_token");
-    localStorage.removeItem("le_instructor_name");
-    navigate("/InstructorLogin");
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate("/all-login");
   };
 
   const handleSidebarEnter = () => {
@@ -187,12 +224,26 @@ export default function HelpAndSupport2() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
+                  {profilePic ? (
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
                   <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  )}
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
-                  <div className="ld-profile-username">@instructor</div>
+                  {email && <div className="ld-profile-email">{email}</div>}
                 </div>
                 <svg 
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
@@ -210,10 +261,18 @@ export default function HelpAndSupport2() {
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
                     <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    )}
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
-                      <div className="ld-profile-dropdown-email">instructor@learnease.com</div>
+                      <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>
@@ -339,6 +398,7 @@ export default function HelpAndSupport2() {
           </section>
         </div>
       </div>
+      <ToastComponent />
     </div>
   );
 }

@@ -17,6 +17,9 @@ import feedbackSupport from "../assets/feedback&support.png";
 import RainfallChart from "../components/RainfallChart";
 import QuizResults from "../components/QuizResults";
 import RankingTagsPanel from "../components/RankingAndTags";
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { getMongoDBToken } from "../utils/auth";
 
 export default function InstructorDashboard2() {
   const navigate = useNavigate();
@@ -27,15 +30,110 @@ export default function InstructorDashboard2() {
   const [activeSection, setActiveSection] = useState("course");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  // Get instructor name (without backend for now)
-  const [instructorName] = useState(() => {
-    const fullName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || 
-                     'Instructor';
-    return fullName.split(' ')[0];
-  });
+  const [instructorName, setInstructorName] = useState('Instructor');
+  const [email, setEmail] = useState('');
+  const [profilePic, setProfilePic] = useState('');
+  const [mongoToken, setMongoToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check Firebase Auth and get MongoDB token
+  useEffect(() => {
+    let isMounted = true;
+    
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+      
+      if (!firebaseUser) {
+        // Not authenticated - redirect to login
+        setLoading(false);
+        navigate('/all-login');
+        return;
+      }
+
+      try {
+        // Get MongoDB token using Firebase Auth
+        const token = await getMongoDBToken();
+        if (!token) {
+          console.error('Failed to get MongoDB token');
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
+
+        setMongoToken(token);
+
+        // Fetch teacher data and check information gathering
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          setLoading(false);
+          navigate('/all-login');
+          return;
+        }
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            const teacher = data.data || data;
+            
+            // Update instructor name from API
+            if (teacher.fullName) {
+              const firstName = teacher.fullName.split(' ')[0];
+              setInstructorName(firstName);
+            }
+            
+            // Set email and profile picture
+            if (teacher.email) {
+              setEmail(teacher.email);
+            }
+            if (teacher.profilePic) {
+              setProfilePic(teacher.profilePic);
+            }
+            
+            // Check if information gathering is complete
+            const isInfoGatheringComplete = teacher.informationGatheringComplete === true;
+            
+            if (!isInfoGatheringComplete) {
+              const areasOfExpertise = teacher.areasOfExpertise || [];
+              const cv = teacher.cv || '';
+              
+              // Determine which step to redirect to based on what data is missing
+              if (areasOfExpertise.length === 0) {
+                setLoading(false);
+                navigate('/InformationGathering-1');
+                return;
+              } else if (!cv || cv.trim() === '') {
+                setLoading(false);
+                navigate('/InformationGathering-2');
+                return;
+              } else {
+                setLoading(false);
+                navigate('/InformationGathering-3');
+                return;
+              }
+            }
+          }
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error checking information gathering status:', error);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [navigate]);
 
   // Sample data for instructor dashboard
   const sampleMetrics = [
@@ -44,18 +142,8 @@ export default function InstructorDashboard2() {
     { label: "Favorites given", value: "300", change: "+15.01%" },
   ];
 
-  // Load notifications from localStorage or use default
-  const [notifications, setNotifications] = useState(() => {
-    try {
-      const stored = localStorage.getItem('instructorNotifications');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Error loading notifications:', e);
-    }
-    // Default notifications if none stored
-    return [
+  // Notifications - stored in component state only (no storage)
+  const [notifications, setNotifications] = useState([
       { id: Date.now() - 86400000, type: "likes", text: "You reached 1,032 likes", time: "2 hours ago", read: false, timestamp: Date.now() - 7200000 },
       { id: Date.now() - 86400000 + 1, type: "approved", text: "You got accepted by the admin", time: "5 hours ago", read: false, timestamp: Date.now() - 18000000 },
       { id: Date.now() - 86400000 + 2, type: "views", text: "You reached 2,315 views", time: "1 day ago", read: false, timestamp: Date.now() - 86400000 },
@@ -63,17 +151,7 @@ export default function InstructorDashboard2() {
       { id: Date.now() - 86400000 + 4, type: "uploaded", text: "Your content got uploaded successfully", time: "2 days ago", read: false, timestamp: Date.now() - 172800000 },
       { id: Date.now() - 86400000 + 5, type: "report", text: "You uploaded a new report", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
       { id: Date.now() - 86400000 + 6, type: "feedback", text: "You submitted new feedback", time: "4 days ago", read: false, timestamp: Date.now() - 345600000 },
-  ];
-  });
-
-  // Save notifications to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem('instructorNotifications', JSON.stringify(notifications));
-    } catch (e) {
-      console.error('Error saving notifications:', e);
-    }
-  }, [notifications]);
+  ]);
 
   // Function to add a new notification
   const addNotification = (type, text) => {
@@ -141,11 +219,14 @@ export default function InstructorDashboard2() {
     { id: 15, name: "Noah", likes: 87 },
   ];
 
-  const handleLogout = () => {
-    // Clear all storage
-    localStorage.clear();
-    sessionStorage.clear();
-    navigate("/all-signup");
+  const handleLogout = async () => {
+    // Sign out from Firebase
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate("/all-login");
   };
 
   // Scroll detection for chatbot animation
@@ -553,6 +634,17 @@ export default function InstructorDashboard2() {
     </>
   );
 
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="ld-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', color: '#666', marginBottom: '12px' }}>Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="ld-page">
       {/* Left Sidebar with Hover Animation */}
@@ -717,12 +809,26 @@ export default function InstructorDashboard2() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
+                  {profilePic ? (
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
                   <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  )}
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
-                  <div className="ld-profile-username">@instructor</div>
+                  {email && <div className="ld-profile-email">{email}</div>}
                 </div>
                 <svg 
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
@@ -740,10 +846,18 @@ export default function InstructorDashboard2() {
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
                     <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    )}
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
-                      <div className="ld-profile-dropdown-email">instructor@learnease.com</div>
+                      <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>

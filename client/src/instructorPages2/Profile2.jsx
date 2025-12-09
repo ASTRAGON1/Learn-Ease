@@ -8,6 +8,10 @@ import icCourse from "../assets/course.png";
 import icPerformance from "../assets/performance2.png";
 import icCurriculum from "../assets/curriculum.png";
 import icResources from "../assets/resources.png";
+import { auth } from "../config/firebase";
+import { onAuthStateChanged, signOut, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from "firebase/auth";
+import { uploadFile, deleteFileByPath } from "../utils/uploadFile";
+import { getMongoDBToken } from "../utils/auth";
 
 const COUNTRIES = [
   "United States", "United Kingdom", "Germany", "France", "Canada", "India",
@@ -20,25 +24,17 @@ export default function Profile2() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [tab, setTab] = useState("profile");
 
-  // Get instructor name
-  const [instructorName] = useState(() => {
-    const fullName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || 
-                     'Instructor';
-    return fullName.split(' ')[0];
-  });
+  const [instructorName, setInstructorName] = useState('Instructor');
 
   // LearnEase Profile
   const [fullName, setFullName] = useState("");
   const [headline, setHeadline] = useState("");
-  const [bio, setBio] = useState("");
+  const [description, setDescription] = useState("");
   const [country, setCountry] = useState("");
   const [website, setWebsite] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarURL, setAvatarURL] = useState("");
-  const [avatarStoragePath, setAvatarStoragePath] = useState("");
+  const [profilePicStoragePath, setProfilePicStoragePath] = useState("");
   const [loading, setLoading] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
@@ -51,79 +47,128 @@ export default function Profile2() {
   const [newPwd2, setNewPwd2] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Load notification preferences from localStorage or use defaults
-  const [notif, setNotif] = useState(() => {
-    try {
-      const stored = localStorage.getItem('instructorNotificationPrefs');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Error loading notification prefs:', e);
-    }
-    // Default: all enabled
-    return {
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" }); // type: "success" or "error"
+  
+  // Helper function to show toast notification
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 4000); // Auto-hide after 4 seconds
+  };
+
+  // Notification preferences - stored in component state only (no storage)
+  const [notif, setNotif] = useState({
       updates: true,
       admin: true,
       performance: true,
       ranking: true,
       followers: true,
-    };
   });
   
-  // Save notification preferences to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('instructorNotificationPrefs', JSON.stringify(notif));
-    } catch (e) {
-      console.error('Error saving notification prefs:', e);
-    }
-  }, [notif]);
+    // Fetch profile data from API using Firebase Auth
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate('/all-login');
+        return;
+      }
+
+      const token = await getMongoDBToken();
+      if (!token) {
+        navigate('/all-login');
+        return;
+      }
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          navigate('/all-login');
+          return;
+        }
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            const teacher = data.data || data;
+            
+            // Set all profile fields from API
+            if (teacher.fullName) {
+              setFullName(teacher.fullName);
+              // Update instructor name (first name only)
+              const firstName = teacher.fullName.split(' ')[0];
+              setInstructorName(firstName);
+            }
+            
+            if (teacher.email) {
+              setEmail(teacher.email);
+            }
+            
+            if (teacher.headline) {
+              setHeadline(teacher.headline);
+            } else {
+              setHeadline("");
+            }
+            
+            if (teacher.bio) {
+              setDescription(teacher.bio);
+            } else {
+              setDescription("");
+            }
+            
+            if (teacher.country) {
+              setCountry(teacher.country);
+            } else {
+              setCountry("");
+            }
+            
+            if (teacher.website) {
+              setWebsite(teacher.website);
+            } else {
+              setWebsite("");
+            }
+            
+            if (teacher.profilePic) {
+              setAvatarURL(teacher.profilePic);
+              // Extract storage path from Firebase Storage URL if it's a Firebase URL
+              // For Firebase URLs, we can't reliably extract the path, so we'll keep it empty
+              // and handle deletion differently if needed
+              setProfilePicStoragePath("");
+            } else {
+              // Clear avatar if no profile picture in API
+              setAvatarURL("");
+              setProfilePicStoragePath("");
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
-    // Load data from localStorage only, no backend calls
-    const storedName = localStorage.getItem('userName') || 
-                     localStorage.getItem('le_instructor_name') || 
-                     sessionStorage.getItem('userName') || 
-                     sessionStorage.getItem('le_instructor_name') || '';
-    
-    if (storedName) {
-      setFullName(storedName);
-    }
-    
-    const storedEmail = localStorage.getItem('userEmail') || 
-                       sessionStorage.getItem('userEmail') || 
-                       'instructor@learnease.com';
-    setEmail(storedEmail);
-    
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    // Load avatar from localStorage if available
-    const storedAvatar = localStorage.getItem('userAvatar');
-    if (storedAvatar && !avatarFile) {
-      setAvatarURL(storedAvatar);
-    }
-    
+    // Only create preview URL if a new file is selected
     if (!avatarFile) return;
     const url = URL.createObjectURL(avatarFile);
     setAvatarURL(url);
     return () => URL.revokeObjectURL(url);
   }, [avatarFile]);
   
-  useEffect(() => {
-    // Load saved profile data from localStorage on mount
-    const storedHeadline = localStorage.getItem('userHeadline');
-    const storedBio = localStorage.getItem('userBio');
-    const storedCountry = localStorage.getItem('userCountry');
-    const storedWebsite = localStorage.getItem('userWebsite');
-    
-    if (storedHeadline) setHeadline(storedHeadline);
-    if (storedBio) setBio(storedBio);
-    if (storedCountry) setCountry(storedCountry);
-    if (storedWebsite) setWebsite(storedWebsite);
-  }, []);
+  // Remove this useEffect - data is now loaded from API only
 
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
@@ -136,63 +181,202 @@ export default function Profile2() {
     if (f) setAvatarFile(f);
   };
 
-  const saveProfile = () => {
-    // Save to localStorage only, no backend calls
-    if (fullName) {
-      localStorage.setItem('userName', fullName);
-      localStorage.setItem('le_instructor_name', fullName);
-    }
+  const saveProfile = async () => {
+    // Get MongoDB token using Firebase Auth
+    const token = await getMongoDBToken();
     
-    // Save other profile data to localStorage
-    if (headline) localStorage.setItem('userHeadline', headline);
-    if (bio) localStorage.setItem('userBio', bio);
-    if (country) localStorage.setItem('userCountry', country);
-    if (website) localStorage.setItem('userWebsite', website);
-    if (email) {
-      localStorage.setItem('userEmail', email);
+    if (!token) {
+      showToast("You must be logged in to save your profile", "error");
+      navigate('/all-login');
+      return;
     }
-    
-    // Handle avatar file if selected
-    if (avatarFile) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarURL(reader.result);
-        localStorage.setItem('userAvatar', reader.result);
-      };
-      reader.readAsDataURL(avatarFile);
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      showToast("Please log in to save profile", "error");
+      return;
     }
-    
-    alert("Profile saved successfully");
-    setAvatarFile(null);
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      let profilePicURL = avatarURL;
+      let newProfilePicStoragePath = profilePicStoragePath;
+      
+      // Handle profile picture upload to Firebase Storage if a new file is selected
+      if (avatarFile) {
+        setUploadingAvatar(true);
+        try {
+          // Delete old profile picture from Firebase Storage if exists
+          if (profilePicStoragePath) {
+            try {
+              await deleteFileByPath(profilePicStoragePath);
+            } catch (e) {
+              console.log('Could not delete old profile picture:', e);
+            }
+          }
+          
+          // Upload new profile picture to Firebase Storage
+          const uploadResult = await uploadFile(
+            avatarFile,
+            'profile',
+            currentUser.uid,
+            null
+          );
+          
+          profilePicURL = uploadResult.url;
+          newProfilePicStoragePath = uploadResult.path;
+          setAvatarURL(profilePicURL);
+          setProfilePicStoragePath(newProfilePicStoragePath);
+        } catch (error) {
+          console.error('Error uploading profile picture:', error);
+          showToast(`Failed to upload profile picture: ${error.message}`, "error");
+          setUploadingAvatar(false);
+          return;
+        } finally {
+          setUploadingAvatar(false);
+        }
+      }
+      
+      // Update profile data - only send the URL, not the storage path
+      const response = await fetch(`${API_URL}/api/teachers/me`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          fullName, 
+          headline, 
+          bio: description, 
+          country,
+          website,
+          profilePic: profilePicURL
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save profile');
+      }
+
+      showToast("Profile saved successfully", "success");
+      setAvatarFile(null); // Clear file after successful save
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showToast(`Failed to save: ${error.message}`, "error");
+      setUploadingAvatar(false);
+    }
   };
 
-  const changePassword = () => {
+  const changePassword = async () => {
+    // Validate inputs
+    if (!currentPwd) {
+      showToast("Please enter your current password.", "error");
+      return;
+    }
     if (!newPwd || newPwd.length < 6) {
-      alert("New password must be at least 6 characters.");
+      showToast("New password must be at least 6 characters.", "error");
       return;
     }
     if (newPwd !== newPwd2) {
-      alert("New passwords do not match.");
+      showToast("New passwords do not match.", "error");
       return;
     }
 
-    // Save password to localStorage (not secure, but no backend)
-    localStorage.setItem('userPassword', newPwd);
+    setChangingPassword(true);
+
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) {
+        showToast("You must be logged in to change your password.", "error");
+        setChangingPassword(false);
+        return;
+      }
+
+      // Get MongoDB token
+      const token = await getMongoDBToken();
+      if (!token) {
+        showToast("Failed to authenticate. Please try logging in again.", "error");
+        setChangingPassword(false);
+        return;
+      }
+
+      // Step 1: Re-authenticate with Firebase using current password
+      try {
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+        await reauthenticateWithCredential(currentUser, credential);
+      } catch (firebaseError) {
+        console.error('Firebase re-authentication error:', firebaseError);
+        if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
+          showToast("Current password is incorrect.", "error");
+          setChangingPassword(false);
+          return;
+        }
+        throw firebaseError;
+      }
+
+      // Step 2: Update password in Firebase
+      try {
+        await updatePassword(currentUser, newPwd);
+      } catch (firebaseError) {
+        console.error('Firebase password update error:', firebaseError);
+        if (firebaseError.code === 'auth/requires-recent-login') {
+          showToast("For security reasons, please log out and log in again before changing your password.", "error");
+        } else {
+          showToast(`Failed to update password in Firebase: ${firebaseError.message}`, "error");
+        }
+        setChangingPassword(false);
+        return;
+      }
+
+      // Step 3: Update password in MongoDB
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/teachers/me/password`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: currentPwd,
+          newPassword: newPwd
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) {
+          showToast("Current password is incorrect.", "error");
+        } else {
+          showToast(`Failed to update password: ${errorData.error || 'Unknown error'}`, "error");
+        }
+        setChangingPassword(false);
+        return;
+      }
+
+      // Success
+      showToast("Password updated successfully in both Firebase and MongoDB.", "success");
     setHasPassword(true);
-    alert("Password updated successfully (stored locally)");
     setShowPwdModal(false);
     setCurrentPwd("");
     setNewPwd("");
     setNewPwd2("");
+    } catch (error) {
+      console.error('Error changing password:', error);
+      showToast(`Failed to change password: ${error.message}`, "error");
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("le_instructor_token");
-    localStorage.removeItem("le_instructor_name");
-    navigate("/InstructorLogin");
+  const handleLogout = async () => {
+    // Sign out from Firebase
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    navigate("/all-login");
   };
 
   const handleSidebarEnter = () => {
@@ -316,12 +500,26 @@ export default function Profile2() {
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  {avatarURL ? (
+                    <img 
+                      src={avatarURL} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
+                    <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                  )}
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
-                  <div className="ld-profile-username">@instructor</div>
+                  {email && <div className="ld-profile-email">{email}</div>}
                 </div>
                 <svg 
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
@@ -339,10 +537,18 @@ export default function Profile2() {
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    {avatarURL ? (
+                      <img 
+                        src={avatarURL} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
+                      <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
+                    )}
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
-                      <div className="ld-profile-dropdown-email">instructor@learnease.com</div>
+                      <div className="ld-profile-dropdown-email">{email || 'instructor@learnease.com'}</div>
                     </div>
                   </div>
                   <div className="ld-profile-dropdown-divider"></div>
@@ -401,7 +607,7 @@ export default function Profile2() {
                     <img src={avatarURL} alt="Profile" className="pf-avatar-image" />
                   ) : (
                     <div className="pf-avatar-placeholder">
-                      {fullName.slice(0, 2).toUpperCase()}
+                      {fullName ? fullName.slice(0, 2).toUpperCase() : 'IN'}
                     </div>
                   )}
                   <div className="pf-avatar-overlay">
@@ -443,11 +649,11 @@ export default function Profile2() {
                 </div>
 
                 <div className="pf-form-field pf-form-field-full">
-                  <label className="pf-form-label">Bio</label>
+                  <label className="pf-form-label">Description</label>
                   <textarea
                     className="pf-form-textarea"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="Tell us about yourself..."
                     rows={4}
                   />
@@ -558,12 +764,15 @@ export default function Profile2() {
                 <div className="pf-delete-warning">
                   <strong>Warning:</strong> If you close your account, you will lose all access to your account and data associated with it, even if you create a new account with the same email.
                 </div>
-                <button className="pf-delete-account-btn" onClick={() => {
+                <button className="pf-delete-account-btn" onClick={async () => {
                   if (window.confirm("Are you sure you want to close your account? This action cannot be undone.")) {
-                    // Clear all localStorage data
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    navigate("/InstructorLogin");
+                    // Sign out from Firebase
+                    try {
+                      await signOut(auth);
+                    } catch (error) {
+                      console.error('Error signing out:', error);
+                    }
+                    navigate("/all-login");
                   }
                 }}>
                   Close account
@@ -621,6 +830,26 @@ export default function Profile2() {
           )}
         </div>
       </div>
+      
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`pf-toast pf-toast-${toast.type}`}>
+          <div className="pf-toast-content">
+            {toast.type === "success" ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            )}
+            <span className="pf-toast-message">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

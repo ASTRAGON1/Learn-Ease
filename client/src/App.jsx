@@ -17,7 +17,6 @@ import StudentProfile from "./StudentPages/StudentProfile";
 import StudentShell from "./StudentPages/StudentShell";
 import StudentDashboard2 from "./StudentPages/StudentDashboard2";
 
-import InstructorDashboard from "./InstructorPages/InstructorDash";
 import InstructorDashboard2 from "./instructorPages2/InstructorDashboard2";
 import InstructorUpload2 from "./instructorPages2/InstructorUpload2";
 import TeachingCenter2 from "./instructorPages2/TeachingCenter2";
@@ -26,22 +25,11 @@ import GetSupport2 from "./instructorPages2/GetSupport2";
 import AIQuiz2 from "./instructorPages2/AIQuiz2";
 import Profile2 from "./instructorPages2/Profile2";
 import InstructorCommunity2 from "./instructorPages2/InstructorCommunity2";
-import InstructorLogin from "./InstructorPages/InstructorLogin";
-import InstructorSignUp1 from "./InstructorPages/InstructorSignUp1";
-import InstructorSignUp2 from "./InstructorPages/InstructorSignUp2";
-import InformationGathering1 from "./InstructorPages/InformationGathering1";
-import InformationGathering2 from "./InstructorPages/InformationGathering2";
-import InformationGathering3 from "./InstructorPages/InformationGathering3";
 import InformationGathering1_2 from "./instructorPages2/InformationGathering1";
 import InformationGathering2_2 from "./instructorPages2/InformationGathering2";
 import InformationGathering3_2 from "./instructorPages2/InformationGathering3";
-import TeachingCenter from "./InstructorPages/TeachingCenter";
 import InstructorUpload from "./InstructorPages/InstructorUpload";
-import ProfileSettings from "./InstructorPages/ProfileSettings";
-import HelpAndSupport from "./InstructorPages/HelpAndSupport";
-import GetSupport from "./InstructorPages/getSupport";
 import InstructorCommunity from "./InstructorPages/InstructorCommunity";
-import AIQuiz from "./InstructorPages/AIQuiz";
 
 import AdminPanel from "./AdminPages/AdminPanel";
 
@@ -90,8 +78,6 @@ export default function App() {
           <Route path="/messages/:id" element={<MessageThread />} />
         </Route>
 
-        <Route path="/InstructorLogin" element={<InstructorLogin />} />
-        <Route path="/InstructorDash" element={<InstructorDashboard />} />
         <Route path="/instructor-dashboard-2" element={<InstructorDashboard2 />} />
         <Route path="/instructor-upload-2" element={<InstructorUpload2 />} />
         <Route path="/TeachingCenter-2" element={<TeachingCenter2 />} />
@@ -100,21 +86,11 @@ export default function App() {
         <Route path="/ai-quiz-2" element={<AIQuiz2 />} />
         <Route path="/profile-2" element={<Profile2 />} />
         <Route path="/InstructorCommunity-2" element={<InstructorCommunity2 />} />
-        <Route path="/InstructorSignUp1" element={<InstructorSignUp1 />} />
-        <Route path="/InstructorSignUp2" element={<InstructorSignUp2 />} />
-        <Route path="/InformationGathering1" element={<InformationGathering1 />} />
-        <Route path="/InformationGathering2" element={<InformationGathering2 />} />
-        <Route path="/InformationGathering3" element={<InformationGathering3 />} />
         <Route path="/InformationGathering-1" element={<InformationGathering1_2 />} />
         <Route path="/InformationGathering-2" element={<InformationGathering2_2 />} />
         <Route path="/InformationGathering-3" element={<InformationGathering3_2 />} />
-        <Route path="/teachingCenter" element={<TeachingCenter />} />
         <Route path="/InstructorUpload" element={<InstructorUpload />} />
-        <Route path="/ProfileSettings" element={<ProfileSettings />} />
-        <Route path="/HelpAndSupport" element={<HelpAndSupport />} />
-        <Route path="/getSupport" element={<GetSupport />} />
         <Route path="/InstructorCommunity" element={<InstructorCommunity />} />
-        <Route path="/ai-quiz" element={<AIQuiz />} />
 
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/all-login" element={<AllPagesLogin />} />
