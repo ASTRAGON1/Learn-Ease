@@ -1,11 +1,17 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Trophy, Award, Star, TrendingUp, BookOpen, Medal, ChevronRight } from "lucide-react";
 import "./AchievementPage.css";
+import fullLogo from "../assets/OrangeLogo.png";
+import smallLogo from "../assets/OrangeIconLogo.png";
+import icCourse from "../assets/course.png";
+import icPersonalizedPath from "../assets/Path.svg";
 
 export default function AchievementPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("all");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   // Sample achievement data - this should come from your backend/API
   const achievements = [
@@ -130,6 +136,69 @@ export default function AchievementPage() {
     }
   };
 
+  // Determine active route
+  const getActiveKey = () => {
+    if (location.pathname === "/student-dashboard-2") return "dashboard";
+    if (location.pathname.startsWith("/personalized")) return "personalized";
+    if (location.pathname.startsWith("/achievements")) return "achievements";
+    if (location.pathname.startsWith("/courses")) return "courses";
+    return "achievements";
+  };
+
+  const activeKey = getActiveKey();
+
+  // Sidebar items
+  const sidebarItems = [
+    { 
+      key: "dashboard", 
+      label: "Dashboard", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      ), 
+      to: "/student-dashboard-2" 
+    },
+    { 
+      key: "personalized", 
+      label: "Personalized Path", 
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
+      to: "/personalized" 
+    },
+    { 
+      key: "achievements", 
+      label: "Achievements", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+      ), 
+      to: "/achievements" 
+    },
+    { 
+      key: "courses", 
+      label: "Courses", 
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+      to: "/courses" 
+    },
+  ];
+
+  const handleSidebarEnter = () => {
+    if (sidebarCollapsed) setSidebarCollapsed(false);
+  };
+
+  const handleSidebarLeave = () => {
+    if (!sidebarCollapsed) setSidebarCollapsed(true);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -139,52 +208,57 @@ export default function AchievementPage() {
 
   return (
     <div className="achv-page">
-      {/* Left Sidebar */}
-      <aside className="achv-sidebar">
-        <Link to="/student-dashboard-2" className="achv-sidebar-icon" title="Dashboard">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-        </Link>
-        <Link to="/quiz-information" className="achv-sidebar-icon" title="Quizzes">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-        </Link>
-        <Link to="/achievements" className="achv-sidebar-icon active" title="Achievements">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-            <path d="M4 22h16"></path>
-            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-          </svg>
-        </Link>
-        <Link to="/personalized" className="achv-sidebar-icon" title="Personalized Path">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-          </svg>
-        </Link>
-        <button 
-          className="achv-sidebar-icon achv-logout-btn" 
-          title="Logout"
-          onClick={handleLogout}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-        </button>
+      {/* Left Sidebar with Hover Animation */}
+      <aside 
+        className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
+        onMouseEnter={handleSidebarEnter}
+        onMouseLeave={handleSidebarLeave}
+      >
+        <div className="ld-sidebar-inner">
+          {/* Logo */}
+          <Link to="/student-dashboard-2" className="ld-sidebar-brand">
+            <img
+              className="ld-sidebar-logo"
+              src={sidebarCollapsed ? smallLogo : fullLogo}
+              alt="LearnEase"
+            />
+          </Link>
+
+          {/* Navigation Items */}
+          <ul className="ld-sidebar-nav">
+            {sidebarItems.map((item) => (
+              <li key={item.key} className={activeKey === item.key ? "active" : ""}>
+                <Link to={item.to} className="ld-sidebar-link">
+                  <span className="ld-sidebar-icon-wrapper">
+                    {item.icon}
+                  </span>
+                  <span className="ld-sidebar-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Logout Button */}
+          <div className="ld-sidebar-footer">
+            <button 
+              className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
+              onClick={handleLogout}
+            >
+              <span className="ld-sidebar-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </span>
+              <span className="ld-sidebar-label">Logout</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <div className="achv-main">
+      <div className={`achv-main ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
         {/* Header */}
         <header className="achv-header">
           <div className="achv-header-content">
@@ -199,8 +273,8 @@ export default function AchievementPage() {
         {/* Statistics Cards */}
         <section className="achv-stats-section">
           <div className="achv-stat-card">
-            <div className="achv-stat-icon" style={{ background: "rgba(255, 107, 53, 0.1)" }}>
-              <Trophy style={{ color: "#ff6b35" }} />
+            <div className="achv-stat-icon" style={{ background: "rgba(124, 58, 237, 0.1)" }}>
+              <Trophy style={{ color: "#7c3aed" }} />
             </div>
             <div className="achv-stat-content">
               <div className="achv-stat-value">{stats.totalAchievements}</div>

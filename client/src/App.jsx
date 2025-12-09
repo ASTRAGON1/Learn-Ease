@@ -8,8 +8,8 @@ import StudentDashboard from "./StudentPages/StudentDashboard";
 import Courses from "./StudentPages/courses";
 import QuizzApp from "./StudentPages/QuizzApp";
 import PersonalizedPath from "./StudentPages/PersonalizedPath";
-import MessagesPage from "./StudentPages/messages";
-import MessageThread from "./StudentPages/MessageThread";
+// import MessagesPage from "./StudentPages/messages";
+// import MessageThread from "./StudentPages/MessageThread";
 import CoursePlayer from "./StudentPages/CoursePlayer";
 import AchievementPage from "./StudentPages/AchievementPage";
 import QuizInformationPage from "./StudentPages/QuizInformation";
@@ -71,11 +71,11 @@ export default function App() {
         <Route path="/CoursePlayer" element={<CoursePlayer />} />
         <Route path="/StudentProfile" element={<StudentProfile />} />
         <Route path="/personalized" element={<PersonalizedPath />} />
+        <Route path="/courses" element={<Courses />} />
 
         <Route element={<StudentShell />}>
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/messages/:id" element={<MessageThread />} />
+          {/* <Route path="/messages" element={<MessagesPage />} /> */}
+          {/* <Route path="/messages/:id" element={<MessageThread />} /> */}
         </Route>
 
         <Route path="/instructor-dashboard-2" element={<InstructorDashboard2 />} />

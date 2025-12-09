@@ -350,6 +350,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.ld-notification-btn:hover {
+  color: var(--ld-accent-orange);
+}
+
+.ld-profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ld-profile-picture:hover {
+  border-color: var(--ld-accent-orange);
+  transform: scale(1.05);
 }
 
 .ld-profile {

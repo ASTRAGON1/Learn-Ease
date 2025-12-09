@@ -20,8 +20,8 @@ function CircularProgress({ progress, size = 120, strokeWidth = 8 }) {
       <svg width={size} height={size} className="pp-circular-svg">
         <defs>
           <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ff6b35" />
-            <stop offset="100%" stopColor="#ff8c5a" />
+            <stop offset="0%" stopColor="#7c3aed" />
+            <stop offset="100%" stopColor="#a78bfa" />
           </linearGradient>
         </defs>
         <circle

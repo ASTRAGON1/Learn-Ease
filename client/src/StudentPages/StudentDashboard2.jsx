@@ -328,8 +328,15 @@ export default function StudentDashboard2() {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
             </button>
+            <Link to="/StudentProfile">
+              <img 
+                src="https://i.pravatar.cc/160?img=47" 
+                alt="Profile" 
+                className="ld-profile-picture"
+                title="View Profile"
+              />
+            </Link>
             <div className="ld-profile">
-              <div className="ld-profile-avatar">KV</div>
               <div className="ld-profile-info">
                 <div className="ld-profile-name">Kacie Velasquez</div>
                 <div className="ld-profile-username">@k_velasquez</div>

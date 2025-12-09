@@ -1,49 +1,110 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // ← single import
-import "./Courses.css";
+import React, { useState, useMemo } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import "./courses.css";
+import { USER_CURRICULUM } from "../data/curriculum";
+import fullLogo from "../assets/OrangeLogo.png";
+import smallLogo from "../assets/OrangeIconLogo.png";
+import icCourse from "../assets/course.png";
+import icPersonalizedPath from "../assets/Path.svg";
 import cover from "../assets/quizpic.png";
-
-
-/* ---- demo data ---- */
-const DATA = [
-  { id: "c1", title: "Speaking I", desc: "Build basic speaking confidence.", author: "Shams Tabrez", lessons: 12, quizzes: 7, category: "Speaking",   level: "Beginner",    cover, featured: true  },
-  { id: "c2", title: "Emotion Recognition", desc: "Understand expressions and tone.", author: "Shams Tabrez", lessons: 5,  quizzes: 4, category: "Emotions",   level: "Beginner",    cover, featured: false },
-  { id: "c3", title: "Conversation Skills", desc: "Practice daily dialogs.", author: "Shams Tabrez", lessons: 6,  quizzes: 5, category: "Speaking",   level: "Intermediate", cover, featured: true  },
-  { id: "c4", title: "Vocabulary Builder", desc: "Grow your word bank fast.", author: "Shams Tabrez", lessons: 8,  quizzes: 4, category: "Vocabulary", level: "All",         cover, featured: false },
-  { id: "c5", title: "Listening Drills", desc: "Sharpen your ears.", author: "Shams Tabrez", lessons: 5,  quizzes: 3, category: "Listening",  level: "All",         cover, featured: false },
-  { id: "c6", title: "Public Speaking Basics", desc: "Present with clarity.", author: "Shams Tabrez", lessons: 7,  quizzes: 4, category: "Speaking",   level: "Beginner",    cover, featured: true  },
-];
+import { BookOpen, Clock, PlayCircle, ChevronRight } from "lucide-react";
 
 /* ---- single course card ---- */
-function CourseCard({ item }) {
+function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" }) {
+  // Calculate total lessons
+  const totalLessons = course.Topics.reduce(
+    (sum, topic) => sum + (topic.lessons?.length || 0),
+    0
+  );
+
+  if (viewMode === "list") {
+    return (
+      <article className="crs-card crs-card-list">
+        <div className="crs-card-list-cover">
+          <img src={cover} alt={course.CoursesTitle} />
+          {isFirstCourse && <span className="crs-pill">Active</span>}
+        </div>
+        <div className="crs-card-list-content">
+          <div className="crs-card-list-header">
+            <div>
+              <h3 className="crs-title">{course.CoursesTitle}</h3>
+              <p className="crs-desc">Course {index + 1} of {course.totalCourses || 8} • Curriculum Course</p>
+            </div>
+            <div className="crs-badge">Course {index + 1}</div>
+          </div>
+          <div className="crs-stats">
+            <div className="crs-stat-item">
+              <BookOpen size={16} />
+              <span>{totalLessons} Lessons</span>
+            </div>
+            <div className="crs-stat-item">
+              <Clock size={16} />
+              <span>{course.Topics?.length || 0} Topics</span>
+            </div>
+          </div>
+          <div className="crs-actions-row">
+            {isFirstCourse && (
+              <button 
+                className="crs-btn primary"
+                onClick={() => navigate(`/course/${index}`)}
+              >
+                <PlayCircle size={18} />
+                Continue
+              </button>
+            )}
+            <Link to={`/CoursePlayer`} className="crs-btn ghost">
+              View Details
+              <ChevronRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   return (
-    <article className={`crs-card ${item.featured ? "dark" : ""}`}>
+    <article className="crs-card">
       <div className="crs-cover">
-        <img src={item.cover} alt="" />
-        {item.featured && <span className="crs-pill">Featured</span>}
+        <img src={cover} alt={course.CoursesTitle} />
+        {isFirstCourse && <span className="crs-pill">Active Course</span>}
       </div>
 
       <div className="crs-body">
-        <h3 className="crs-title">{item.title}</h3>
-        <p className="crs-desc">{item.desc}</p>
-
-        <div className="crs-meta">
-          <span>{item.lessons} lessons</span>
-          <span className="dot">•</span>
-          <span>{item.quizzes} quizzes</span>
+        <div className="crs-header-section">
+          <h3 className="crs-title">{course.CoursesTitle}</h3>
+          <p className="crs-desc">Course {index + 1} of {course.totalCourses || 8}</p>
         </div>
 
-        <div className="crs-footer">
-          <div className="crs-author">👤 {item.author}</div>
-          <div className="crs-level">
-            {item.category} • {item.level}
+        <div className="crs-stats">
+          <div className="crs-stat-item">
+            <BookOpen size={16} />
+            <span>{totalLessons} Lessons</span>
+          </div>
+          <div className="crs-stat-item">
+            <Clock size={16} />
+            <span>{course.Topics?.length || 0} Topics</span>
           </div>
         </div>
 
-<div className="crs-actions-row">
-  <Link to="/CoursePlayer" className="crs-btn ghost">Details</Link>
-</div>
+        <div className="crs-footer">
+          <div className="crs-badge">Curriculum Course</div>
+        </div>
 
+        <div className="crs-actions-row">
+          {isFirstCourse && (
+            <button 
+              className="crs-btn primary"
+              onClick={() => navigate(`/course/${index}`)}
+            >
+              <PlayCircle size={18} />
+              Continue
+            </button>
+          )}
+          <Link to={`/CoursePlayer`} className="crs-btn ghost">
+            View Details
+            <ChevronRight size={16} />
+          </Link>
+        </div>
       </div>
     </article>
   );
@@ -52,74 +113,246 @@ function CourseCard({ item }) {
 /* ---- page ---- */
 export default function Courses() {
   const navigate = useNavigate();
-  const [q, setQ]   = useState("");
-  const [tag, setTag] = useState("All");
+  const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [q, setQ] = useState("");
+  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
 
-  const tags = useMemo(() => {
-    const cats = Array.from(new Set(DATA.map(d => (d.category || "").trim())));
-    return ["All", ...cats];
-  }, []);
+  // Get student's path type (this should come from user profile/API)
+  const studentPathType = "autism"; // or "Down Syndrome" - get from user profile
 
-  const list = useMemo(() => {
+  // Get the student's curriculum path
+  const studentPath = useMemo(() => {
+    return USER_CURRICULUM.find(
+      path => path.GeneralPath.toLowerCase() === studentPathType.toLowerCase()
+    );
+  }, [studentPathType]);
+
+  // Get all courses from curriculum
+  const courses = useMemo(() => {
+    if (!studentPath) return [];
+    return studentPath.Courses.map((course, index) => ({
+      ...course,
+      totalCourses: studentPath.Courses.length
+    }));
+  }, [studentPath]);
+
+  // Filter courses based on search
+  const filteredCourses = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return DATA.filter(d => {
-      const cat = (d.category || "").trim();
-      const okTag = tag === "All" || cat === tag;
-      const okText =
-        term === "" ||
-        d.title.toLowerCase().includes(term) ||
-        d.desc.toLowerCase().includes(term);
-      return okTag && okText;
-    });
-  }, [q, tag]);
+    if (!term) return courses;
+    return courses.filter(course => 
+      course.CoursesTitle.toLowerCase().includes(term)
+    );
+  }, [courses, q]);
 
-  // stagger fade-up for cards
-  useEffect(() => {
-    document.querySelectorAll(".crs-card").forEach((el, i) => {
-      el.style.animationDelay = `${i * 60}ms`;
-    });
-  }, [list.length]);
+  // Determine active route
+  const getActiveKey = () => {
+    if (location.pathname === "/student-dashboard-2") return "dashboard";
+    if (location.pathname.startsWith("/personalized")) return "personalized";
+    if (location.pathname.startsWith("/achievements")) return "achievements";
+    if (location.pathname.startsWith("/courses")) return "courses";
+    return "courses";
+  };
+
+  const activeKey = getActiveKey();
+
+  // Sidebar items
+  const sidebarItems = [
+    { 
+      key: "dashboard", 
+      label: "Dashboard", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      ), 
+      to: "/student-dashboard-2" 
+    },
+    { 
+      key: "personalized", 
+      label: "Personalized Path", 
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
+      to: "/personalized" 
+    },
+    { 
+      key: "achievements", 
+      label: "Achievements", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+      ), 
+      to: "/achievements" 
+    },
+    { 
+      key: "courses", 
+      label: "Courses", 
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+      to: "/courses" 
+    },
+  ];
+
+  const handleSidebarEnter = () => {
+    if (sidebarCollapsed) setSidebarCollapsed(false);
+  };
+
+  const handleSidebarLeave = () => {
+    if (!sidebarCollapsed) setSidebarCollapsed(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userId");
+    navigate("/login");
+  };
 
   return (
     <div className="crs-page">
-      <header className="crs-head">
-        <div className="crs-head-left">
+      {/* Left Sidebar with Hover Animation */}
+      <aside 
+        className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
+        onMouseEnter={handleSidebarEnter}
+        onMouseLeave={handleSidebarLeave}
+      >
+        <div className="ld-sidebar-inner">
+          {/* Logo */}
+          <Link to="/student-dashboard-2" className="ld-sidebar-brand">
+            <img
+              className="ld-sidebar-logo"
+              src={sidebarCollapsed ? smallLogo : fullLogo}
+              alt="LearnEase"
+            />
+          </Link>
 
-          <div className="crs-titlebox">
-            <h1>Course Catalog</h1>
-            <p className="crumbs">My Courses / catalog</p>
+          {/* Navigation Items */}
+          <ul className="ld-sidebar-nav">
+            {sidebarItems.map((item) => (
+              <li key={item.key} className={activeKey === item.key ? "active" : ""}>
+                <Link to={item.to} className="ld-sidebar-link">
+                  <span className="ld-sidebar-icon-wrapper">
+                    {item.icon}
+                  </span>
+                  <span className="ld-sidebar-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Logout Button */}
+          <div className="ld-sidebar-footer">
+            <button 
+              className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
+              onClick={handleLogout}
+            >
+              <span className="ld-sidebar-icon-wrapper">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </span>
+              <span className="ld-sidebar-label">Logout</span>
+            </button>
           </div>
         </div>
+      </aside>
 
-        <div className="crs-actions">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="search"
-            className="crs-search"
-          />
-          <button className="icon-btn" aria-label="Search">🔍</button>
-        </div>
-      </header>
+      {/* Main Content */}
+      <div className={`crs-main ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
+        {/* Header */}
+        <header className="crs-header">
+          <div className="crs-header-content">
+            <div>
+              <h1 className="crs-page-title">Course Catalog</h1>
+              <p className="crs-page-subtitle">Explore all available courses in your curriculum</p>
+            </div>
+            <div className="crs-search-container">
+              <div className="crs-search-wrapper">
+                <svg className="crs-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input
+                  type="text"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search courses..."
+                  className="crs-search-input"
+                />
+              </div>
+            </div>
+          </div>
+        </header>
 
-      <div className="crs-tags">
-        {tags.map((t) => (
-          <button
-            key={t}
-            className={`crs-tag ${tag === t ? "active" : ""}`}
-            onClick={() => setTag(t)}
-          >
-            {t}
-          </button>
-        ))}
+        {/* Courses Section */}
+        <section className="crs-section">
+          <div className="crs-section-header">
+            <div>
+              <h2 className="crs-section-title">All Courses</h2>
+              <span className="crs-course-count">{filteredCourses.length} courses available</span>
+            </div>
+            <div className="crs-view-toggle">
+              <button 
+                className={`crs-view-btn ${viewMode === "grid" ? "active" : ""}`}
+                onClick={() => setViewMode("grid")}
+                title="Grid View"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </button>
+              <button 
+                className={`crs-view-btn ${viewMode === "list" ? "active" : ""}`}
+                onClick={() => setViewMode("list")}
+                title="List View"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {filteredCourses.length > 0 ? (
+            <div className={`crs-container ${viewMode === "list" ? "crs-list-view" : "crs-grid-view"}`}>
+              {filteredCourses.map((course, index) => (
+                <CourseCard 
+                  key={index} 
+                  course={course} 
+                  index={index}
+                  isFirstCourse={index === 0}
+                  navigate={navigate}
+                  viewMode={viewMode}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="crs-empty-state">
+              <BookOpen size={48} className="crs-empty-icon" />
+              <h3 className="crs-empty-title">No courses found</h3>
+              <p className="crs-empty-text">Try adjusting your search terms</p>
+            </div>
+          )}
+        </section>
       </div>
-
-      <section className="crs-grid">
-        {list.map((item) => (
-          <CourseCard key={item.id} item={item} />
-        ))}
-        {!list.length && <div className="crs-empty">No courses match your search.</div>}
-      </section>
     </div>
   );
 }
