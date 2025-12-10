@@ -1,6 +1,6 @@
 import React from "react";
 import { BarChart } from "@mui/x-charts/BarChart";
-import { makeEngagementDataset, makeOnlineUsersDataset, makeAdminMetricsDataset, valueFormatter } from "../dataset/adminChartData";
+import { makeEngagementDataset, makeOnlineUsersDataset, makeAdminMetricsDataset, valueFormatter, countFormatter } from "../dataset/adminChartData";
 
 export default function RainfallChart({
   studentsTotal = 0,
@@ -53,12 +53,12 @@ export default function RainfallChart({
     const colors = Array(6).fill(lightGrey); // Updated to 6 bars: Online Student, Online Teacher, Suspended, Applications, Reports, Feedbacks
 
     chartSetting = {
-      yAxis: [{ label: "Count", width: 60 }],
+      yAxis: [{ label: "Count (out of 30)", width: 60, min: 0, max: 30 }],
       series: [
         {
           dataKey: "value",
           label: "Count",
-          valueFormatter,
+          valueFormatter: countFormatter,
         },
       ],
       colors: colors,

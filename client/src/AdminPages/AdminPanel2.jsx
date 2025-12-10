@@ -32,8 +32,8 @@ export default function AdminPanel2() {
 
   // Login state
   const [loginForm, setLoginForm] = useState({
-    email: "admin@learnease.com",
-    password: "admin",
+    email: "",
+    password: "",
   });
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -436,9 +436,9 @@ export default function AdminPanel2() {
         alert(res.error || "Failed to suspend user");
         return;
       }
-      setUsers((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
-      );
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
+    );
     } catch (error) {
       console.error("Error suspending user:", error);
       alert("An error occurred while suspending the user");
@@ -458,7 +458,7 @@ export default function AdminPanel2() {
         alert(res.error || "Failed to reinstate user");
         return;
       }
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
     } catch (error) {
       console.error("Error reinstating user:", error);
       alert("An error occurred while reinstating the user");
@@ -480,7 +480,7 @@ export default function AdminPanel2() {
         alert(res.error || "Failed to delete user");
         return;
       }
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+    setUsers((prev) => prev.filter((u) => u.id !== id));
       alert(res.message || "User deleted successfully");
     } catch (error) {
       console.error("Error deleting user:", error);

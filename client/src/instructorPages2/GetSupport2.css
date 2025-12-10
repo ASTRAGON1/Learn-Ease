@@ -331,6 +331,158 @@
   color: #059669;
 }
 
+/* Help Resources Section */
+.gs-card-subtitle {
+  font-size: 14px;
+  color: var(--ld-text-secondary);
+  margin: -8px 0 20px 0;
+  font-weight: 500;
+}
+
+.gs-help-section {
+  margin-bottom: 24px;
+}
+
+.gs-help-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ld-text-primary);
+  margin: 0 0 12px 0;
+}
+
+.gs-help-section-title svg {
+  color: var(--ld-accent-orange);
+  flex-shrink: 0;
+}
+
+.gs-help-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gs-help-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--ld-bg-secondary);
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ld-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+}
+
+.gs-help-link:hover {
+  background: white;
+  border-color: var(--ld-accent-orange);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(74, 15, 173, 0.1);
+}
+
+.gs-help-link svg {
+  color: var(--ld-accent-orange);
+  flex-shrink: 0;
+}
+
+/* FAQ Section */
+.gs-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gs-faq-item {
+  padding: 12px;
+  background: var(--ld-bg-secondary);
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.gs-faq-item:hover {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.gs-faq-question {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ld-text-primary);
+  margin-bottom: 6px;
+}
+
+.gs-faq-answer {
+  font-size: 13px;
+  color: var(--ld-text-secondary);
+  line-height: 1.5;
+}
+
+/* Report Button */
+.gs-report-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--ld-accent-orange);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.gs-report-btn:hover {
+  background: #6B2FD4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 15, 173, 0.3);
+}
+
+.gs-report-btn svg {
+  flex-shrink: 0;
+}
+
+/* Tips Box */
+.gs-tips-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  border: 1px solid #fbbf24;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.gs-tips-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.gs-tips-content {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #78350f;
+}
+
+.gs-tips-content strong {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
 /* Responsive */
 @media (max-width: 1280px) {
   .gs-grid {

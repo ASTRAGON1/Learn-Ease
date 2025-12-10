@@ -98,6 +98,7 @@ function Reports({ reports, users, search, onOpenInstructor }) {
         name: userName,
         role: roleDisplay,
         avatar: initials,
+        avatarUrl: null,
         isInstructor: false,
         userId: null
       };
@@ -121,6 +122,7 @@ function Reports({ reports, users, search, onOpenInstructor }) {
       name: u.name || userName,
       role: roleDisplay,
       avatar: initials,
+      avatarUrl: u.avatar || null,
       isInstructor: u.role === "instructor",
       userId: u.id
     };
@@ -203,9 +205,18 @@ function Reports({ reports, users, search, onOpenInstructor }) {
                       </td>
                       <td>
                         <div className="admin-reports-user">
-                          <div className="admin-reports-user-avatar">
-                            {userInfo.avatar}
-                          </div>
+                          {userInfo.avatarUrl ? (
+                            <img 
+                              src={userInfo.avatarUrl} 
+                              alt={userInfo.name}
+                              className="admin-reports-user-avatar"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div className="admin-reports-user-avatar">
+                              {userInfo.avatar}
+                            </div>
+                          )}
                           <div className="admin-reports-user-info">
                             {userInfo.isInstructor && userInfo.userId ? (
                               <button

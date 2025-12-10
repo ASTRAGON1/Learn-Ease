@@ -28,19 +28,6 @@ export default function GetSupport2() {
   const chatEndRef = useRef(null);
   const chatInputRef = useRef(null);
 
-  // Admin ticket state
-  const [subj, setSubj] = useState("");
-  const [cat, setCat] = useState("General");
-  const [msg, setMsg] = useState("");
-  const [tickets, setTickets] = useState([
-    { id: "T-1021", subject: "Video upload stuck", status: "Open" },
-    { id: "T-1017", subject: "Profile image not saving", status: "Closed" },
-    { id: "T-1015", subject: "Dashboard not loading", status: "Open" },
-    { id: "T-1012", subject: "Quiz creation issue", status: "Closed" },
-    { id: "T-1010", subject: "Upload progress not showing", status: "Open" },
-    { id: "T-1008", subject: "Content approval delay", status: "Closed" },
-    { id: "T-1005", subject: "Login problem", status: "Open" },
-  ]);
 
   const [instructorName, setInstructorName] = useState('Instructor');
   const [email, setEmail] = useState('');
@@ -96,9 +83,9 @@ export default function GetSupport2() {
           }
           if (teacher.userStatus) {
             setUserStatus(teacher.userStatus);
-            // Redirect if suspended
-            if (teacher.userStatus === 'suspended') {
-              showToast("Your account has been suspended. Please contact support for more information.", "error");
+            // Redirect if pending (but allow suspended users to access support)
+            if (teacher.userStatus === 'pending') {
+              showToast("You need to be accepted by the admin to access support.", "error");
               setTimeout(() => {
                 navigate('/instructor-dashboard-2');
               }, 2000);
@@ -260,16 +247,6 @@ export default function GetSupport2() {
     }
   }, [location.state]);
 
-  const sendTicket = () => {
-    if (!subj.trim() || !msg.trim()) return;
-    setTickets((t) => [
-      { id: `T-${1000 + t.length + 1}`, subject: subj, status: "Open" },
-      ...t,
-    ]);
-    setSubj("");
-    setMsg("");
-    showToast("Ticket sent to admin (backend hook later).", "success");
-  };
 
   const handleLogout = async () => {
     try {
@@ -520,61 +497,101 @@ export default function GetSupport2() {
               </div>
             </section>
 
-            {/* Right: Admin Contact + Tickets */}
+            {/* Right: Quick Help Resources */}
             <section className="gs-card">
-              <h3 className="gs-card-title">Contact admin</h3>
+              <h3 className="gs-card-title">Quick Help Resources</h3>
+              <p className="gs-card-subtitle">Find answers and guides to get you started</p>
 
-              <div className="gs-form-field">
-                <label className="gs-form-label">Subject</label>
-                <input
-                  className="gs-form-input"
-                  value={subj}
-                  onChange={(e) => setSubj(e.target.value)}
-                  placeholder="Brief summary"
-                />
+              {/* Quick Links */}
+              <div className="gs-help-section">
+                <h4 className="gs-help-section-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 16 16 12 12 8"></polyline>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                  </svg>
+                  Getting Started
+                </h4>
+                <div className="gs-help-links">
+                  <button className="gs-help-link" onClick={() => navigate("/instructor-upload-2")}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Upload Your First Content</span>
+                  </button>
+                  <button className="gs-help-link" onClick={() => navigate("/ai-quiz-2")}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Create Your First Quiz</span>
+                  </button>
+                  <button className="gs-help-link" onClick={() => navigate("/profile-2")}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Complete Your Profile</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="gs-form-field">
-                <label className="gs-form-label">Category</label>
-                <select
-                  className="gs-form-input"
-                  value={cat}
-                  onChange={(e) => setCat(e.target.value)}
+              {/* Common Issues */}
+              <div className="gs-help-section">
+                <h4 className="gs-help-section-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                  </svg>
+                  Common Solutions
+                </h4>
+                <div className="gs-faq-list">
+                  <div className="gs-faq-item">
+                    <div className="gs-faq-question">How do I upload content?</div>
+                    <div className="gs-faq-answer">Go to Dashboard → Upload Content, select your file type, and follow the guided steps.</div>
+                  </div>
+                  <div className="gs-faq-item">
+                    <div className="gs-faq-question">Why is my content pending?</div>
+                    <div className="gs-faq-answer">All content is reviewed for quality. This usually takes 24-48 hours.</div>
+                  </div>
+                  <div className="gs-faq-item">
+                    <div className="gs-faq-question">How to track my performance?</div>
+                    <div className="gs-faq-answer">Visit the Performance section to see views, likes, and student engagement metrics.</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Report Issue */}
+              <div className="gs-help-section">
+                <h4 className="gs-help-section-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  Still Need Help?
+                </h4>
+                <button 
+                  className="gs-report-btn"
+                  onClick={() => navigate("/HelpAndSupport-2")}
                 >
-                  <option>General</option>
-                  <option>Account</option>
-                  <option>Publishing</option>
-                  <option>Performance</option>
-                  <option>Payments</option>
-                </select>
-              </div>
-
-              <div className="gs-form-field">
-                <label className="gs-form-label">Message</label>
-                <textarea
-                  className="gs-form-textarea"
-                  value={msg}
-                  onChange={(e) => setMsg(e.target.value)}
-                  placeholder="Describe your issue…"
-                />
-              </div>
-
-              <div className="gs-form-actions">
-                <button className="gs-primary-btn" onClick={sendTicket}>
-                  Send to admin
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Report an Issue or Give Feedback
                 </button>
               </div>
 
-              <h4 className="gs-tickets-title">Your tickets</h4>
-              <div className="gs-tickets-container">
-                <div className="gs-tickets-list">
-                  {tickets.map((t) => (
-                    <div key={t.id} className="gs-ticket-item">
-                      <span className="gs-ticket-id">{t.id}</span>
-                      <span className="gs-ticket-subject">{t.subject}</span>
-                      <span className={`gs-ticket-status ${t.status.toLowerCase()}`}>{t.status}</span>
-                    </div>
-                  ))}
+              {/* Platform Tips */}
+              <div className="gs-tips-box">
+                <div className="gs-tips-icon">💡</div>
+                <div className="gs-tips-content">
+                  <strong>Pro Tip:</strong> Students engage more with content that includes visual aids and interactive quizzes. Try adding both to your lessons!
                 </div>
               </div>
             </section>

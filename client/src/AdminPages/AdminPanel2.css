@@ -1585,19 +1585,24 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ld-accent-primary) 0%, var(--ld-accent-purple-light) 100%);
-  color: white;
+  background: #e5e7eb;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(74, 15, 173, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard-table-avatar[src] {
+  object-fit: cover;
 }
 
 .admin-dashboard-table-avatar-suspended {
-  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+  background: #d1d5db;
+  color: #9ca3af;
   opacity: 0.7;
 }
 
@@ -1919,15 +1924,19 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ld-accent-primary) 0%, var(--ld-accent-purple-light) 100%);
-  color: white;
+  background: #e5e7eb;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(74, 15, 173, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-reports-user-avatar[src] {
+  object-fit: cover;
 }
 
 .admin-reports-user-info {
@@ -2250,15 +2259,19 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ld-accent-primary) 0%, var(--ld-accent-purple-light) 100%);
-  color: white;
+  background: #e5e7eb;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(74, 15, 173, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-users-avatar[src] {
+  object-fit: cover;
 }
 
 .admin-users-name-text {
@@ -2608,22 +2621,29 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  color: white;
+  background: #e5e7eb;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(74, 15, 173, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-profiles-avatar[src] {
+  object-fit: cover;
 }
 
 .admin-profiles-avatar-student {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #e5e7eb;
+  color: #6b7280;
 }
 
 .admin-profiles-avatar-instructor {
-  background: linear-gradient(135deg, var(--ld-accent-primary) 0%, var(--ld-accent-purple-light) 100%);
+  background: #e5e7eb;
+  color: #6b7280;
 }
 
 .admin-profiles-name-text {
@@ -2819,18 +2839,19 @@
 }
 
 .admin-instructor-avatar {
-  background: rgba(255, 255, 255, 0.2);
+  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36px;
   font-weight: 800;
-  color: white;
+  color: #6b7280;
 }
 
 .admin-instructor-avatar-img {
   object-fit: cover;
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  border: 4px solid #e5e7eb;
+  background: #e5e7eb;
 }
 
 .admin-instructor-info {
@@ -3168,6 +3189,87 @@
   color: var(--ld-text-secondary);
   font-style: italic;
   font-family: 'Poppins', sans-serif;
+}
+
+/* Skills Section */
+.admin-instructor-card-subtitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 24px 0 12px 0;
+  color: var(--ld-text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-instructor-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-instructor-skill-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  background: var(--ld-accent-purple-lighter);
+  color: var(--ld-accent-primary);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.admin-instructor-skill-tag:hover {
+  background: var(--ld-accent-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(74, 15, 173, 0.2);
+}
+
+/* Content Type Badges */
+.admin-instructor-upload-type {
+  display: flex;
+  align-items: center;
+}
+
+.admin-instructor-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  text-transform: capitalize;
+}
+
+.admin-instructor-type-badge.video {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.admin-instructor-type-badge.file {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.admin-instructor-type-badge.quiz {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.admin-instructor-type-badge svg {
+  flex-shrink: 0;
+}
+
+/* Offline Status */
+.admin-instructor-status-badge.offline {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.admin-instructor-status-badge.offline .admin-instructor-status-dot {
+  background: #9ca3af;
 }
 
 /* Responsive */

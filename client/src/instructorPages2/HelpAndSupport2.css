@@ -94,27 +94,29 @@
   background: var(--ld-bg-card);
   border: 1px solid var(--ld-border-black);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .hs-form-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #3F3D56;
 }
 
 .hs-form-field {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .hs-form-label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ld-text-primary);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 /* Topics Grid */
@@ -176,12 +178,12 @@
 }
 
 .hs-star svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 }
 
 .hs-rating-text {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ld-text-primary);
   margin-left: 8px;
@@ -194,8 +196,8 @@
 
 .hs-textarea {
   width: 100%;
-  min-height: 120px;
-  max-height: 150px;
+  min-height: 80px;
+  max-height: 120px;
   padding: 12px;
   border: 1px solid var(--ld-border);
   border-radius: 12px;
@@ -231,17 +233,17 @@
 .hs-form-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .hs-send-button {
-  padding: 14px 32px;
+  padding: 12px 28px;
   background: var(--ld-accent-orange);
   color: white;
   border: none;
   border-radius: 10px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: 'Poppins', sans-serif;

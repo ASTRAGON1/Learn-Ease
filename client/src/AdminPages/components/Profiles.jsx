@@ -117,9 +117,18 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                       <tr key={sp.userId}>
                         <td>
                           <div className="admin-profiles-name">
-                            <div className="admin-profiles-avatar admin-profiles-avatar-student">
-                              {u.name.slice(0, 2).toUpperCase()}
-                            </div>
+                            {u.avatar ? (
+                              <img 
+                                src={u.avatar} 
+                                alt={u.name}
+                                className="admin-profiles-avatar admin-profiles-avatar-student"
+                                style={{ objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div className="admin-profiles-avatar admin-profiles-avatar-student">
+                                {u.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
                             <span className="admin-profiles-name-text">{u.name}</span>
                           </div>
                         </td>
@@ -211,9 +220,18 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                       >
                         <td>
                           <div className="admin-profiles-name">
-                            <div className="admin-profiles-avatar admin-profiles-avatar-instructor">
-                              {u.name.slice(0, 2).toUpperCase()}
-                            </div>
+                            {u.avatar ? (
+                              <img 
+                                src={u.avatar} 
+                                alt={u.name}
+                                className="admin-profiles-avatar admin-profiles-avatar-instructor"
+                                style={{ objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div className="admin-profiles-avatar admin-profiles-avatar-instructor">
+                                {u.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
                             <span className="admin-profiles-name-text">{u.name}</span>
                           </div>
                         </td>

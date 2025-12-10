@@ -41,6 +41,7 @@ export default function InstructorDashboard2() {
   const [tipLoading, setTipLoading] = useState(true);
   const [expandedCourses, setExpandedCourses] = useState(new Set());
   const [expandedTopics, setExpandedTopics] = useState(new Set());
+  const [suspensionModal, setSuspensionModal] = useState({ show: false, message: '', title: '' });
 
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
@@ -341,10 +342,11 @@ export default function InstructorDashboard2() {
       icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
       onClick: () => {
         if (userStatus !== 'active') {
+          const title = userStatus === 'suspended' ? 'Account Suspended' : 'Account Pending Approval';
           const message = userStatus === 'suspended'
-            ? "Your account has been suspended. You cannot access performance metrics."
+            ? "Your account has been suspended. You cannot access performance metrics. Please contact support for more information."
             : "You need to be accepted by the admin to view performance metrics.";
-          alert(message);
+          setSuspensionModal({ show: true, title, message });
           return;
         }
         setActiveSection("performance");
@@ -407,10 +409,11 @@ export default function InstructorDashboard2() {
               if (userStatus === 'active') {
                 navigate("/instructor-upload-2");
               } else {
+                const title = userStatus === 'suspended' ? 'Account Suspended' : 'Account Pending Approval';
                 const message = userStatus === 'suspended'
                   ? "Your account has been suspended. Please contact support for more information."
                   : "You need to be accepted by the admin to upload content and generate quizzes.";
-                alert(message);
+                setSuspensionModal({ show: true, title, message });
               }
             }}
             disabled={userStatus !== 'active'}
@@ -451,10 +454,11 @@ export default function InstructorDashboard2() {
               if (userStatus === 'active') {
                 navigate("/ai-quiz-2");
               } else {
+                const title = userStatus === 'suspended' ? 'Account Suspended' : 'Account Pending Approval';
                 const message = userStatus === 'suspended'
                   ? "Your account has been suspended. Please contact support for more information."
                   : "You need to be accepted by the admin to upload content and generate quizzes.";
-                alert(message);
+                setSuspensionModal({ show: true, title, message });
               }
             }}
             disabled={userStatus !== 'active'}
@@ -479,14 +483,29 @@ export default function InstructorDashboard2() {
         <div className="ld-tip-card">
           <h4 className="ld-tip-title">Community & Support</h4>
           <p className="ld-tip-text">Ask questions, share tips, and connect with other instructors.</p>
+          {userStatus !== 'active' && (
+            <p className="ld-approval-message" style={{ 
+              marginTop: '12px',
+              marginBottom: '12px', 
+              color: '#ef4444', 
+              fontSize: '14px',
+              fontWeight: '500'
+            }}>
+              {userStatus === 'suspended' 
+                ? '🚫 Your account has been suspended. Community access is restricted.'
+                : '⚠️ You need admin approval to access the community'
+              }
+            </p>
+          )}
           <button 
             className="ld-community-btn" 
             onClick={() => {
               if (userStatus !== 'active') {
+                const title = userStatus === 'suspended' ? 'Access Restricted' : 'Account Pending Approval';
                 const message = userStatus === 'suspended'
-                  ? "Your account has been suspended. You cannot access the community."
+                  ? "Your account has been suspended. You cannot access the community. Please contact support for more information."
                   : "You need to be accepted by the admin to access the community.";
-                alert(message);
+                setSuspensionModal({ show: true, title, message });
               } else {
                 navigate("/InstructorCommunity-2");
               }
@@ -517,10 +536,11 @@ export default function InstructorDashboard2() {
             className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
             onClick={() => {
               if (userStatus !== 'active') {
+                const title = userStatus === 'suspended' ? 'Access Restricted' : 'Account Pending Approval';
                 const message = userStatus === 'suspended'
-                  ? "Your account has been suspended. You cannot access the community."
+                  ? "Your account has been suspended. You cannot access the community. Please contact support for more information."
                   : "You need to be accepted by the admin to access the community.";
-                alert(message);
+                setSuspensionModal({ show: true, title, message });
               } else {
                 navigate("/InstructorCommunity-2");
               }
@@ -544,10 +564,11 @@ export default function InstructorDashboard2() {
             className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
             onClick={() => {
               if (userStatus !== 'active') {
+                const title = userStatus === 'suspended' ? 'Account Suspended' : 'Account Pending Approval';
                 const message = userStatus === 'suspended'
-                  ? "Your account has been suspended. You cannot access performance metrics."
+                  ? "Your account has been suspended. You cannot access performance metrics. Please contact support for more information."
                   : "You need to be accepted by the admin to view performance metrics.";
-                alert(message);
+                setSuspensionModal({ show: true, title, message });
               } else {
                 setActiveSection("performance");
               }
@@ -561,13 +582,14 @@ export default function InstructorDashboard2() {
             </p>
           </div>
           <div
-            className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            className={`ld-resource-card ${userStatus === 'pending' ? 'ld-resource-card-disabled' : ''}`}
             onClick={() => {
-              if (userStatus !== 'active') {
-                const message = userStatus === 'suspended'
-                  ? "Your account has been suspended. You cannot access support."
-                  : "You need to be accepted by the admin to access support.";
-                alert(message);
+              if (userStatus === 'pending') {
+                setSuspensionModal({
+                  show: true,
+                  title: 'Account Pending Approval',
+                  message: 'You need to be accepted by the admin to access support.'
+                });
               } else {
                 navigate("/HelpAndSupport-2");
               }
@@ -1203,10 +1225,11 @@ export default function InstructorDashboard2() {
             className={`ld-resource-main-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
             onClick={() => {
               if (userStatus !== 'active') {
+                const title = userStatus === 'suspended' ? 'Access Restricted' : 'Account Pending Approval';
                 const message = userStatus === 'suspended'
-                  ? "Your account has been suspended. You cannot access the community."
+                  ? "Your account has been suspended. You cannot access the community. Please contact support for more information."
                   : "You need to be accepted by the admin to access the community.";
-                alert(message);
+                setSuspensionModal({ show: true, title, message });
               } else {
                 navigate("/InstructorCommunity-2");
               }
@@ -1227,13 +1250,14 @@ export default function InstructorDashboard2() {
             </p>
           </div>
           <div
-            className={`ld-resource-main-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            className={`ld-resource-main-card ${userStatus === 'pending' ? 'ld-resource-card-disabled' : ''}`}
             onClick={() => {
-              if (userStatus !== 'active') {
-                const message = userStatus === 'suspended'
-                  ? "Your account has been suspended. You cannot access support."
-                  : "You need to be accepted by the admin to access support.";
-                alert(message);
+              if (userStatus === 'pending') {
+                setSuspensionModal({
+                  show: true,
+                  title: 'Account Pending Approval',
+                  message: 'You need to be accepted by the admin to access support.'
+                });
               } else {
                 navigate("/HelpAndSupport-2");
               }
@@ -1548,6 +1572,40 @@ export default function InstructorDashboard2() {
         </div>
         <div className="ai-chatbot-pulse"></div>
       </div>
+
+      {/* Suspension/Restriction Modal */}
+      {suspensionModal.show && (
+        <div 
+          className="ld-modal-overlay"
+          onClick={() => setSuspensionModal({ show: false, message: '', title: '' })}
+        >
+          <div 
+            className="ld-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ld-modal-header">
+              <h3 className="ld-modal-title">{suspensionModal.title}</h3>
+              <button 
+                className="ld-modal-close"
+                onClick={() => setSuspensionModal({ show: false, message: '', title: '' })}
+              >
+                ×
+              </button>
+            </div>
+            <div className="ld-modal-body">
+              <p>{suspensionModal.message}</p>
+            </div>
+            <div className="ld-modal-footer">
+              <button 
+                className="ld-modal-btn"
+                onClick={() => setSuspensionModal({ show: false, message: '', title: '' })}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

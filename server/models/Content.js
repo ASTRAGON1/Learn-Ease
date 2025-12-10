@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const contentSchema = new mongoose.Schema({
   teacher: {
-    type: mongoose. Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Teacher',
     required: [true, 'Teacher is required']
   },
@@ -120,7 +120,7 @@ contentSchema.index({ type: 1 });
 contentSchema.index({ course: 1 });
 contentSchema.index({ topic: 1 });
 contentSchema.index({ lesson: 1 });
-contentSchema. index({ status: 1 });
+contentSchema.index({ status: 1 });
 contentSchema.index({ difficulty: 1 });
 
 const Content = mongoose.model('Content', contentSchema);

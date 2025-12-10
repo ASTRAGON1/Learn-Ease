@@ -97,9 +97,9 @@ export default function HelpAndSupport2() {
           }
           if (teacher.userStatus) {
             setUserStatus(teacher.userStatus);
-            // Redirect if suspended
-            if (teacher.userStatus === 'suspended') {
-              alert("Your account has been suspended. Please contact support for more information.");
+            // Redirect if pending (but allow suspended users to access support)
+            if (teacher.userStatus === 'pending') {
+              alert("You need to be accepted by the admin to access support.");
               navigate('/instructor-dashboard-2');
               return;
             }

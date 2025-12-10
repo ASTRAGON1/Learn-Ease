@@ -362,7 +362,9 @@ export default function Signup() {
           >
             <ArrowLeftIcon />
           </button>
-            <h1 className="all-signup-page-title">Create your account</h1>
+            <h1 className="all-signup-page-title">
+              {userType === "student" ? "Student SignUp" : "Instructor SignUp"}
+            </h1>
           </div>
 
           {/* Signup Form */}

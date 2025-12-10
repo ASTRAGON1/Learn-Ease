@@ -13,11 +13,21 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
     if (search) {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter((f) => {
-        const u = users.find(x => x.id === f.reporterId);
+        // Try to find user by ID first, then by name/email
+        let u = users.find(x => x.id === f.reporterId);
+        if (!u && f.userName) {
+          u = users.find(x => 
+            x.name?.toLowerCase() === f.userName.toLowerCase() ||
+            x.email?.toLowerCase() === f.userName.toLowerCase()
+          );
+        }
+        
         return (
           f.id?.toLowerCase().includes(searchLower) ||
+          f._id?.toLowerCase().includes(searchLower) ||
           (f.topic && f.topic.toLowerCase().includes(searchLower)) ||
           (f.description && f.description.toLowerCase().includes(searchLower)) ||
+          (f.userName && f.userName.toLowerCase().includes(searchLower)) ||
           (u && u.name?.toLowerCase().includes(searchLower))
         );
       });
@@ -65,8 +75,17 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
   };
 
   const getUserDisplay = (feedbackItem) => {
-    const u = users.find(x => x.id === feedbackItem.reporterId);
+    // Try to find user by ID first, then by name/email
+    let u = users.find(x => x.id === feedbackItem.reporterId);
     const userName = feedbackItem.userName || "Unknown";
+    
+    // If not found by ID, try to find by name or email
+    if (!u && userName) {
+      u = users.find(x => 
+        x.name?.toLowerCase() === userName.toLowerCase() ||
+        x.email?.toLowerCase() === userName.toLowerCase()
+      );
+    }
     
     if (!u) {
       // If user not found, use feedback data
@@ -79,7 +98,9 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
         name: userName,
         role: feedbackItem.fromRole || "User",
         avatar: initials,
-        isInstructor: false
+        avatarUrl: null,
+        isInstructor: false,
+        userId: null
       };
     }
     
@@ -101,7 +122,9 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
       name: u.name || userName,
       role: roleDisplay,
       avatar: initials,
-      isInstructor: u.role === "instructor"
+      avatarUrl: u.avatar || null,
+      isInstructor: u.role === "instructor",
+      userId: u.id
     };
   };
 
@@ -186,16 +209,25 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
                       </td>
                       <td>
                         <div className="admin-reports-user">
-                          <div className="admin-reports-user-avatar">
-                            {userInfo.avatar}
-                          </div>
+                          {userInfo.avatarUrl ? (
+                            <img 
+                              src={userInfo.avatarUrl} 
+                              alt={userInfo.name}
+                              className="admin-reports-user-avatar"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div className="admin-reports-user-avatar">
+                              {userInfo.avatar}
+                            </div>
+                          )}
                           <div className="admin-reports-user-info">
-                            {userInfo.isInstructor ? (
+                            {userInfo.isInstructor && userInfo.userId ? (
                               <button
                                 className="admin-reports-user-link"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onOpenInstructor(feedbackItem.reporterId);
+                                  onOpenInstructor(userInfo.userId);
                                 }}
                                 title="Click to view instructor profile"
                               >

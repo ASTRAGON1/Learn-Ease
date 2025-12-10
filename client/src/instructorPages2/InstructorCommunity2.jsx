@@ -164,9 +164,14 @@ export default function InstructorCommunity2() {
           
           if (teacher.userStatus) {
             setUserStatus(teacher.userStatus);
-            // Redirect if suspended
+            // Redirect if suspended or pending
             if (teacher.userStatus === 'suspended') {
-              alert("Your account has been suspended. Please contact support for more information.");
+              alert("Your account has been suspended. You cannot access the community. Please contact support for more information.");
+              navigate('/instructor-dashboard-2');
+              return;
+            }
+            if (teacher.userStatus === 'pending') {
+              alert("You need to be accepted by the admin to access the community.");
               navigate('/instructor-dashboard-2');
               return;
             }

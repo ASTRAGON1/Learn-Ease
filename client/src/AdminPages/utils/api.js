@@ -2,8 +2,30 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const api = {
-  adminLogin: async (email, password) =>
-    ({ ok: !!email && !!password, token: "demo", adminName: "Admin" }),
+  adminLogin: async (email, password) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        return { ok: false, error: result.error || 'Login failed' };
+      }
+      
+      return { 
+        ok: true, 
+        token: result.token || "admin_token", 
+        adminName: result.adminName || "Admin" 
+      };
+    } catch (error) {
+      console.error('Error during admin login:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
   listInstructorApplications: async () => {
     try {
       const response = await fetch(`${API_URL}/api/applications`);

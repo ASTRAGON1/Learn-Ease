@@ -29,7 +29,7 @@ export function makeOnlineUsersDataset(onlineUsers = 0, totalUsers = 0) {
   ];
 }
 
-// Build dataset for admin dashboard with teacher/student splits
+// Build dataset for admin dashboard with teacher/student splits (showing actual counts)
 export function makeAdminMetricsDataset({
   onlineStudents = 0,
   onlineTeachers = 0,
@@ -48,6 +48,7 @@ export function makeAdminMetricsDataset({
   const totalReports = (Number(reportsStudents) || 0) + (Number(reportsTeachers) || 0);
   const totalFeedbacks = (Number(feedbacksStudents) || 0) + (Number(feedbacksTeachers) || 0);
 
+  // Return actual counts (will be displayed on 0-100 scale but showing actual values)
   return [
     { metric: "Online - Student", value: Number(onlineStudents) || 0 },
     { metric: "Online - Teacher", value: Number(onlineTeachers) || 0 },
@@ -60,6 +61,12 @@ export function makeAdminMetricsDataset({
   
   // Nice, locale-aware numbers (no units)
   export function valueFormatter(value) {
+    if (value == null || Number.isNaN(value)) return "0";
+    return Intl.NumberFormat().format(value);
+  }
+  
+  // Count formatter for admin metrics (shows actual count value)
+  export function countFormatter(value, context) {
     if (value == null || Number.isNaN(value)) return "0";
     return Intl.NumberFormat().format(value);
   }

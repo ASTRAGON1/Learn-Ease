@@ -441,7 +441,7 @@ export default function Login() {
           >
             <ArrowLeftIcon />
           </button>
-            <h1 className="all-login-page-title">Login into your account</h1>
+            <h1 className="all-login-page-title">Login</h1>
           </div>
 
           {/* Login Form */}

@@ -289,9 +289,18 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
                     >
                       <td>
                         <div className="admin-dashboard-table-name">
-                          <div className="admin-dashboard-table-avatar">
-                            {u.name.slice(0, 2).toUpperCase()}
-                          </div>
+                          {u.avatar ? (
+                            <img 
+                              src={u.avatar} 
+                              alt={u.name}
+                              className="admin-dashboard-table-avatar"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div className="admin-dashboard-table-avatar">
+                              {u.name.slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
                           <span>{u.name}</span>
                         </div>
                       </td>
@@ -353,9 +362,18 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
                     <tr key={u.id}>
                       <td>
                         <div className="admin-dashboard-table-name">
-                          <div className="admin-dashboard-table-avatar admin-dashboard-table-avatar-suspended">
-                            {u.name.slice(0, 2).toUpperCase()}
-                          </div>
+                          {u.avatar ? (
+                            <img 
+                              src={u.avatar} 
+                              alt={u.name}
+                              className="admin-dashboard-table-avatar admin-dashboard-table-avatar-suspended"
+                              style={{ objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div className="admin-dashboard-table-avatar admin-dashboard-table-avatar-suspended">
+                              {u.name.slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
                           <span>{u.name}</span>
                         </div>
                       </td>

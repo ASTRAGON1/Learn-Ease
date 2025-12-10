@@ -119,9 +119,18 @@ function Users({ users, search, userFilters, onSearchChange, onFilterChange, onS
                   <tr key={user.id}>
                     <td>
                       <div className="admin-users-name">
-                        <div className="admin-users-avatar">
-                          {user.name.slice(0, 2).toUpperCase()}
-                        </div>
+                        {user.avatar ? (
+                          <img 
+                            src={user.avatar} 
+                            alt={user.name}
+                            className="admin-users-avatar"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div className="admin-users-avatar">
+                            {user.name.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
                         <span className="admin-users-name-text">{user.name}</span>
                       </div>
                     </td>
