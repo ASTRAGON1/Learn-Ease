@@ -10,7 +10,7 @@ router.post('/', auth(['teacher']), ctrl.createQuiz);
 // PATCH /api/quizzes/:id - Update quiz (for archiving)
 router.patch('/:id', auth(['teacher']), async (req, res) => {
   try {
-    const allowed = ['title', 'status', 'category', 'topic', 'lesson', 'course', 'difficulty'];
+    const allowed = ['title', 'status', 'category', 'topic', 'lesson', 'course', 'difficulty', 'previousStatus'];
     const update = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => allowed.includes(k))
     );

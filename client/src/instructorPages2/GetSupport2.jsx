@@ -265,7 +265,7 @@ export default function GetSupport2() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-    navigate("/all-login");
+    navigate("/all-login", { replace: true });
   };
 
   const handleSidebarEnter = () => {

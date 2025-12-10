@@ -132,12 +132,52 @@ export default function InstructorUpload2() {
     }
   }, [mongoToken]);
 
+  // Fetch quizzes
+  const fetchQuizzes = useCallback(async () => {
+    if (!mongoToken) return;
+    
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${mongoToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const quizzes = data.data || [];
+        
+        // Transform quizzes to match the display format
+        const transformed = quizzes.map(item => ({
+          id: item._id,
+          title: item.title,
+          category: item.category === 'autism' ? 'Autism' : item.category === 'downSyndrome' ? 'Down Syndrome' : item.category,
+          status: item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : item.status === 'archived' ? 'Archived' : item.status,
+          difficulty: item.difficulty || '',
+          previousStatus: item.previousStatus || null
+        }));
+        
+        // Separate archived and active quizzes
+        const activeQuizzes = transformed.filter(item => item.status !== 'Archived');
+        const archivedQuizzes = transformed.filter(item => item.status === 'Archived');
+        
+        setQuizRows(activeQuizzes);
+        setArchivedQuizRows(archivedQuizzes);
+      }
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+    }
+  }, [mongoToken]);
+
   // Fetch content when token is available
   useEffect(() => {
     if (mongoToken) {
       fetchContent();
+      fetchQuizzes();
     }
-  }, [mongoToken, fetchContent]);
+  }, [mongoToken, fetchContent, fetchQuizzes]);
 
   // Publishing state
   const [title, setTitle] = useState("");
@@ -204,7 +244,8 @@ export default function InstructorUpload2() {
   const [quizCourse, setQuizCourse] = useState("");
   const [quizTopic, setQuizTopic] = useState("");
   const [quizLesson, setQuizLesson] = useState("");
-  const [pairs, setPairs] = useState(Array(5).fill(null).map(() => ({ q: "", a: "" })));
+  const [quizDifficulty, setQuizDifficulty] = useState("Easy");
+  const [pairs, setPairs] = useState(Array(3).fill(null).map(() => ({ q: "", a: "" })));
 
   // Get current path for quiz based on quiz category
   const quizCurrentPath = useMemo(() => {
@@ -454,8 +495,8 @@ export default function InstructorUpload2() {
             setUploadProgress(0);
       } else {
         // For drafts, just reset progress
-        setUploadProgress(0);
-        }
+            setUploadProgress(0);
+          }
     } catch (error) {
       console.error('Error saving content:', error);
       showToast(`Failed to save content: ${error.message}`, "error");
@@ -468,7 +509,40 @@ export default function InstructorUpload2() {
   const onSaveDraft = () => saveContent("Draft");
   const onPublish = () => saveContent("Published");
 
-  // Archive content
+  // Publish draft content
+  const publishDraftContent = async (contentId) => {
+    if (!mongoToken) {
+      showToast("Please log in to publish content", "error");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/content/${contentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({ 
+          status: 'published'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to publish content');
+      }
+
+      showToast("Content published successfully", "success");
+      await fetchContent(); // Refresh content list
+    } catch (error) {
+      console.error('Error publishing content:', error);
+      showToast(`Failed to publish content: ${error.message}`, "error");
+    }
+  };
+
+  // Archive content (only for published content)
   const archiveContent = async (contentId) => {
     if (!mongoToken) {
       showToast("Please log in to archive content", "error");
@@ -482,8 +556,11 @@ export default function InstructorUpload2() {
       return;
     }
 
-    // Determine previous status (Published or Draft)
-    const previousStatus = contentItem.status === 'Published' ? 'published' : 'draft';
+    // Only allow archiving published content
+    if (contentItem.status !== 'Published') {
+      showToast("Only published content can be archived. Please publish the content first.", "error");
+      return;
+    }
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -495,7 +572,7 @@ export default function InstructorUpload2() {
         },
         body: JSON.stringify({ 
           status: 'archived',
-          previousStatus: previousStatus // Store the previous status
+          previousStatus: 'published' // Store previous status as published
         })
       });
 
@@ -597,16 +674,16 @@ export default function InstructorUpload2() {
   };
 
   const addPair = () => {
-    if (pairs.length >= 15) {
-      showToast("Maximum 15 questions allowed", "error");
+    if (pairs.length >= 10) {
+      showToast("Maximum 10 questions allowed", "error");
       return;
     }
     setPairs([...pairs, { q: "", a: "" }]);
   };
   
   const removePair = (idx) => {
-    if (pairs.length <= 5) {
-      showToast("Minimum 5 questions required", "error");
+    if (pairs.length <= 3) {
+      showToast("Minimum 3 questions required", "error");
       return;
     }
     setPairs(pairs.filter((_, i) => i !== idx));
@@ -621,8 +698,12 @@ export default function InstructorUpload2() {
       showToast("Please select course, topic, and lesson", "error");
       return;
     }
-    if (pairs.length < 5) {
-      showToast("Minimum 5 questions required", "error");
+    if (!quizDifficulty) {
+      showToast("Please select difficulty level", "error");
+      return;
+    }
+    if (pairs.length < 3) {
+      showToast("Minimum 3 questions required", "error");
       return;
     }
     if (pairs.some(p => !p.q.trim() || !p.a.trim())) {
@@ -630,21 +711,252 @@ export default function InstructorUpload2() {
       return;
     }
 
-    // Simulate save (no backend connection)
-    showToast(status === "Published" ? "Quiz published! (Simulated)" : "Quiz saved as draft. (Simulated)", "success");
-    
-    if (status === "Published") {
+    if (!mongoToken) {
+      showToast("Please log in to save quiz", "error");
+      navigate('/all-login');
+      return;
+    }
+
+    try {
+      showToast("Generating wrong answers with AI...", "success");
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Step 1: Generate wrong answers using AI
+      const questionsForAI = pairs.map(p => ({
+        question: p.q.trim(),
+        correctAnswer: p.a.trim()
+      }));
+
+      const aiResponse = await fetch(`${API_URL}/api/ai/quiz/generate-wrong-answers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questions: questionsForAI,
+          course: quizCourse,
+          topic: quizTopic,
+          lesson: quizLesson,
+          category: quizCategory,
+          difficulty: quizDifficulty
+        })
+      });
+
+      if (!aiResponse.ok) {
+        const errorData = await aiResponse.json();
+        throw new Error(errorData.error || 'Failed to generate wrong answers');
+      }
+
+      const aiData = await aiResponse.json();
+      const questionsWithWrongAnswers = aiData.data.questions;
+
+      // Step 2: Save quiz to MongoDB with wrong answers
+      const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
+      const normalizedCategory = categoryMap[quizCategory] || quizCategory.toLowerCase();
+
+      // Transform questions to include wrong answers
+      const questionsAndAnswers = questionsWithWrongAnswers.map(q => ({
+        question: q.question,
+        correctAnswer: q.correctAnswer,
+        wrongAnswers: q.wrongAnswers || []
+      }));
+
+      const quizResponse = await fetch(`${API_URL}/api/quizzes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({
+          title: quizTitle.trim(),
+          category: normalizedCategory,
+          topic: quizTopic,
+          lesson: quizLesson,
+          course: quizCourse,
+          difficulty: quizDifficulty,
+          questionsAndAnswers: questionsAndAnswers,
+          status: status === "Published" ? "published" : "draft"
+        })
+      });
+
+      if (!quizResponse.ok) {
+        const errorData = await quizResponse.json();
+        throw new Error(errorData.error || 'Failed to save quiz');
+      }
+
+      showToast(status === "Published" ? "Quiz published successfully!" : "Quiz saved as draft.", "success");
+      
+      // Refresh quizzes list
+      await fetchQuizzes();
+      
+      // Clear all fields after saving (both draft and published)
       setQuizTitle("");
       setQuizCategory("Autism");
       setQuizCourse("");
       setQuizTopic("");
       setQuizLesson("");
-      setPairs(Array(5).fill(null).map(() => ({ q: "", a: "" })));
+      setQuizDifficulty("Easy");
+      setPairs(Array(3).fill(null).map(() => ({ q: "", a: "" })));
+    } catch (error) {
+      console.error('Error saving quiz:', error);
+      showToast(`Error: ${error.message}`, "error");
     }
   };
 
   const onPublishQuiz = () => saveQuiz("Published");
   const onSaveQuizDraft = () => saveQuiz("Draft");
+
+  // Publish draft quiz
+  const publishDraftQuiz = async (quizId) => {
+    if (!mongoToken) {
+      showToast("Please log in to publish quiz", "error");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({ 
+          status: 'published'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to publish quiz');
+      }
+
+      showToast("Quiz published successfully", "success");
+      await fetchQuizzes(); // Refresh quizzes list
+    } catch (error) {
+      console.error('Error publishing quiz:', error);
+      showToast(`Failed to publish quiz: ${error.message}`, "error");
+    }
+  };
+
+  // Archive quiz (only for published quizzes)
+  const archiveQuiz = async (quizId) => {
+    if (!mongoToken) {
+      showToast("Please log in to archive quiz", "error");
+      return;
+    }
+
+    // Find the quiz item to get its current status
+    const quizItem = quizRows.find(item => item.id === quizId);
+    if (!quizItem) {
+      showToast("Quiz not found", "error");
+      return;
+    }
+
+    // Only allow archiving published quizzes
+    if (quizItem.status !== 'Published') {
+      showToast("Only published quizzes can be archived. Please publish the quiz first.", "error");
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({ 
+          status: 'archived',
+          previousStatus: 'published' // Store previous status as published
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to archive quiz');
+      }
+
+      showToast("Quiz archived successfully", "success");
+      await fetchQuizzes(); // Refresh quizzes list
+    } catch (error) {
+      console.error('Error archiving quiz:', error);
+      showToast(`Failed to archive quiz: ${error.message}`, "error");
+    }
+  };
+
+  // Restore archived quiz
+  const restoreQuiz = async (quizId, previousStatus) => {
+    if (!mongoToken) {
+      showToast("Please log in to restore quiz", "error");
+      return;
+    }
+
+    // If no previous status, default to 'published'
+    const restoreStatus = previousStatus || 'published';
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mongoToken}`
+        },
+        body: JSON.stringify({ 
+          status: restoreStatus,
+          previousStatus: null // Clear previous status since it's no longer archived
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to restore quiz');
+      }
+
+      const statusText = restoreStatus === 'published' ? 'published' : 'draft';
+      showToast(`Quiz restored to ${statusText} successfully`, "success");
+      await fetchQuizzes(); // Refresh quizzes list
+    } catch (error) {
+      console.error('Error restoring quiz:', error);
+      showToast(`Failed to restore quiz: ${error.message}`, "error");
+    }
+  };
+
+  // Delete quiz
+  const deleteQuiz = async (quizId) => {
+    if (!mongoToken) {
+      showToast("Please log in to delete quiz", "error");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this quiz? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${mongoToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete quiz');
+      }
+
+      showToast("Quiz deleted successfully", "success");
+      await fetchQuizzes(); // Refresh quizzes list
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+      showToast(`Failed to delete quiz: ${error.message}`, "error");
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -652,7 +964,7 @@ export default function InstructorUpload2() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-    navigate("/all-login");
+    navigate("/all-login", { replace: true });
   };
 
   // Scroll detection for chatbot animation
@@ -743,6 +1055,7 @@ export default function InstructorUpload2() {
   const [contentRows, setContentRows] = useState([]);
   const [archivedRows, setArchivedRows] = useState([]);
   const [quizRows, setQuizRows] = useState([]);
+  const [archivedQuizRows, setArchivedQuizRows] = useState([]);
 
   if (loading) {
     return (
@@ -1170,7 +1483,7 @@ export default function InstructorUpload2() {
                 </div>
               </div>
 
-              <div className="ld-upload-quiz-note">Choose the course, topic, and lesson this quiz will be associated. Difficulty will be set automatically based on the number of questions (5: Easy, 6-10: Medium, 11-15: Hard).</div>
+              <div className="ld-upload-quiz-note">Choose the course, topic, and lesson this quiz will be associated.</div>
               
               <div className="ld-upload-quiz-selects">
                 <select 
@@ -1207,9 +1520,25 @@ export default function InstructorUpload2() {
                   ))}
                 </select>
               </div>
+
+              <div className="ld-upload-field">
+                <label>Difficulty*:</label>
+                <div className="ld-upload-difficulty-pills">
+                  {["Easy", "Medium", "Hard"].map((d) => (
+                    <button
+                      type="button"
+                      key={d}
+                      className={`ld-upload-difficulty-pill ${quizDifficulty === d ? "active" : ""}`}
+                      onClick={() => setQuizDifficulty(d)}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
               
               <div className="ld-upload-quiz-count">
-                Questions: {pairs.length} / 15 (Minimum: 5)
+                Questions: {pairs.length} / 10 (Minimum: 3)
               </div>
 
               {pairs.map((p, i) => (
@@ -1241,19 +1570,19 @@ export default function InstructorUpload2() {
                     />
                   </div>
 
-                  {pairs.length > 5 && (
+                  {pairs.length > 3 && (
                     <button
                       type="button"
                       className="ld-upload-quiz-remove"
                       onClick={() => removePair(i)}
-                      title="Remove this Q/A (Minimum 5 questions required)"
+                      title="Remove this Q/A (Minimum 3 questions required)"
                     >
                       −
                     </button>
                   )}
 
-                  {i === pairs.length - 1 && pairs.length < 15 && (
-                    <button type="button" className="ld-upload-quiz-add" onClick={addPair} title="Add question (Maximum 15 questions)">+</button>
+                  {i === pairs.length - 1 && pairs.length < 10 && (
+                    <button type="button" className="ld-upload-quiz-add" onClick={addPair} title="Add question (Maximum 10 questions)">+</button>
                   )}
                 </div>
               ))}
@@ -1275,7 +1604,7 @@ export default function InstructorUpload2() {
                 <span>Status</span>
                 <span className="ld-upload-actions-col">Actions</span>
               </div>
-              <div className="ld-upload-content-rows">
+              <div className={`ld-upload-content-rows ${contentRows.length === 0 ? 'ld-upload-content-rows-empty' : ''}`}>
                 {contentRows.length === 0 ? (
                   <div className="ld-upload-empty">
                     <div className="ld-upload-empty-icon">📄</div>
@@ -1294,13 +1623,23 @@ export default function InstructorUpload2() {
                         {row.status}
                       </div>
                       <div className="ld-upload-content-actions">
-                        <button 
-                          type="button" 
-                          className="ld-upload-btn-arch"
-                          onClick={() => archiveContent(row.id)}
-                        >
-                          Archive
-                        </button>
+                        {row.status === "Draft" ? (
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-publish"
+                            onClick={() => publishDraftContent(row.id)}
+                          >
+                            Publish
+                          </button>
+                        ) : (
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-arch"
+                            onClick={() => archiveContent(row.id)}
+                          >
+                            Archive
+                          </button>
+                        )}
                         <button 
                           type="button" 
                           className="ld-upload-btn-del"
@@ -1326,7 +1665,7 @@ export default function InstructorUpload2() {
                 <span>Status</span>
                 <span className="ld-upload-actions-col">Actions</span>
               </div>
-              <div className="ld-upload-content-rows">
+              <div className={`ld-upload-content-rows ${archivedRows.length === 0 ? 'ld-upload-content-rows-empty' : ''}`}>
                 {archivedRows.length === 0 ? (
                   <div className="ld-upload-empty">
                     <div className="ld-upload-empty-icon">📦</div>
@@ -1378,9 +1717,10 @@ export default function InstructorUpload2() {
               <div className="ld-upload-content-head">
                 <span>Quiz title</span>
                 <span>Category</span>
+                <span>Status</span>
                 <span className="ld-upload-actions-col">Actions</span>
               </div>
-              <div className="ld-upload-content-rows">
+              <div className={`ld-upload-content-rows ${quizRows.length === 0 ? 'ld-upload-content-rows-empty' : ''}`}>
                 {quizRows.length === 0 ? (
                   <div className="ld-upload-empty">
                     <div className="ld-upload-empty-icon">📝</div>
@@ -1392,12 +1732,95 @@ export default function InstructorUpload2() {
                     <div key={row.id} className="ld-upload-content-row">
                       <div className="ld-upload-content-title">{row.title}</div>
                       <div className="ld-upload-pill">{row.category}</div>
+                      <div className={`ld-upload-status-pill ${
+                        row.status === "Published" ? "ld-upload-status-green" :
+                        row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
+                      }`}>
+                        {row.status}
+                      </div>
                       <div className="ld-upload-content-actions">
-                        <button type="button" className="ld-upload-btn-arch">Archive</button>
-                        <button type="button" className="ld-upload-btn-del">Delete</button>
+                        {row.status === "Draft" ? (
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-publish"
+                            onClick={() => publishDraftQuiz(row.id)}
+                          >
+                            Publish
+                          </button>
+                        ) : (
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-arch"
+                            onClick={() => archiveQuiz(row.id)}
+                          >
+                            Archive
+                          </button>
+                        )}
+                        <button 
+                          type="button" 
+                          className="ld-upload-btn-del"
+                          onClick={() => deleteQuiz(row.id)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   ))
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Archived Quizzes Section */}
+          <section className="ld-upload-section-main">
+            <h2 className="ld-upload-section-title">Archived Quizzes</h2>
+            <div className="ld-upload-content-card">
+              <div className="ld-upload-content-head">
+                <span>Quiz title</span>
+                <span>Category</span>
+                <span>Status</span>
+                <span className="ld-upload-actions-col">Actions</span>
+              </div>
+              <div className={`ld-upload-content-rows ${archivedQuizRows.length === 0 ? 'ld-upload-content-rows-empty' : ''}`}>
+                {archivedQuizRows.length === 0 ? (
+                  <div className="ld-upload-empty">
+                    <div className="ld-upload-empty-icon">📦</div>
+                    <p className="ld-upload-empty-text">No archived quizzes</p>
+                    <p className="ld-upload-empty-subtext">Archived quizzes will appear here</p>
+                  </div>
+                ) : (
+                  archivedQuizRows.map((row) => {
+                    // Determine previous status - check if it's stored, otherwise default to 'published'
+                    const previousStatus = row.previousStatus || 'published';
+                    const restoreStatusText = previousStatus === 'published' ? 'Published' : 'Draft';
+                    
+                    return (
+                      <div key={row.id} className="ld-upload-content-row">
+                        <div className="ld-upload-content-title">{row.title}</div>
+                        <div className="ld-upload-pill">{row.category}</div>
+                        <div className={`ld-upload-status-pill ld-upload-status-yellow`}>
+                          {row.status}
+                        </div>
+                        <div className="ld-upload-content-actions">
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-arch"
+                            onClick={() => restoreQuiz(row.id, previousStatus)}
+                            title={`Restore to ${restoreStatusText}`}
+                          >
+                            Restore
+                          </button>
+                          <button 
+                            type="button" 
+                            className="ld-upload-btn-del"
+                            onClick={() => deleteQuiz(row.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

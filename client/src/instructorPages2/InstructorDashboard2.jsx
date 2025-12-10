@@ -36,6 +36,8 @@ export default function InstructorDashboard2() {
   const [mongoToken, setMongoToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [dailyTip, setDailyTip] = useState("Boost your teaching with daily strategies tailored for students with autism and Down syndrome. Practical, short, and easy to apply.");
+  const [tipLoading, setTipLoading] = useState(true);
 
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
@@ -148,6 +150,31 @@ export default function InstructorDashboard2() {
     }
   }, [location]);
 
+  // Fetch daily tip
+  useEffect(() => {
+    const fetchDailyTip = async () => {
+      try {
+        setTipLoading(true);
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/ai/daily-tip`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.tip) {
+            setDailyTip(data.data.tip);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching daily tip:', error);
+        // Keep default tip on error
+      } finally {
+        setTipLoading(false);
+      }
+    };
+
+    fetchDailyTip();
+  }, []); // Fetch once on mount - tip changes daily on server
+
   // Sample data for instructor dashboard
   const sampleMetrics = [
     { label: "Content views", value: "2,315", change: "+11.01%" },
@@ -224,7 +251,8 @@ export default function InstructorDashboard2() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-    navigate("/all-login");
+    // Always navigate to login page, even if signOut fails
+    navigate("/all-login", { replace: true });
   };
 
   // Scroll detection for chatbot animation
@@ -366,14 +394,13 @@ export default function InstructorDashboard2() {
         <div className="ld-tip-card">
           <h4 className="ld-tip-title">Tip of the day</h4>
           <p className="ld-tip-text">
-            Boost your teaching with daily strategies tailored for students with autism and Down 
-            syndrome. Practical, short, and easy to apply.
+            {tipLoading ? "Loading today's tip..." : dailyTip}
           </p>
         </div>
         <div className="ld-tip-card">
           <h4 className="ld-tip-title">Community & Support</h4>
           <p className="ld-tip-text">Ask questions, share tips, and connect with other instructors.</p>
-          <button className="ld-community-btn" onClick={() => navigate("/InstructorCommunity")}>
+          <button className="ld-community-btn" onClick={() => navigate("/InstructorCommunity-2")}>
             Join Now
           </button>
         </div>

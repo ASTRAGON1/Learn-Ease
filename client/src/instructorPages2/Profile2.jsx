@@ -163,7 +163,7 @@ export default function Profile2() {
         navigate('/all-login');
       } finally {
         if (isMounted) {
-          setLoading(false);
+        setLoading(false);
         }
       }
     });
@@ -390,7 +390,7 @@ export default function Profile2() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-    navigate("/all-login");
+    navigate("/all-login", { replace: true });
   };
 
   const handleSidebarEnter = () => {

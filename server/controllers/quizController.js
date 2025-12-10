@@ -12,7 +12,7 @@ exports.getQuizzes = async (req, res) => {
     
     const quizzes = await Quiz.find(query)
       .sort({ createdAt: -1 }) // Newest first
-      .select('title category status difficulty createdAt');
+      .select('title category status difficulty createdAt previousStatus');
     
     return res.status(200).json({ data: quizzes });
   } catch (e) {
@@ -32,44 +32,42 @@ exports.createQuiz = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    if (!difficulty || !['Easy', 'Medium', 'Hard'].includes(difficulty)) {
+      return res.status(400).json({ error: 'Difficulty is required and must be Easy, Medium, or Hard' });
+    }
+
     if (!questionsAndAnswers || !Array.isArray(questionsAndAnswers)) {
       return res.status(400).json({ error: 'Questions are required' });
     }
 
-    if (questionsAndAnswers.length < 5) {
-      return res.status(400).json({ error: 'Minimum 5 questions required' });
+    if (questionsAndAnswers.length < 3) {
+      return res.status(400).json({ error: 'Minimum 3 questions required' });
     }
 
-    if (questionsAndAnswers.length > 15) {
-      return res.status(400).json({ error: 'Maximum 15 questions allowed' });
+    if (questionsAndAnswers.length > 10) {
+      return res.status(400).json({ error: 'Maximum 10 questions allowed' });
     }
 
-    // Use provided difficulty (for AI-generated quizzes) or auto-set based on number of questions (for normal quizzes)
-    let finalDifficulty;
-    if (difficulty && ['Easy', 'Medium', 'Hard'].includes(difficulty)) {
-      // Use provided difficulty (AI quiz)
-      finalDifficulty = difficulty;
-    } else {
-      // Auto-set difficulty based on number of questions (normal quiz)
-      const questionCount = questionsAndAnswers.length;
-      if (questionCount === 5) {
-        finalDifficulty = 'Easy';
-      } else if (questionCount <= 10) {
-        finalDifficulty = 'Medium';
-      } else {
-        finalDifficulty = 'Hard';
-      }
-    }
-
-    // Normalize category
-    const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
+    // Normalize category - handle both original and already-normalized formats
+    const categoryMap = { 
+      'Autism': 'autism', 
+      'Down Syndrome': 'downSyndrome',
+      'autism': 'autism',
+      'downSyndrome': 'downSyndrome'
+    };
     const normalizedCategory = categoryMap[category] || category.toLowerCase();
+    
+    // Ensure it's one of the valid enum values
+    if (!['autism', 'downSyndrome'].includes(normalizedCategory)) {
+      return res.status(400).json({ error: 'Invalid category. Must be "Autism" or "Down Syndrome"' });
+    }
 
     // Transform questions from {q, a} format to Quiz schema format
-    // Only store question and correctAnswer (AI will generate wrong options later)
+    // Include wrongAnswers if provided (from AI generation)
     const transformedQuestions = questionsAndAnswers.map((pair) => ({
       question: (pair.q || pair.question || '').trim(),
-      correctAnswer: (pair.a || pair.answer || '').trim()
+      correctAnswer: (pair.a || pair.answer || pair.correctAnswer || '').trim(),
+      wrongAnswers: pair.wrongAnswers || []
     }));
 
     // Validate all questions have both question and answer
@@ -85,7 +83,7 @@ exports.createQuiz = async (req, res) => {
       topic,
       lesson,
       course,
-      difficulty: finalDifficulty,
+      difficulty: difficulty,
       questionsAndAnswers: transformedQuestions,
       status: status || 'draft'
     });
@@ -93,7 +91,13 @@ exports.createQuiz = async (req, res) => {
     return res.status(201).json({ data: doc });
   } catch (e) {
     console.error('createQuiz error', e);
-    return res.status(500).json({ error: 'Server error', message: e.message });
+    console.error('Error details:', {
+      message: e.message,
+      name: e.name,
+      stack: e.stack,
+      validationErrors: e.errors
+    });
+    return res.status(500).json({ error: 'Server error', message: e.message, details: e.errors || e.message });
   }
 };
 

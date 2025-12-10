@@ -209,7 +209,7 @@ export default function InformationGathering1({ onNext, onLogout }) {
     } catch (error) {
       console.error('Error signing out:', error);
     }
-    navigate('/all-login');
+    navigate('/all-login', { replace: true });
   };
 
   const cancelLogout = () => {
