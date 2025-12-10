@@ -120,6 +120,23 @@ export default function Signup() {
     setLoading(true);
 
     try {
+      // Check if email exists in both student and teacher databases
+      const emailCheckResponse = await fetch(`${API_URL}/api/students/auth/check-email/${encodeURIComponent(email)}`);
+      if (emailCheckResponse.ok) {
+        const emailCheckData = await emailCheckResponse.json();
+        if (emailCheckData.exists) {
+          if (emailCheckData.inStudent) {
+            setGeneralError("This email is already registered as a student. Would you like to go to the login page?");
+            setShowLoginPrompt(true);
+          } else if (emailCheckData.inTeacher) {
+            setGeneralError("This email is already registered as a teacher. Would you like to go to the login page?");
+            setShowLoginPrompt(true);
+          }
+          setLoading(false);
+          return;
+        }
+      }
+
       let firebaseUser;
       let firebaseUID;
 

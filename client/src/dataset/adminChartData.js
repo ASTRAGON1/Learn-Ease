@@ -43,18 +43,18 @@ export function makeAdminMetricsDataset({
   feedbacksStudents = 0,
   feedbacksTeachers = 0,
 }) {
+  // Combine suspended, reports, and feedbacks
+  const totalSuspended = (Number(suspendedStudents) || 0) + (Number(suspendedTeachers) || 0);
+  const totalReports = (Number(reportsStudents) || 0) + (Number(reportsTeachers) || 0);
+  const totalFeedbacks = (Number(feedbacksStudents) || 0) + (Number(feedbacksTeachers) || 0);
+
   return [
     { metric: "Online - Student", value: Number(onlineStudents) || 0 },
     { metric: "Online - Teacher", value: Number(onlineTeachers) || 0 },
-    { metric: "Offline - Student", value: Number(offlineStudents) || 0 },
-    { metric: "Offline - Teacher", value: Number(offlineTeachers) || 0 },
-    { metric: "Suspended - Student", value: Number(suspendedStudents) || 0 },
-    { metric: "Suspended - Teacher", value: Number(suspendedTeachers) || 0 },
+    { metric: "Suspended", value: totalSuspended },
     { metric: "Applications", value: Number(applications) || 0 },
-    { metric: "Reports - Student", value: Number(reportsStudents) || 0 },
-    { metric: "Reports - Teacher", value: Number(reportsTeachers) || 0 },
-    { metric: "Feedbacks - Student", value: Number(feedbacksStudents) || 0 },
-    { metric: "Feedbacks - Teacher", value: Number(feedbacksTeachers) || 0 },
+    { metric: "Reports", value: totalReports },
+    { metric: "Feedbacks", value: totalFeedbacks },
   ];
 }
   

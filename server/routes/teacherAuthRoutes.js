@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Teacher = require('../models/Teacher');
+const Student = require('../models/Student');
 const router = express.Router();
 
 // POST /api/teachers/auth/register
@@ -15,9 +16,17 @@ router.post('/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'email is required' });
     }
 
-    // Check if email already exists
-    const exists = await Teacher.findOne({ email });
-    if (exists) return res.status(409).json({ error: 'Email already used' });
+    // Check if email already exists in teacher database
+    const teacherExists = await Teacher.findOne({ email: email.toLowerCase().trim() });
+    if (teacherExists) {
+      return res.status(409).json({ error: 'Email already used' });
+    }
+
+    // Check if email already exists in student database
+    const studentExists = await Student.findOne({ email: email.toLowerCase().trim() });
+    if (studentExists) {
+      return res.status(409).json({ error: 'Email already used in student database' });
+    }
 
     // If firebaseUID is provided, check if it's already linked
     if (firebaseUID) {
@@ -69,7 +78,18 @@ router.post('/auth/register', async (req, res) => {
 router.post('/auth/login', async (req, res) => {
   try {
     const { email, password, firebaseUID } = req.body;
-    const t = await Teacher.findOne({ email });
+    
+    // If the input contains '@', it's definitely an email - search by email
+    // If it doesn't contain '@', it might be a username, but Teacher model only has email
+    // So we'll only search by email
+    const isEmail = email && email.includes('@');
+    
+    if (!isEmail) {
+      // If it's not an email, teacher login should fail (teachers only have email)
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+    
+    const t = await Teacher.findOne({ email: email.toLowerCase().trim() });
     if (!t) return res.status(404).json({ error: 'Teacher not found' });
 
     // If firebaseUID is provided, verify it matches or update it

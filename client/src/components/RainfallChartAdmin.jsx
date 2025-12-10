@@ -50,7 +50,7 @@ export default function RainfallChart({
 
     // All colors are light grey
     const lightGrey = "#cbd5e1";
-    const colors = Array(11).fill(lightGrey);
+    const colors = Array(6).fill(lightGrey); // Updated to 6 bars: Online Student, Online Teacher, Suspended, Applications, Reports, Feedbacks
 
     chartSetting = {
       yAxis: [{ label: "Count", width: 60 }],

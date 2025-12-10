@@ -29,7 +29,7 @@ import InformationGathering1_2 from "./instructorPages2/InformationGathering1";
 import InformationGathering2_2 from "./instructorPages2/InformationGathering2";
 import InformationGathering3_2 from "./instructorPages2/InformationGathering3";
 
-import AdminPanel from "./AdminPages/AdminPanel";
+import AdminPanel2 from "./AdminPages/AdminPanel2";
 
 import AllPagesLogin from "./AllPages/Login";
 import AllPagesSignup from "./AllPages/Signup";
@@ -86,7 +86,7 @@ export default function App() {
         <Route path="/InformationGathering-2" element={<InformationGathering2_2 />} />
         <Route path="/InformationGathering-3" element={<InformationGathering3_2 />} />
 
-        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin" element={<AdminPanel2 />} />
         <Route path="/all-login" element={<AllPagesLogin />} />
         <Route path="/all-signup" element={<AllPagesSignup />} />
         <Route path="/" element={<LandingPage />} />

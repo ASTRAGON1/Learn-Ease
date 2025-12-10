@@ -38,6 +38,8 @@ export default function InstructorDashboard2() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [dailyTip, setDailyTip] = useState("Boost your teaching with daily strategies tailored for students with autism and Down syndrome. Practical, short, and easy to apply.");
   const [tipLoading, setTipLoading] = useState(true);
+  const [expandedCourses, setExpandedCourses] = useState(new Set());
+  const [expandedTopics, setExpandedTopics] = useState(new Set());
 
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
@@ -483,9 +485,48 @@ export default function InstructorDashboard2() {
         <div className="ld-chart-notifications-grid">
           {/* Views and Likes Chart */}
           <div className="ld-chart-wrapper">
-            <div className="ld-chart-card">
-              <h3 className="ld-chart-title">Total Views & Likes</h3>
-              <RainfallChart />
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <h2 style={{
+                    fontSize: "24px",
+                    fontWeight: "700",
+                    margin: "0 0 4px 0",
+                    color: "#1a1a1a",
+                    fontFamily: "'Poppins', sans-serif"
+                  }}>
+                    Total Views & Likes
+                  </h2>
+                  <p style={{
+                    fontSize: "14px",
+                    color: "#6b7280",
+                    margin: "0",
+                    fontWeight: "500",
+                    fontFamily: "'Poppins', sans-serif"
+                  }}>
+                    Monthly overview of your content engagement
+                  </p>
+                </div>
+              </div>
+              <div style={{
+                background: "#ffffff",
+                border: "1px solid #e5e7eb",
+                borderRadius: "16px",
+                padding: "32px",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                transition: "all 0.3s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 16px rgba(74, 15, 173, 0.1)";
+                e.currentTarget.style.borderColor = "#F3EFFF";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.04)";
+                e.currentTarget.style.borderColor = "#e5e7eb";
+              }}
+              >
+                <RainfallChart />
+              </div>
             </div>
           </div>
 
@@ -582,63 +623,430 @@ export default function InstructorDashboard2() {
     </>
   );
 
+  const toggleCourse = (courseKey) => {
+    setExpandedCourses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(courseKey)) {
+        newSet.delete(courseKey);
+      } else {
+        newSet.add(courseKey);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleTopic = (topicKey) => {
+    setExpandedTopics(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(topicKey)) {
+        newSet.delete(topicKey);
+      } else {
+        newSet.add(topicKey);
+      }
+      return newSet;
+    });
+  };
+
   // Render Curriculum Section
-  const renderCurriculumSection = () => (
-    <>
-      <section className="ld-curriculum-section">
-        <h2 className="ld-section-title">Learning Paths</h2>
-        <p className="ld-curriculum-subtitle">Two paths: Autism and Down Syndrome.</p>
-        <div className="ld-curriculum-list">
-          {USER_CURRICULUM.map((path) => (
-            <div key={path.GeneralPath} className="ld-curriculum-path-item">
-              <div className="ld-curriculum-path-header">
-                <div className="ld-curriculum-path-badge">{path.pathTitle}</div>
-                <span className="ld-curriculum-path-count">{path.Courses.length} courses</span>
+  const renderCurriculumSection = () => {
+    const totalCourses = USER_CURRICULUM.reduce((sum, path) => sum + path.Courses.length, 0);
+    const totalTopics = USER_CURRICULUM.reduce((sum, path) => 
+      sum + path.Courses.reduce((cSum, course) => cSum + (course.Topics?.length || 0), 0), 0
+    );
+    const totalLessons = USER_CURRICULUM.reduce((sum, path) => 
+      sum + path.Courses.reduce((cSum, course) => 
+        cSum + (course.Topics?.reduce((tSum, topic) => tSum + (topic.lessons?.length || 0), 0) || 0), 0
+      ), 0
+    );
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+        {/* Header Section */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          padding: "32px",
+          background: "linear-gradient(135deg, #4A0FAD 0%, #6B2FD4 100%)",
+          borderRadius: "20px",
+          boxShadow: "0 8px 24px rgba(74, 15, 173, 0.2)",
+          color: "white"
+        }}>
+          <div style={{ flex: 1 }}>
+            <h1 style={{
+              fontSize: "36px",
+              fontWeight: "800",
+              margin: "0 0 8px 0",
+              color: "white",
+              fontFamily: "'Poppins', sans-serif",
+              letterSpacing: "-0.02em"
+            }}>
+              Learning Paths
+            </h1>
+            <p style={{
+              fontSize: "16px",
+              margin: "0",
+              color: "rgba(255, 255, 255, 0.9)",
+              fontWeight: "500",
+              fontFamily: "'Poppins', sans-serif"
+            }}>
+              Two paths: Autism and Down Syndrome. Structure: Path → Courses → Topics → Lessons.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{
+                fontSize: "32px",
+                fontWeight: "800",
+                lineHeight: "1",
+                marginBottom: "4px",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                {USER_CURRICULUM.length}
               </div>
-
-              <div className="ld-curriculum-courses-list">
-                {path.Courses.map((course, ci) => (
-                  <details key={ci} className="ld-curriculum-course-item">
-                    <summary className="ld-curriculum-course-summary">
-                      <div className="ld-curriculum-course-title"><strong>{course.CoursesTitle}</strong></div>
-                      <span className="ld-curriculum-course-meta">
-                        {course.Topics ? `${course.Topics.length} topics` : "No topics"}
-                      </span>
-                    </summary>
-
-                    {course.Topics && (
-                      <div className="ld-curriculum-topics-list">
-                        {course.Topics.map((topic, ti) => (
-                          <details key={ti} className="ld-curriculum-topic-item">
-                            <summary className="ld-curriculum-topic-summary">
-                              <div className="ld-curriculum-topic-title"><b>{topic.TopicsTitle}</b></div>
-                              <span className="ld-curriculum-topic-meta">
-                                {topic.lessons ? `${topic.lessons.length} lessons` : "No lessons"}
-                              </span>
-                            </summary>
-
-                            {topic.lessons && (
-                              <div className="ld-curriculum-lessons-list">
-                                {topic.lessons.map((lesson, li) => (
-                                  <div key={li} className="ld-curriculum-lesson-item">
-                                    <span>{lesson}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </details>
-                        ))}
-                      </div>
-                    )}
-                  </details>
-                ))}
+              <div style={{
+                fontSize: "13px",
+                fontWeight: "500",
+                opacity: "0.9",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                Paths
               </div>
             </div>
-          ))}
+            <div style={{ textAlign: "right" }}>
+              <div style={{
+                fontSize: "32px",
+                fontWeight: "800",
+                lineHeight: "1",
+                marginBottom: "4px",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                {totalCourses}
+              </div>
+              <div style={{
+                fontSize: "13px",
+                fontWeight: "500",
+                opacity: "0.9",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                Courses
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{
+                fontSize: "32px",
+                fontWeight: "800",
+                lineHeight: "1",
+                marginBottom: "4px",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                {totalTopics}
+              </div>
+              <div style={{
+                fontSize: "13px",
+                fontWeight: "500",
+                opacity: "0.9",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                Topics
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{
+                fontSize: "32px",
+                fontWeight: "800",
+                lineHeight: "1",
+                marginBottom: "4px",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                {totalLessons}
+              </div>
+              <div style={{
+                fontSize: "13px",
+                fontWeight: "500",
+                opacity: "0.9",
+                fontFamily: "'Poppins', sans-serif"
+              }}>
+                Lessons
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
-    </>
-  );
+
+        {/* Learning Paths Content */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {USER_CURRICULUM.map((path) => {
+            const courseCount = path.Courses.length;
+            const topicCount = path.Courses.reduce((sum, c) => sum + (c.Topics?.length || 0), 0);
+            const lessonCount = path.Courses.reduce((sum, c) => 
+              sum + (c.Topics?.reduce((tSum, t) => tSum + (t.lessons?.length || 0), 0) || 0), 0
+            );
+
+            return (
+              <div key={path.GeneralPath} style={{
+                background: "#ffffff",
+                border: "1px solid #e5e7eb",
+                borderRadius: "16px",
+                padding: "24px",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                transition: "all 0.3s ease"
+              }}>
+                {/* Path Header */}
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "24px",
+                  paddingBottom: "20px",
+                  borderBottom: "2px solid #e5e7eb"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "12px",
+                      background: "linear-gradient(135deg, #4A0FAD 0%, #6B2FD4 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontWeight: "700",
+                      fontSize: "20px",
+                      boxShadow: "0 4px 12px rgba(74, 15, 173, 0.3)"
+                    }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 style={{
+                        fontSize: "20px",
+                        fontWeight: "700",
+                        color: "#1a1a1a",
+                        margin: "0 0 4px 0",
+                        fontFamily: "'Poppins', sans-serif"
+                      }}>
+                        {path.pathTitle}
+                      </h3>
+                      <p style={{
+                        fontSize: "13px",
+                        color: "#6b7280",
+                        margin: "0",
+                        fontFamily: "'Poppins', sans-serif"
+                      }}>
+                        {courseCount} courses • {topicCount} topics • {lessonCount} lessons
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Courses */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {path.Courses.map((course, ci) => {
+                    const courseKey = `${path.GeneralPath}-${ci}`;
+                    const isCourseExpanded = expandedCourses.has(courseKey);
+
+                    return (
+                      <div key={ci} style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        transition: "all 0.2s ease"
+                      }}>
+                        {/* Course Header */}
+                        <div
+                          onClick={() => toggleCourse(courseKey)}
+                          style={{
+                            padding: "16px 20px",
+                            background: isCourseExpanded ? "#F3EFFF" : "#ffffff",
+                            cursor: "pointer",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            transition: "all 0.2s ease"
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isCourseExpanded) {
+                              e.currentTarget.style.background = "#f9fafb";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isCourseExpanded) {
+                              e.currentTarget.style.background = "#ffffff";
+                            }
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              style={{
+                                transform: isCourseExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s ease",
+                                color: "#4A0FAD",
+                                flexShrink: 0
+                              }}
+                            >
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            <span style={{
+                              fontSize: "16px",
+                              fontWeight: "600",
+                              color: "#1a1a1a",
+                              fontFamily: "'Poppins', sans-serif"
+                            }}>
+                              {course.CoursesTitle}
+                            </span>
+                            <span style={{
+                              fontSize: "13px",
+                              color: "#6b7280",
+                              background: "#f3f4f6",
+                              padding: "4px 10px",
+                              borderRadius: "12px",
+                              fontFamily: "'Poppins', sans-serif"
+                            }}>
+                              {course.Topics ? course.Topics.length : 0} {course.Topics?.length === 1 ? "topic" : "topics"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Topics (Expanded) */}
+                        {isCourseExpanded && course.Topics && (
+                          <div style={{
+                            padding: "12px 20px 20px 52px",
+                            background: "#ffffff",
+                            borderTop: "1px solid #e5e7eb"
+                          }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              {course.Topics.map((topic, ti) => {
+                                const topicKey = `${path.GeneralPath}-${ci}-${ti}`;
+                                const isTopicExpanded = expandedTopics.has(topicKey);
+
+                                return (
+                                  <div key={ti} style={{
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: "8px",
+                                    overflow: "hidden"
+                                  }}>
+                                    {/* Topic Header */}
+                                    <div
+                                      onClick={() => toggleTopic(topicKey)}
+                                      style={{
+                                        padding: "12px 16px",
+                                        background: isTopicExpanded ? "#f9fafb" : "#ffffff",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        transition: "all 0.2s ease"
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isTopicExpanded) {
+                                          e.currentTarget.style.background = "#f9fafb";
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (!isTopicExpanded) {
+                                          e.currentTarget.style.background = "#ffffff";
+                                        }
+                                      }}
+                                    >
+                                      <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1 }}>
+                                        <svg
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          style={{
+                                            transform: isTopicExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                                            transition: "transform 0.2s ease",
+                                            color: "#6b7280",
+                                            flexShrink: 0
+                                          }}
+                                        >
+                                          <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+                                        <span style={{
+                                          fontSize: "14px",
+                                          fontWeight: "600",
+                                          color: "#374151",
+                                          fontFamily: "'Poppins', sans-serif"
+                                        }}>
+                                          {topic.TopicsTitle}
+                                        </span>
+                                        <span style={{
+                                          fontSize: "12px",
+                                          color: "#9ca3af",
+                                          background: "#f3f4f6",
+                                          padding: "3px 8px",
+                                          borderRadius: "10px",
+                                          fontFamily: "'Poppins', sans-serif"
+                                        }}>
+                                          {topic.lessons ? topic.lessons.length : 0} {topic.lessons?.length === 1 ? "lesson" : "lessons"}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Lessons (Expanded) */}
+                                    {isTopicExpanded && topic.lessons && (
+                                      <div style={{
+                                        padding: "8px 16px 12px 42px",
+                                        background: "#ffffff",
+                                        borderTop: "1px solid #e5e7eb"
+                                      }}>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                          {topic.lessons.map((lesson, li) => (
+                                            <div
+                                              key={li}
+                                              style={{
+                                                padding: "10px 12px",
+                                                background: "#f9fafb",
+                                                borderRadius: "6px",
+                                                transition: "all 0.2s"
+                                              }}
+                                              onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = "#f3f4f6";
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = "#f9fafb";
+                                              }}
+                                            >
+                                              <span style={{
+                                                fontSize: "13px",
+                                                color: "#374151",
+                                                fontFamily: "'Poppins', sans-serif"
+                                              }}>
+                                                {lesson}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   // Render Resources Section
   const renderResourcesSection = () => (

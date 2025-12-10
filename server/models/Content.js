@@ -57,8 +57,8 @@ const contentSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: {
-      values: ['draft', 'published', 'archived'],
-      message: 'Status must be draft, published, or archived'
+      values: ['draft', 'published', 'archived', 'deleted'],
+      message: 'Status must be draft, published, archived, or deleted'
     },
     default: 'draft'
   },
@@ -68,6 +68,10 @@ const contentSchema = new mongoose.Schema({
       values: ['draft', 'published'],
       message: 'Previous status must be draft or published'
     },
+    default: null
+  },
+  deletedAt: {
+    type: Date,
     default: null
   },
   fileURL: {

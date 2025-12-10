@@ -3,16 +3,20 @@ const Content = require('../models/Content');
 exports.getContent = async (req, res) => {
   try {
     const teacherId = req.user.sub;
-    const { status } = req.query; // Optional filter by status
+    const { status, includeDeleted } = req.query; // Optional filter by status, includeDeleted flag
     
     const query = { teacher: teacherId };
+    
+    // By default, exclude deleted content unless explicitly requested
     if (status) {
       query.status = status;
+    } else if (includeDeleted !== 'true') {
+      query.status = { $ne: 'deleted' };
     }
     
     const content = await Content.find(query)
       .sort({ createdAt: -1 }) // Newest first
-      .select('title category status createdAt previousStatus storagePath');
+      .select('title category status createdAt previousStatus storagePath deletedAt');
     
     return res.status(200).json({ data: content });
   } catch (e) {

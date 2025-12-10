@@ -48,6 +48,7 @@ const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 // Try to login as teacher
 async function loginTeacher({ email, password }) {
   try {
+    console.log('Attempting teacher login with:', { email: email?.substring(0, 5) + '...' });
     const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
       method: 'POST',
       headers: {
@@ -69,6 +70,7 @@ async function loginTeacher({ email, password }) {
     }
 
     if (!response.ok) {
+      console.log('Teacher login failed:', { status: response.status, error: data.error });
       if (response.status === 404) {
         return { ok: false, error: null }; // User not found, try student
       } else if (response.status === 401) {
@@ -78,6 +80,7 @@ async function loginTeacher({ email, password }) {
       }
     }
 
+    console.log('Teacher login successful');
     return {
       ok: true,
       userType: 'teacher',
@@ -100,6 +103,7 @@ async function loginTeacher({ email, password }) {
 // Try to login as student
 async function loginStudent({ email, password }) {
   try {
+    console.log('Attempting student login with:', { email: email?.substring(0, 5) + '...' });
     // Try student login endpoint - adjust endpoint if different
     const response = await fetch(`${API_URL}/api/students/auth/login`, {
       method: 'POST',
@@ -186,59 +190,71 @@ export default function Login() {
       const email = username.includes('@') ? username : null;
       const loginIdentifier = email || username;
       
-      // Try both teacher and student databases
-      // If it's an email, try teacher first (most teachers use email)
-      // If it's a username, try student first (students might use username)
+      // If it's an email, check which database it exists in first
       let loginResult = null;
-      let triedBoth = false;
-
+      
       if (email) {
-        // Try teacher login first
-        loginResult = await loginTeacher({ email: loginIdentifier, password });
-        
-        // If teacher login failed (not found or network error), try student
-        if (!loginResult.ok) {
-          const studentResult = await loginStudent({ email: loginIdentifier, password });
-          if (studentResult.ok) {
-            loginResult = studentResult;
-          } else {
-            // If student also failed with an error message, use that
-            if (studentResult.error) {
-              loginResult = studentResult;
+        // Check which database the email exists in
+        const emailCheckResponse = await fetch(`${API_URL}/api/students/auth/check-email/${encodeURIComponent(email)}`);
+        if (emailCheckResponse.ok) {
+          const emailCheckData = await emailCheckResponse.json();
+          
+          if (emailCheckData.inTeacher) {
+            // Email exists in teacher database - try teacher login only
+            loginResult = await loginTeacher({ email: loginIdentifier, password });
+            if (!loginResult.ok) {
+              // Teacher login failed - show error
+              setServerError(loginResult.error || "Invalid credentials. Please check your email and password.");
+              setLoading(false);
+              return;
             }
-            triedBoth = true;
+          } else if (emailCheckData.inStudent) {
+            // Email exists in student database - try student login only
+            loginResult = await loginStudent({ email: loginIdentifier, password });
+            if (!loginResult.ok) {
+              // Student login failed - show error
+              setServerError(loginResult.error || "Invalid credentials. Please check your email and password.");
+              setLoading(false);
+              return;
+            }
+          } else {
+            // Email doesn't exist in either database
+            setServerError("User not found. Please check your email or sign up.");
+            setLoading(false);
+            return;
+          }
+        } else {
+          // If check fails, try both (fallback)
+          loginResult = await loginTeacher({ email: loginIdentifier, password });
+          if (!loginResult.ok) {
+            loginResult = await loginStudent({ email: loginIdentifier, password });
           }
         }
       } else {
-        // Try student login first
+        // Username (not email) - try student first, then teacher
         loginResult = await loginStudent({ email: loginIdentifier, password });
-        
-        // If student login failed (not found or network error), try teacher
         if (!loginResult.ok) {
-          const teacherResult = await loginTeacher({ email: loginIdentifier, password });
-          if (teacherResult.ok) {
-            loginResult = teacherResult;
-          } else {
-            // If teacher also failed with an error message, use that
-            if (teacherResult.error) {
-              loginResult = teacherResult;
-            }
-            triedBoth = true;
-          }
+          loginResult = await loginTeacher({ email: loginIdentifier, password });
         }
       }
 
       if (!loginResult.ok) {
-        const errorMsg = loginResult.error || 
-          (triedBoth ? "User not found in either database. Please check your credentials or sign up." : 
-           "Invalid credentials. Please check your username/email and password.");
+        const errorMsg = loginResult.error || "Invalid credentials. Please check your username/email and password.";
         setServerError(errorMsg);
         setLoading(false);
         return;
       }
 
+      // Debug logging
+      console.log('Login result:', { 
+        ok: loginResult.ok, 
+        userType: loginResult.userType, 
+        email: loginResult.user?.email 
+      });
+
       // For instructors: Use Firebase Auth only, no storage
       if (loginResult.userType === 'teacher') {
+        console.log('Routing to instructor dashboard');
         // Sign in with Firebase - this is REQUIRED for instructors
         let firebaseUID = null;
         try {
@@ -392,6 +408,7 @@ export default function Login() {
         storage.setItem("userName", loginResult.user?.name || 'Student');
         storage.setItem("userEmail", loginResult.user?.email || "");
         // Navigate to student dashboard
+        console.log('Routing to student dashboard');
         navigate('/student-dashboard');
       }
     } catch (error) {

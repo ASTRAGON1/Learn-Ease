@@ -1,0 +1,132 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const Student = require('../models/Student');
+const Teacher = require('../models/Teacher');
+const router = express.Router();
+
+// GET /api/students/auth/check-email/:email - Check if email exists in both databases
+router.get('/auth/check-email/:email', async (req, res) => {
+  try {
+    const email = req.params.email.toLowerCase().trim();
+    
+    const studentExists = await Student.findOne({ email });
+    const teacherExists = await Teacher.findOne({ email });
+    
+    res.json({
+      exists: !!(studentExists || teacherExists),
+      inStudent: !!studentExists,
+      inTeacher: !!teacherExists
+    });
+  } catch (error) {
+    console.error('Check email error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/students/auth/register
+router.post('/auth/register', async (req, res) => {
+  try {
+    const { fullName, email, password, username, firebaseUID } = req.body;
+    
+    if (!fullName || !fullName.trim()) {
+      return res.status(400).json({ error: 'fullName is required' });
+    }
+    if (!email) {
+      return res.status(400).json({ error: 'email is required' });
+    }
+    if (!password) {
+      return res.status(400).json({ error: 'password is required' });
+    }
+
+    // Check if email already exists in student database
+    const studentExists = await Student.findOne({ email: email.toLowerCase().trim() });
+    if (studentExists) {
+      return res.status(409).json({ error: 'Email already used' });
+    }
+
+    // Check if email already exists in teacher database
+    const teacherExists = await Teacher.findOne({ email: email.toLowerCase().trim() });
+    if (teacherExists) {
+      return res.status(409).json({ error: 'Email already used in teacher database' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create student
+    const studentData = {
+      name: fullName.trim(),
+      email: email.toLowerCase().trim(),
+      pass: hashedPassword,
+      type: 'other' // Default type, can be updated later
+    };
+
+    const doc = await Student.create(studentData);
+
+    // Generate token
+    const token = jwt.sign({ sub: doc._id, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({
+      data: {
+        token,
+        student: {
+          id: doc._id,
+          fullName: doc.name,
+          name: doc.name,
+          email: doc.email
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Student registration error:', error);
+    if (error.code === 11000) {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/students/auth/login
+router.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Find student by email
+    const student = await Student.findOne({ email: email.toLowerCase().trim() });
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, student.pass);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate token
+    const token = jwt.sign({ sub: student._id, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      data: {
+        token,
+        student: {
+          id: student._id,
+          fullName: student.name,
+          name: student.name,
+          email: student.email
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Student login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+module.exports = router;
+
