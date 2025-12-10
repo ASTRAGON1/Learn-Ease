@@ -36,6 +36,8 @@ export default function HelpAndSupport2() {
   const [section, setSection] = useState("report");
   const [topic, setTopic] = useState(REPORT_TOPICS[0]);
   const [text, setText] = useState("");
+  const [rating, setRating] = useState(5);
+  const [hoveredRating, setHoveredRating] = useState(0);
   const MAX = 250;
 
   const [instructorName, setInstructorName] = useState('Instructor');
@@ -44,6 +46,7 @@ export default function HelpAndSupport2() {
   const [profilePic, setProfilePic] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [userStatus, setUserStatus] = useState('active');
   const { showToast, ToastComponent } = useSimpleToast();
 
   // Get instructor name from Firebase Auth
@@ -92,6 +95,15 @@ export default function HelpAndSupport2() {
           if (teacher.profilePic) {
             setProfilePic(teacher.profilePic);
           }
+          if (teacher.userStatus) {
+            setUserStatus(teacher.userStatus);
+            // Redirect if suspended
+            if (teacher.userStatus === 'suspended') {
+              alert("Your account has been suspended. Please contact support for more information.");
+              navigate('/instructor-dashboard-2');
+              return;
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching instructor name:', error);
@@ -115,6 +127,8 @@ export default function HelpAndSupport2() {
     setSection(s);
     setTopic((s === "report" ? REPORT_TOPICS : FEEDBACK_TOPICS)[0]);
     setText("");
+    setRating(5);
+    setHoveredRating(0);
   };
 
   const send = async () => {
@@ -147,16 +161,23 @@ export default function HelpAndSupport2() {
         description: text.trim()
       });
 
+      const requestBody = {
+        userName: instructorFullName,
+        topic: topic,
+        description: text.trim()
+      };
+
+      // Add rating only for feedback, not for reports
+      if (section === "feedback") {
+        requestBody.rating = rating;
+      }
+
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userName: instructorFullName,
-          topic: topic,
-          description: text.trim()
-        })
+        body: JSON.stringify(requestBody)
       });
 
       console.log('Response status:', response.status);
@@ -180,6 +201,8 @@ export default function HelpAndSupport2() {
         // Clear form
         setText("");
         setTopic((section === "report" ? REPORT_TOPICS : FEEDBACK_TOPICS)[0]);
+        setRating(5);
+        setHoveredRating(0);
       } else {
         console.error('Error response:', data);
         showToast(data.error || "Failed to send message. Please try again.", "error");
@@ -489,6 +512,40 @@ export default function HelpAndSupport2() {
                   ))}
                 </div>
               </div>
+
+              {/* Star Rating - Only show for feedback */}
+              {section === "feedback" && (
+                <div className="hs-form-field">
+                  <label className="hs-form-label">Rating</label>
+                  <div className="hs-star-rating">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        className={`hs-star ${star <= (hoveredRating || rating) ? "active" : ""}`}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoveredRating(star)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        aria-label={`Rate ${star} stars`}
+                      >
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill={star <= (hoveredRating || rating) ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      </button>
+                    ))}
+                    <span className="hs-rating-text">{rating} out of 5</span>
+                  </div>
+                </div>
+              )}
 
               <div className="hs-form-field">
                 <label className="hs-form-label">Description</label>

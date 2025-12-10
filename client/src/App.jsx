@@ -33,6 +33,7 @@ import AdminPanel2 from "./AdminPages/AdminPanel2";
 
 import AllPagesLogin from "./AllPages/Login";
 import AllPagesSignup from "./AllPages/Signup";
+import EmailVerification from "./AllPages/EmailVerification";
 
 import "./App.css";
 
@@ -89,6 +90,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPanel2 />} />
         <Route path="/all-login" element={<AllPagesLogin />} />
         <Route path="/all-signup" element={<AllPagesSignup />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/" element={<LandingPage />} />
 
         {/* Redirect to landing page if route is not found */}

@@ -58,12 +58,29 @@ export default function InformationGathering2({ onNext, onBack }) {
         return;
       }
 
-      // Store just the filename instead of the full base64 file
-      // This is more efficient and avoids MongoDB document size limits
-      // The actual file can be uploaded to cloud storage later if needed
-      const cvFileName = fileName || 'cv.pdf';
+      // Get Firebase user for UID
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        setError('Firebase authentication required. Please log in again.');
+        setLoading(false);
+        navigate('/all-login');
+        return;
+      }
 
-      // Save CV filename and bio (notes) to backend
+      // Upload CV to Firebase Storage in cv/{userId}/{fileName} path
+      const { uploadFile } = await import('../utils/uploadFile');
+      let cvUrl = '';
+      
+      try {
+        const uploadResult = await uploadFile(file, 'cv', firebaseUser.uid);
+        cvUrl = uploadResult.url;
+        console.log('CV uploaded to Firebase Storage:', cvUrl);
+      } catch (uploadError) {
+        console.error('Error uploading CV to Firebase:', uploadError);
+        throw new Error('Failed to upload CV. Please try again.');
+      }
+
+      // Save CV URL and bio (notes) to backend
       const response = await fetch(`${API_URL}/api/teachers/me`, {
         method: 'PATCH',
         headers: {
@@ -71,7 +88,7 @@ export default function InformationGathering2({ onNext, onBack }) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ 
-          cv: cvFileName, // Store just the filename
+          cv: cvUrl, // Store the Firebase Storage URL
           bio: notes.trim() || '' // Store notes in bio field
         })
       });

@@ -119,6 +119,9 @@ export default function Signup() {
     setShowLoginPrompt(false);
     setLoading(true);
 
+    let mongoRegistrationSuccess = false;
+    let firebaseUser = null;
+
     try {
       // Check if email exists in both student and teacher databases
       const emailCheckResponse = await fetch(`${API_URL}/api/students/auth/check-email/${encodeURIComponent(email)}`);
@@ -137,7 +140,6 @@ export default function Signup() {
         }
       }
 
-      let firebaseUser;
       let firebaseUID;
 
       // Firebase authentication (mainly for instructors, optional for students)
@@ -179,25 +181,11 @@ export default function Signup() {
 
       // Register in MongoDB based on user type
       let response;
-      let registrationData;
 
       if (userType === "instructor") {
         // Register as instructor
         if (!firebaseUID && firebaseUser) {
           firebaseUID = firebaseUser.uid;
-        }
-
-        // Send email verification for instructors
-        if (firebaseUser && !firebaseUser.emailVerified) {
-          try {
-            await sendEmailVerification(firebaseUser, {
-              url: window.location.origin + '/InstructorSignUp2',
-              handleCodeInApp: false
-            });
-            console.log('Verification email sent successfully');
-          } catch (emailError) {
-            console.error('Error sending verification email:', emailError);
-          }
         }
 
         response = await fetch(`${API_URL}/api/teachers/auth/register`, {
@@ -208,7 +196,6 @@ export default function Signup() {
             email, 
             password, 
             firebaseUID
-            // Username not typically required for instructors, but included if API supports it
           }),
         });
       } else {
@@ -225,7 +212,7 @@ export default function Signup() {
             email, 
             password,
             username: username.trim(),
-            firebaseUID // Optional for students
+            firebaseUID
           }),
         });
       }
@@ -240,8 +227,13 @@ export default function Signup() {
         const text = await response.text();
         console.error('Non-JSON response:', text);
         
+        // MongoDB registration failed - clean up Firebase user
         if (firebaseUser) {
-          await signOut(auth);
+          try {
+            await signOut(auth);
+          } catch (signOutError) {
+            console.error('Error signing out:', signOutError);
+          }
         }
         
         if (response.status === 404) {
@@ -255,52 +247,71 @@ export default function Signup() {
         return;
       }
 
+      // Check if MongoDB registration succeeded
       if (!response.ok) {
-        if (response.status === 409) {
-          // User already exists in MongoDB
-          if (firebaseUser) {
+        // MongoDB registration failed - clean up Firebase user
+        if (firebaseUser) {
+          try {
             await signOut(auth);
+          } catch (signOutError) {
+            console.error('Error signing out:', signOutError);
           }
+        }
+
+        if (response.status === 409) {
           setGeneralError("An account with this email already exists. Would you like to go to the login page?");
           setShowLoginPrompt(true);
-          setLoading(false);
-          return;
         } else {
-          // Registration failed
-          if (firebaseUser) {
-            await signOut(auth);
-          }
           setGeneralError(data.error || "Sign up failed. Please try again.");
-          setLoading(false);
-          return;
+        }
+        setLoading(false);
+        return;
+      }
+
+      // MongoDB registration succeeded
+      mongoRegistrationSuccess = true;
+
+      // Send email verification AFTER successful MongoDB registration
+      if (firebaseUser && !firebaseUser.emailVerified) {
+        try {
+          const verificationUrl = window.location.origin + '/verify-email';
+          
+          await sendEmailVerification(firebaseUser, {
+            url: verificationUrl,
+            handleCodeInApp: false
+          });
+          console.log(`Verification email sent successfully to ${userType}`);
+        } catch (emailError) {
+          console.error('Error sending verification email:', emailError);
+          // Don't fail the registration if email sending fails - user can request resend later
         }
       }
 
-      // Success - handle navigation based on user type
-      if (userType === "instructor") {
-        // For instructors, Firebase Auth is already done, go to email verification page
-        // No storage needed - Firebase Auth maintains the session
-        navigate("/InstructorSignUp2");
-      } else {
-        // For students, go directly to dashboard (or login if verification needed)
-        // Store basic auth info
-        if (data.data?.token) {
-          sessionStorage.setItem("token", data.data.token);
-          sessionStorage.setItem("role", "student");
-          sessionStorage.setItem("userId", data.data.student?.id || "");
-          sessionStorage.setItem("userName", data.data.student?.fullName || fullName);
-          sessionStorage.setItem("userEmail", email);
-          navigate("/student-dashboard");
-        } else {
-          // If no token, redirect to login
-          navigate("/all-login");
-        }
+      // Success - redirect to email verification page for BOTH user types
+      // Store student data temporarily (will be used after verification)
+      if (userType === "student" && data.data?.token) {
+        sessionStorage.setItem("tempToken", data.data.token);
+        sessionStorage.setItem("tempRole", "student");
+        sessionStorage.setItem("tempUserId", data.data.student?.id || "");
+        sessionStorage.setItem("tempUserName", data.data.student?.fullName || fullName);
+        sessionStorage.setItem("tempUserEmail", email);
       }
+      
+      setLoading(false);
+      navigate("/verify-email", {
+        state: {
+          email: email,
+          userType: userType,
+          fullName: fullName
+        }
+      });
     } catch (error) {
       console.error('Signup error:', error);
       
       // Clean up Firebase user if registration failed
-      if (auth.currentUser && !auth.currentUser.emailVerified) {
+      // Only sign out if MongoDB registration didn't succeed
+      // (mongoRegistrationSuccess will be false if we never got to that point or if it failed)
+      if (auth.currentUser && !mongoRegistrationSuccess) {
         try {
           await signOut(auth);
         } catch (signOutError) {
@@ -308,14 +319,24 @@ export default function Signup() {
         }
       }
 
+      // Handle specific Firebase errors
       if (error.code === 'auth/weak-password') {
         setGeneralError("Password is too weak. Please use a stronger password.");
       } else if (error.code === 'auth/invalid-email') {
         setGeneralError("Invalid email address. Please check your email.");
+      } else if (error.code === 'auth/email-already-in-use') {
+        setGeneralError("This email is already registered. Would you like to go to the login page?");
+        setShowLoginPrompt(true);
+      } else if (error.code === 'auth/network-request-failed') {
+        setGeneralError("Network error. Please check your internet connection and try again.");
       } else {
-        setGeneralError(error.message || "Sign up failed. Please try again.");
+        // Generic error message
+        const errorMessage = error.message || "Sign up failed. Please try again.";
+        setGeneralError(errorMessage);
       }
+      
       setLoading(false);
+      // Don't navigate on error - let user see the error message and stay on signup page
     }
   };
 

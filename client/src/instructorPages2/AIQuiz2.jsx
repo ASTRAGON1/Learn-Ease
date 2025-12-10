@@ -27,6 +27,7 @@ export default function AIQuiz2() {
   const [email, setEmail] = useState('');
   const [profilePic, setProfilePic] = useState('');
   const [loading, setLoading] = useState(true);
+  const [userStatus, setUserStatus] = useState('pending');
   const { showToast, ToastComponent } = useSimpleToast();
 
   // Get instructor name from Firebase Auth
@@ -73,6 +74,20 @@ export default function AIQuiz2() {
           }
           if (teacher.profilePic) {
             setProfilePic(teacher.profilePic);
+          }
+          if (teacher.userStatus) {
+            setUserStatus(teacher.userStatus);
+            // Redirect if not approved or suspended
+            if (teacher.userStatus !== 'active') {
+              const message = teacher.userStatus === 'suspended'
+                ? "Your account has been suspended. Please contact support for more information."
+                : "You need to be accepted by the admin to generate quizzes.";
+              showToast(message, "error");
+              setTimeout(() => {
+                navigate('/instructor-dashboard-2');
+              }, 2000);
+              return;
+            }
           }
         }
       } catch (error) {

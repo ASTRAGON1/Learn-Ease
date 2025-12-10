@@ -14,7 +14,7 @@ import community from "../assets/community.png";
 import teachPic from "../assets/teachPic.png";
 import performanceIcon from "../assets/performance.png";
 import feedbackSupport from "../assets/feedback&support.png";
-import RainfallChart from "../components/RainfallChart";
+import InstructorDailyChart from "../components/InstructorDailyChart";
 import QuizResults from "../components/QuizResults";
 import RankingTagsPanel from "../components/RankingAndTags";
 import { auth } from "../config/firebase";
@@ -36,6 +36,7 @@ export default function InstructorDashboard2() {
   const [mongoToken, setMongoToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [userStatus, setUserStatus] = useState('pending'); // 'pending', 'active', 'suspended'
   const [dailyTip, setDailyTip] = useState("Boost your teaching with daily strategies tailored for students with autism and Down syndrome. Practical, short, and easy to apply.");
   const [tipLoading, setTipLoading] = useState(true);
   const [expandedCourses, setExpandedCourses] = useState(new Set());
@@ -97,6 +98,11 @@ export default function InstructorDashboard2() {
             if (teacher.fullName) {
               const firstName = teacher.fullName.split(' ')[0];
               setInstructorName(firstName);
+            }
+            
+            // Update user status
+            if (teacher.userStatus) {
+              setUserStatus(teacher.userStatus);
             }
             
             // Set email and profile picture
@@ -333,7 +339,16 @@ export default function InstructorDashboard2() {
       key: "performance", 
       label: "Performance", 
       icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
-      onClick: () => setActiveSection("performance")
+      onClick: () => {
+        if (userStatus !== 'active') {
+          const message = userStatus === 'suspended'
+            ? "Your account has been suspended. You cannot access performance metrics."
+            : "You need to be accepted by the admin to view performance metrics.";
+          alert(message);
+          return;
+        }
+        setActiveSection("performance");
+      }
     },
     { 
       key: "curriculum", 
@@ -368,25 +383,87 @@ export default function InstructorDashboard2() {
       </section>
 
       <section className="ld-upload-section">
-        <div className="ld-upload-card">
+        <div className={`ld-upload-card ${userStatus !== 'active' ? 'ld-disabled' : ''}`}>
           <div className="ld-upload-content">
             <h3 className="ld-upload-title">Upload your content here</h3>
             <p className="ld-upload-desc">Share your knowledge with students</p>
+            {userStatus !== 'active' && (
+              <p className="ld-approval-message" style={{ 
+                marginTop: '12px', 
+                color: '#ef4444', 
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                {userStatus === 'suspended' 
+                  ? '🚫 Your account has been suspended. Please contact support for more information.'
+                  : '⚠️ You need to be accepted by the admin to upload content'
+                }
+              </p>
+            )}
           </div>
-          <button className="ld-upload-btn" onClick={() => navigate("/instructor-upload-2")}>
+          <button 
+            className="ld-upload-btn" 
+            onClick={() => {
+              if (userStatus === 'active') {
+                navigate("/instructor-upload-2");
+              } else {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. Please contact support for more information."
+                  : "You need to be accepted by the admin to upload content and generate quizzes.";
+                alert(message);
+              }
+            }}
+            disabled={userStatus !== 'active'}
+            style={userStatus !== 'active' ? { 
+              opacity: 0.5, 
+              cursor: 'not-allowed',
+              background: '#9ca3af'
+            } : {}}
+          >
             Let's dive in
           </button>
         </div>
       </section>
 
       <section className="ld-ai-section">
-        <div className="ld-ai-card">
+        <div className={`ld-ai-card ${userStatus !== 'active' ? 'ld-disabled' : ''}`}>
           <h3 className="ld-ai-title">Generate quizzes using AI</h3>
           <p className="ld-ai-desc">
             Our AI-powered quiz tool helps you generate personalized quizzes based on the curriculum 
             you follow on our platform — perfect for assessing student progress quickly and effectively.
           </p>
-          <button className="ld-ai-btn" onClick={() => navigate("/ai-quiz-2")}>
+          {userStatus !== 'active' && (
+            <p className="ld-approval-message" style={{ 
+              marginTop: '12px', 
+              color: '#ef4444', 
+              fontSize: '14px',
+              fontWeight: '500'
+            }}>
+              {userStatus === 'suspended' 
+                ? '🚫 Your account has been suspended. Please contact support for more information.'
+                : '⚠️ You need to be accepted by the admin to generate quizzes'
+              }
+            </p>
+          )}
+          <button 
+            className="ld-ai-btn" 
+            onClick={() => {
+              if (userStatus === 'active') {
+                navigate("/ai-quiz-2");
+              } else {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. Please contact support for more information."
+                  : "You need to be accepted by the admin to upload content and generate quizzes.";
+                alert(message);
+              }
+            }}
+            disabled={userStatus !== 'active'}
+            style={userStatus !== 'active' ? { 
+              opacity: 0.5, 
+              cursor: 'not-allowed',
+              background: '#9ca3af'
+            } : {}}
+          >
             Generate
           </button>
         </div>
@@ -402,7 +479,25 @@ export default function InstructorDashboard2() {
         <div className="ld-tip-card">
           <h4 className="ld-tip-title">Community & Support</h4>
           <p className="ld-tip-text">Ask questions, share tips, and connect with other instructors.</p>
-          <button className="ld-community-btn" onClick={() => navigate("/InstructorCommunity-2")}>
+          <button 
+            className="ld-community-btn" 
+            onClick={() => {
+              if (userStatus !== 'active') {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. You cannot access the community."
+                  : "You need to be accepted by the admin to access the community.";
+                alert(message);
+              } else {
+                navigate("/InstructorCommunity-2");
+              }
+            }}
+            disabled={userStatus !== 'active'}
+            style={userStatus !== 'active' ? { 
+              opacity: 0.5, 
+              cursor: 'not-allowed',
+              background: '#9ca3af'
+            } : {}}
+          >
             Join Now
           </button>
         </div>
@@ -418,13 +513,26 @@ export default function InstructorDashboard2() {
             <h5 className="ld-resource-title">Test Video</h5>
             <p className="ld-resource-desc">See how your videos gets treated</p>
           </Link>
-          <Link to="/InstructorCommunity-2" className="ld-resource-card">
+          <div
+            className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            onClick={() => {
+              if (userStatus !== 'active') {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. You cannot access the community."
+                  : "You need to be accepted by the admin to access the community.";
+                alert(message);
+              } else {
+                navigate("/InstructorCommunity-2");
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <img src={community} alt="Community" className="ld-resource-icon" />
             <h5 className="ld-resource-title">Community</h5>
             <p className="ld-resource-desc">
               Communicate with other instructors. Ask questions, have discussions, and more.
             </p>
-          </Link>
+          </div>
           <Link to="/teachingCenter-2" className="ld-resource-card">
             <img src={teachPic} alt="How to teach" className="ld-resource-icon" />
             <h5 className="ld-resource-title">How to teach in LearnEase</h5>
@@ -433,8 +541,17 @@ export default function InstructorDashboard2() {
             </p>
           </Link>
           <div 
-            className="ld-resource-card" 
-            onClick={() => setActiveSection("performance")}
+            className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            onClick={() => {
+              if (userStatus !== 'active') {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. You cannot access performance metrics."
+                  : "You need to be accepted by the admin to view performance metrics.";
+                alert(message);
+              } else {
+                setActiveSection("performance");
+              }
+            }}
             style={{ cursor: 'pointer' }}
           >
             <img src={performanceIcon} alt="Performance" className="ld-resource-icon" />
@@ -443,11 +560,24 @@ export default function InstructorDashboard2() {
               See how students like your contents, quiz results analysis, and more.
             </p>
           </div>
-          <Link to="/HelpAndSupport-2" className="ld-resource-card">
+          <div
+            className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            onClick={() => {
+              if (userStatus !== 'active') {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. You cannot access support."
+                  : "You need to be accepted by the admin to access support.";
+                alert(message);
+              } else {
+                navigate("/HelpAndSupport-2");
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <img src={feedbackSupport} alt="Feedback & Support" className="ld-resource-icon" />
             <h5 className="ld-resource-title">Feedback & Support</h5>
             <p className="ld-resource-desc">Get feedback and support from students.</p>
-          </Link>
+          </div>
         </div>
       </section>
 
@@ -504,7 +634,7 @@ export default function InstructorDashboard2() {
                     fontWeight: "500",
                     fontFamily: "'Poppins', sans-serif"
                   }}>
-                    Monthly overview of your content engagement
+                    Daily overview of your content engagement
                   </p>
                 </div>
               </div>
@@ -525,7 +655,7 @@ export default function InstructorDashboard2() {
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               >
-                <RainfallChart />
+                <InstructorDailyChart />
               </div>
             </div>
           </div>
@@ -1069,7 +1199,20 @@ export default function InstructorDashboard2() {
               Find articles on LearnEase teaching — from course creation to marketing.
             </p>
           </Link>
-          <Link to="/InstructorCommunity-2" className="ld-resource-main-card">
+          <div
+            className={`ld-resource-main-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            onClick={() => {
+              if (userStatus !== 'active') {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. You cannot access the community."
+                  : "You need to be accepted by the admin to access the community.";
+                alert(message);
+              } else {
+                navigate("/InstructorCommunity-2");
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="ld-resource-main-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -1082,8 +1225,21 @@ export default function InstructorDashboard2() {
             <p className="ld-resource-main-desc">
               Share your progress and ask other instructors questions in our community.
             </p>
-          </Link>
-          <Link to="/HelpAndSupport-2" className="ld-resource-main-card">
+          </div>
+          <div
+            className={`ld-resource-main-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
+            onClick={() => {
+              if (userStatus !== 'active') {
+                const message = userStatus === 'suspended'
+                  ? "Your account has been suspended. You cannot access support."
+                  : "You need to be accepted by the admin to access support.";
+                alert(message);
+              } else {
+                navigate("/HelpAndSupport-2");
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="ld-resource-main-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -1095,7 +1251,7 @@ export default function InstructorDashboard2() {
             <p className="ld-resource-main-desc">
               Can't find what you need? Our support team is happy to help.
             </p>
-          </Link>
+          </div>
         </div>
       </section>
     </>

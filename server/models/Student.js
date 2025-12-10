@@ -41,6 +41,14 @@ const studentSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
+  lastActivity: {
+    type: Date,
+    default: Date.now
+  },
   createdAt: {
     type: Date,
     default: Date.now

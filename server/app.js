@@ -26,6 +26,9 @@ const quizRoutes = require('./routes/quizRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const statsRoutes = require('./routes/statsRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -43,6 +46,9 @@ app.use('/api/posts', postRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

@@ -84,6 +84,40 @@ a {
   flex-wrap: wrap;
 }
 
+/* Mobile Menu Toggle Button */
+.landPage-mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 101;
+  margin-left: auto;
+}
+
+.landPage-mobile-menu-toggle span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background: var(--lp-text-primary);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.landPage-mobile-menu-toggle span.landPage-open:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.landPage-mobile-menu-toggle span.landPage-open:nth-child(2) {
+  opacity: 0;
+}
+
+.landPage-mobile-menu-toggle span.landPage-open:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
 .landPage-nav-links a {
   padding: 10px 16px;
   border-radius: 10px;
@@ -947,6 +981,61 @@ footer {
   }
 }
 
+@media (max-width: 768px) {
+  .landPage-mobile-menu-toggle {
+    display: flex;
+  }
+  
+  .landPage-nav-links {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px) saturate(180%);
+    border-bottom: 1px solid var(--lp-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px 32px;
+    margin: 0;
+    gap: 12px;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 99;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+  
+  .landPage-nav-links.landPage-mobile-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .landPage-nav-links a {
+    padding: 14px 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 16px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .landPage-nav-links a:hover {
+    background: var(--lp-primary-lighter);
+    border-color: var(--lp-border);
+  }
+  
+  .landPage-nav-links .landPage-pill,
+  .landPage-nav-links .landPage-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 640px) {
   .landPage-container {
     padding: 0 20px;
@@ -954,15 +1043,12 @@ footer {
   
   .landPage-nav {
     height: 70px;
-    flex-wrap: wrap;
   }
   
   .landPage-nav-links {
-    width: 100%;
-    order: 3;
-    margin-top: 8px;
-    margin-left: 0;
-    justify-content: center;
+    top: 70px;
+    padding: 20px;
+    max-height: calc(100vh - 70px);
   }
   
   .landPage-title {

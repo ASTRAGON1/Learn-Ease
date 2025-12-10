@@ -39,10 +39,10 @@ export default function AdminPanel2() {
   const [loginError, setLoginError] = useState("");
 
   // Data state
-  const [applications, setApplications] = useState(demoApplications);
+  const [applications, setApplications] = useState([]);
   const [users, setUsers] = useState(demoPeople);
   const [reports, setReports] = useState(demoReports);
-  const [feedback, setFeedback] = useState(demoFeedback);
+  const [feedback, setFeedback] = useState([]);
   const [modLog, setModLog] = useState([]); // {id, userId, type, name, reason, at}
   const [learningPaths, setLearningPaths] = useState(() => loadLearningPathsFromCurriculum());
   const [selectedInstructorId, setSelectedInstructorId] = useState(null);
@@ -87,6 +87,159 @@ export default function AdminPanel2() {
       localStorage.setItem("le_admin_name", adminName);
     }
   }, [isAuthed, adminName]);
+
+  // Fetch applications on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchApplications = async () => {
+        try {
+          console.log('Fetching applications from API...');
+          const res = await api.listInstructorApplications();
+          console.log('Applications API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} applications:`, res.data);
+              setApplications(res.data);
+            } else {
+              console.log('No applications data, setting empty array');
+              setApplications([]);
+            }
+          } else {
+            console.warn('Failed to fetch applications:', res);
+            // Set empty array if API fails
+            setApplications([]);
+          }
+        } catch (error) {
+          console.error('Error fetching applications:', error);
+          // Set empty array on error
+          setApplications([]);
+        }
+      };
+      fetchApplications();
+      
+      // Refresh applications every 30 seconds
+      const interval = setInterval(fetchApplications, 30000);
+      return () => clearInterval(interval);
+    } else {
+      // Reset to empty when not authenticated
+      setApplications([]);
+    }
+  }, [isAuthed]);
+
+  // Fetch feedback on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchFeedback = async () => {
+        try {
+          console.log('Fetching feedback from API...');
+          const res = await api.listFeedback();
+          console.log('Feedback API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} feedback items:`, res.data);
+              setFeedback(res.data);
+            } else {
+              console.log('No feedback data, setting empty array');
+              setFeedback([]);
+            }
+          } else {
+            console.warn('Failed to fetch feedback:', res);
+            setFeedback([]);
+          }
+        } catch (error) {
+          console.error('Error fetching feedback:', error);
+          setFeedback([]);
+        }
+      };
+      fetchFeedback();
+      
+      // Refresh feedback every 30 seconds
+      const interval = setInterval(fetchFeedback, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setFeedback([]);
+    }
+  }, [isAuthed]);
+
+  // Fetch reports on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchReports = async () => {
+        try {
+          console.log('Fetching reports from API...');
+          const res = await api.listReports();
+          console.log('Reports API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} reports:`, res.data);
+              // Map reports to include reporterId for user lookup
+              const mappedReports = res.data.map(report => ({
+                ...report,
+                id: report._id || report.id,
+                reporterId: report.userName, // Use userName to find user
+                createdAt: report.createdAt || report.created_at
+              }));
+              setReports(mappedReports);
+            } else {
+              console.log('No reports data, setting empty array');
+              setReports([]);
+            }
+          } else {
+            console.warn('Failed to fetch reports:', res);
+            // Keep demo data if API fails
+            setReports(demoReports);
+          }
+        } catch (error) {
+          console.error('Error fetching reports:', error);
+          // Keep demo data on error
+          setReports(demoReports);
+        }
+      };
+      fetchReports();
+      
+      // Refresh reports every 30 seconds
+      const interval = setInterval(fetchReports, 30000);
+      return () => clearInterval(interval);
+    } else {
+      // Reset to demo data when not authenticated
+      setReports(demoReports);
+    }
+  }, [isAuthed]);
+
+  // Fetch users (students and teachers) on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchUsers = async () => {
+        try {
+          console.log('Fetching users from API...');
+          const res = await api.listUsers();
+          console.log('Users API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} users:`, res.data);
+              setUsers(res.data);
+            } else {
+              console.log('No users data, setting empty array');
+              setUsers([]);
+            }
+          } else {
+            console.warn('Failed to fetch users:', res);
+            setUsers(demoPeople);
+          }
+        } catch (error) {
+          console.error('Error fetching users:', error);
+          setUsers(demoPeople);
+        }
+      };
+      fetchUsers();
+      
+      // Refresh users every 30 seconds
+      const interval = setInterval(fetchUsers, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setUsers(demoPeople);
+    }
+  }, [isAuthed]);
 
   // Helper functions
   function latestUploadFor(userId) {
@@ -166,66 +319,74 @@ export default function AdminPanel2() {
 
   async function decideApplication(id, decision) {
     try {
-    const res = await api.decideApplication(id, decision);
+      // For decline, get reason first
+      let reason = '';
+      if (decision === "decline") {
+        reason = prompt("Reason for decline?");
+        if (reason === null) return;
+      }
+
+      const res = await api.decideApplication(id, decision, reason);
       if (!res.ok) {
-        alert("Failed to process application");
+        alert(res.error || "Failed to process application");
         return;
       }
   
-    if (decision === "decline") {
-      const reason = prompt("Reason for decline?");
-        if (reason === null) return;
-      setApplications(prev =>
-        prev.map(a =>
-          a.id === id ? {
-            ...a,
-            status: "declined",
-            declinedReason: reason,
+      // Update local state
+      if (decision === "decline") {
+        setApplications(prev =>
+          prev.map(a =>
+            a.id === id ? {
+              ...a,
+              status: "declined",
+              declinedReason: reason,
               declinedAt: new Date().toISOString().slice(0, 10)
-          } : a
-        )
+            } : a
+          )
+        );
+        alert("Application declined.");
+        return;
+      }
+  
+      // If accepted, update status
+      setApplications(prev =>
+        prev.map(a => (a.id === id ? { ...a, status: "accepted" } : a))
       );
-      alert("Application declined.");
-      return;
-    }
   
-    setApplications(prev =>
-      prev.map(a => (a.id === id ? { ...a, status: "accepted" } : a))
-    );
+      const app = applications.find(a => a.id === id);
+      if (!app) return;
+      if (users.some(u => u.name === app.name && u.role === "instructor")) return;
   
-    const app = applications.find(a => a.id === id);
-    if (!app) return;
-    if (users.some(u => u.name === app.name && u.role === "instructor")) return;
+      const defaultSkills =
+        app.category === "Autism"
+          ? ["Autism", "ABA", "Speech Therapy"]
+          : ["Down Syndrome", "Early Intervention"];
   
-    const defaultSkills =
-      app.category === "Autism"
-        ? ["Autism", "ABA", "Speech Therapy"]
-        : ["Down Syndrome", "Early Intervention"];
+      const newUser = {
+        id: `u-${Date.now()}`,
+        name: app.name,
+        role: "instructor",
+        category: app.category,
+        online: false,
+        status: "active",
+        joinedAt: new Date().toISOString().slice(0, 10),
+        headline: "",
+        location: "",
+        bio: app.description || "",
+        description: app.description || "",
+        instructor: {
+          uploads: { videos: [], files: [], quizzes: [] },
+          cvUrl: app.cvUrl || "",
+          likes: 0,
+          followers: 0,
+          rating: 0,
+          skills: defaultSkills,
+          contactEmail: app.email || "",
+        },
+      };
   
-    const newUser = {
-      id: `u-${Date.now()}`,
-      name: app.name,
-      role: "instructor",
-      category: app.category,
-      online: false,
-      status: "active",
-      joinedAt: new Date().toISOString().slice(0, 10),
-      headline: "",
-      location: "",
-      bio: app.description || "",
-      description: app.description || "",
-      instructor: {
-        uploads: { videos: [], files: [], quizzes: [] },
-        cvUrl: app.cvUrl || "",
-        likes: 0,
-        followers: 0,
-        rating: 0,
-        skills: defaultSkills,
-        contactEmail: app.email || "",
-      },
-    };
-  
-    setUsers(prev => [newUser, ...prev]);
+      setUsers(prev => [newUser, ...prev]);
+      alert("Application accepted. Instructor can now upload content and generate quizzes.");
     } catch (error) {
       console.error("Error processing application:", error);
       alert("An error occurred while processing the application");
@@ -244,12 +405,15 @@ export default function AdminPanel2() {
 
   async function toggleFeedback(id, visible) {
     try {
-    const res = await api.setFeedbackVisibility(id, visible);
+      const res = await api.setFeedbackVisibility(id, visible);
       if (!res.ok) {
-        alert("Failed to update feedback visibility");
+        alert(res.error || "Failed to update feedback visibility");
         return;
       }
-    setFeedback((prev) => prev.map((f) => (f.id === id ? { ...f, visible } : f)));
+      // Update both show and visible for backward compatibility
+      setFeedback((prev) => prev.map((f) => 
+        (f.id === id || f._id === id) ? { ...f, show: visible, visible } : f
+      ));
     } catch (error) {
       console.error("Error toggling feedback:", error);
       alert("An error occurred while updating feedback");
@@ -257,17 +421,24 @@ export default function AdminPanel2() {
   }
 
   async function handleSuspend(id) {
+    const user = users.find(u => u.id === id);
+    if (!user) {
+      alert("User not found");
+      return;
+    }
+    
     const reason = prompt("Reason for suspension?");
     if (reason === null) return;
+    
     try {
-    const res = await api.suspendUser(id, reason);
+      const res = await api.suspendUser(id, user.role);
       if (!res.ok) {
-        alert("Failed to suspend user");
+        alert(res.error || "Failed to suspend user");
         return;
       }
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
-    );
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
+      );
     } catch (error) {
       console.error("Error suspending user:", error);
       alert("An error occurred while suspending the user");
@@ -275,13 +446,19 @@ export default function AdminPanel2() {
   }
   
   async function handleReinstate(id) {
+    const user = users.find(u => u.id === id);
+    if (!user) {
+      alert("User not found");
+      return;
+    }
+    
     try {
-    const res = await api.reinstateUser(id);
+      const res = await api.reinstateUser(id, user.role);
       if (!res.ok) {
-        alert("Failed to reinstate user");
+        alert(res.error || "Failed to reinstate user");
         return;
       }
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
     } catch (error) {
       console.error("Error reinstating user:", error);
       alert("An error occurred while reinstating the user");
@@ -289,14 +466,22 @@ export default function AdminPanel2() {
   }
 
   async function handleDelete(id) {
-    if (!confirm("Delete this account?")) return;
+    const user = users.find(u => u.id === id);
+    if (!user) {
+      alert("User not found");
+      return;
+    }
+    
+    if (!confirm(`Delete this ${user.role === 'instructor' ? 'teacher' : 'student'} account permanently?`)) return;
+    
     try {
-    const res = await api.deleteUser(id);
+      const res = await api.deleteUser(id, user.role);
       if (!res.ok) {
-        alert("Failed to delete user");
+        alert(res.error || "Failed to delete user");
         return;
       }
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      alert(res.message || "User deleted successfully");
     } catch (error) {
       console.error("Error deleting user:", error);
       alert("An error occurred while deleting the user");

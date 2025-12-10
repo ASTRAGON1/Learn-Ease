@@ -1,15 +1,16 @@
 import React, { useMemo } from "react";
 import Table from "./Table";
 
-function InstructorApplications({ applications, users, search, onDecideApplication, onReopenApplication, onOpenInstructor }) {
+function InstructorApplications({ applications = [], users = [], search, onDecideApplication, onReopenApplication, onOpenInstructor }) {
   // Filter applications by search
   const filteredApplications = useMemo(() => {
+    if (!Array.isArray(applications)) return [];
     if (!search) return applications;
     const searchLower = search.toLowerCase();
     return applications.filter((app) =>
-      app.name.toLowerCase().includes(searchLower) ||
-      app.email.toLowerCase().includes(searchLower) ||
-      app.description.toLowerCase().includes(searchLower)
+      (app.name && app.name.toLowerCase().includes(searchLower)) ||
+      (app.email && app.email.toLowerCase().includes(searchLower)) ||
+      (app.description && app.description.toLowerCase().includes(searchLower))
     );
   }, [applications, search]);
 
@@ -135,7 +136,7 @@ function InstructorApplications({ applications, users, search, onDecideApplicati
       label: "Status",
       render: (_, row) =>
         row.status === "pending"
-          ? <span className="badge purple dot" title="Awaiting review" style={{ 
+          ? <span className="badge purple" title="Awaiting review" style={{ 
               background: "#F3EFFF", 
               color: "#4A0FAD", 
               padding: "6px 12px", 
@@ -150,7 +151,7 @@ function InstructorApplications({ applications, users, search, onDecideApplicati
               Pending
             </span>
           : row.status === "accepted"
-          ? <span className="badge green dot" style={{ 
+          ? <span className="badge green" style={{ 
               background: "#D1FAE5", 
               color: "#10b981", 
               padding: "6px 12px", 
@@ -165,7 +166,7 @@ function InstructorApplications({ applications, users, search, onDecideApplicati
               Accepted
             </span>
           : row.status === "declined"
-          ? <span className="badge red dot" title={row.declinedReason || ""} style={{ 
+          ? <span className="badge red" title={row.declinedReason || ""} style={{ 
               background: "#FEE2E2", 
               color: "#ef4444", 
               padding: "6px 12px", 
@@ -208,116 +209,126 @@ function InstructorApplications({ applications, users, search, onDecideApplicati
         boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
         overflow: "hidden"
       }}>
-        <Table
-          columns={[
-            ...cols,
-            {
-              key: "actions",
-              label: "Actions",
-              render: (_, row) => (
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  {row.status === "pending" && (
-                    <>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDecideApplication(row.id, "accept");
-                        }} 
-                        type="button"
-                        style={{
-                          background: "#10b981",
-                          color: "white",
-                          border: "none",
-                          padding: "8px 16px",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)"
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.background = "#059669";
-                          e.target.style.transform = "translateY(-1px)";
-                          e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.15)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.background = "#10b981";
-                          e.target.style.transform = "translateY(0)";
-                          e.target.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.1)";
-                        }}
-                      >
-                        Accept
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDecideApplication(row.id, "decline");
-                        }} 
-                        type="button"
-                        style={{
-                          background: "#ef4444",
-                          color: "white",
-                          border: "none",
-                          padding: "8px 16px",
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)"
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.background = "#dc2626";
-                          e.target.style.transform = "translateY(-1px)";
-                          e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.15)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.background = "#ef4444";
-                          e.target.style.transform = "translateY(0)";
-                          e.target.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.1)";
-                        }}
-                      >
-                        Decline
-                      </button>
-                    </>
-                  )}
-                  {row.status !== "pending" && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReopenApplication(row.id);
-                      }}
-                      type="button"
-                      style={{
-                        background: "transparent",
-                        color: "#4A0FAD",
-                        border: "1px solid #4A0FAD",
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        cursor: "pointer",
-                        transition: "all 0.2s"
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = "#F3EFFF";
-                        e.target.style.transform = "translateY(-1px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = "transparent";
-                        e.target.style.transform = "translateY(0)";
-                      }}
-                    >
-                      Reopen
-                    </button>
-                  )}
-                </div>
-              ),
-            },
-          ]}
-          rows={filteredApplications}
-        />
+        {filteredApplications.length === 0 ? (
+          <div style={{
+            padding: "60px 24px",
+            textAlign: "center",
+            color: "#6b7280"
+          }}>
+            <svg 
+              width="64" 
+              height="64" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ margin: "0 auto 16px", opacity: 0.5 }}
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            <h3 style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              color: "#1a1a1a",
+              margin: "0 0 8px 0"
+            }}>
+              No applications found
+            </h3>
+            <p style={{
+              fontSize: "14px",
+              color: "#6b7280",
+              margin: "0"
+            }}>
+              {applications.length === 0 
+                ? "No instructor applications have been submitted yet."
+                : "No applications match your search criteria."}
+            </p>
+          </div>
+        ) : (
+          <Table
+            columns={[
+              ...cols,
+              {
+                key: "actions",
+                label: "Actions",
+                render: (_, row) => (
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    {row.status === "pending" && (
+                      <>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDecideApplication(row.id, "accept");
+                          }} 
+                          type="button"
+                          style={{
+                            background: "#10b981",
+                            color: "white",
+                            border: "none",
+                            padding: "8px 16px",
+                            borderRadius: "6px",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = "#059669";
+                            e.target.style.transform = "translateY(-1px)";
+                            e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = "#10b981";
+                            e.target.style.transform = "translateY(0)";
+                            e.target.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.1)";
+                          }}
+                        >
+                          Accept
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDecideApplication(row.id, "decline");
+                          }} 
+                          type="button"
+                          style={{
+                            background: "#ef4444",
+                            color: "white",
+                            border: "none",
+                            padding: "8px 16px",
+                            borderRadius: "6px",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = "#dc2626";
+                            e.target.style.transform = "translateY(-1px)";
+                            e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = "#ef4444";
+                            e.target.style.transform = "translateY(0)";
+                            e.target.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.1)";
+                          }}
+                        >
+                          Decline
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
+            rows={filteredApplications}
+          />
+        )}
       </div>
     </div>
   );

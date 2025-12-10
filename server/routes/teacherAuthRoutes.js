@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Teacher = require('../models/Teacher');
 const Student = require('../models/Student');
+const Application = require('../models/Application');
 const router = express.Router();
 
 // POST /api/teachers/auth/register
@@ -55,14 +56,20 @@ router.post('/auth/register', async (req, res) => {
       teacherData.firebaseUID = firebaseUID;
     }
 
+    // Set userStatus to 'pending' for new instructors (requires admin approval)
+    teacherData.userStatus = 'pending';
+
     const doc = await Teacher.create(teacherData);
+
+    // Application will be created when instructor submits information gathering form
 
     res.status(201).json({ 
       data: { 
         id: doc._id, 
         fullName: doc.fullName, 
         email: doc.email,
-        firebaseUID: doc.firebaseUID || null
+        firebaseUID: doc.firebaseUID || null,
+        userStatus: doc.userStatus
       } 
     });
   } catch (error) {
@@ -111,6 +118,11 @@ router.post('/auth/login', async (req, res) => {
       if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Mark teacher as online
+    t.isOnline = true;
+    t.lastActivity = new Date();
+    await t.save();
+
     const token = jwt.sign({ sub: t._id, role: 'teacher' }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ 
       data: { 
@@ -122,7 +134,8 @@ router.post('/auth/login', async (req, res) => {
           profilePic: t.profilePic,
           areasOfExpertise: t.areasOfExpertise || [],
           cv: t.cv || '',
-          informationGatheringComplete: t.informationGatheringComplete || false
+          informationGatheringComplete: t.informationGatheringComplete || false,
+          userStatus: t.userStatus || 'pending'
         } 
       } 
     });
@@ -144,6 +157,36 @@ router.get('/auth/me', require('../middleware/auth')(['teacher']), async (req, r
   response.hasPassword = hasPassword;
   
   res.json({ data: response });
+});
+
+// POST /api/teachers/auth/logout - Mark teacher as offline
+router.post('/auth/logout', require('../middleware/auth')(['teacher']), async (req, res) => {
+  try {
+    await Teacher.findByIdAndUpdate(req.user.sub, {
+      isOnline: false,
+      lastActivity: new Date()
+    });
+    
+    res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Teacher logout error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/teachers/auth/activity - Update last activity timestamp
+router.post('/auth/activity', require('../middleware/auth')(['teacher']), async (req, res) => {
+  try {
+    await Teacher.findByIdAndUpdate(req.user.sub, {
+      lastActivity: new Date(),
+      isOnline: true
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Teacher activity update error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;

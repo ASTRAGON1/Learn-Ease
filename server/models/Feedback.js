@@ -15,6 +15,16 @@ const feedbackSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Description is required'],
     trim: true
+  },
+  rating: {
+    type: Number,
+    min: [1, 'Rating must be at least 1'],
+    max: [5, 'Rating must be at most 5'],
+    default: 5
+  },
+  show: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true,

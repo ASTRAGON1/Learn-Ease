@@ -1,23 +1,67 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
 import Logo2 from "../assets/fullLogo.png";
 import illus from "../assets/illustration.png";
 import "./landPage.css";
-export const REVIEWS_DEMO = [
-  { id: "r1", rating: 5, text: "The visual schedules and short activities keep my son calm and engaged. We finally see steady progress.", authorName: "Amina", authorRole: "Parent" },
-  { id: "r2", rating: 5, text: "AI suggestions helped me adapt lessons quickly. Students love the picture-based tasks.", authorName: "Selim", authorRole: "Teacher" },
-  { id: "r3", rating: 4, text: "Reports are simple to share with therapists. We’re aligned on goals each week.", authorName: "Derya", authorRole: "Parent" },
-  { id: "r4", rating: 5, text: "I can plan sensory breaks and use social stories easily. Huge time saver.", authorName: "Marc", authorRole: "Teacher" },
-  { id: "r5", rating: 5, text: "I can plan sensory breaks and use social stories easily. Huge time saver.", authorName: "Marc", authorRole: "Teacher" },
-  { id: "r6", rating: 5, text: "I can plan sensory breaks and use social stories easily. Huge time saver.", authorName: "Marc", authorRole: "Teacher" },
-  { id: "r7", rating: 1, text: "wlad l97ab kheoroni makaina la kraya la wlo gha zho ", authorName: "Marc", authorRole: "Teacher" },
-];
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup }) {
   const stars = (n) => "★".repeat(Math.max(0, n)) + "☆".repeat(Math.max(0, 5 - n));
-  const [reviews, setReviews] = useState(REVIEWS_DEMO);
+  const [reviews, setReviews] = useState([]);
+  const [stats, setStats] = useState({ students: 0, teachers: 0 });
+  
+  // Fetch visible feedbacks from API (only admin-approved feedbacks)
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/feedback/visible`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data && result.data.length > 0) {
+            // Transform feedback data to review format
+            const feedbackReviews = result.data.map((f, index) => ({
+              id: f._id?.toString() || `fb-${index}`,
+              rating: f.rating || 5,
+              text: f.description || "",
+              authorName: f.userName || "User",
+              authorRole: f.topic || "User"
+            }));
+            setReviews(feedbackReviews);
+          } else {
+            setReviews([]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching visible feedbacks:', error);
+        setReviews([]);
+      }
+    };
+    fetchFeedbacks();
+  }, []);
+
+  // Fetch snapshot statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/stats/snapshot`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setStats(result.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching snapshot statistics:', error);
+        // Keep default values if API fails
+      }
+    };
+    fetchStats();
+  }, []);
   const [faqOpen, setFaqOpen] = useState({});
   const [newsEmail, setNewsEmail] = useState("");
   const [newsMsg, setNewsMsg] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const revTrackRef = useRef(null);
   const year = useMemo(() => new Date().getFullYear(), []);
 
@@ -53,18 +97,28 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
       {/* NAVBAR */}
       <div className="landPage-nav-wrap">
         <nav className="landPage-container landPage-nav">
-          <a href="#home" className="landPage-brand">
+          <a href="#home" className="landPage-brand" onClick={() => setMobileMenuOpen(false)}>
             <img src={Logo} alt="Platform logo" />
           </a>
-          <div className="landPage-nav-links">
-            <a href="#home">Home</a>
-            <a href="#who">Who We Are</a>
-            <a href="#faq">FAQ</a>
-            <a href="#newsletter">Newsletter</a>
-            <a href="#reviews">Reviews</a>
-            <a href="#start-teaching" className="landPage-pill">Start Teaching</a>
-            <a href="/all-login" className="landPage-btn landPage-ghost">Log in</a>
-            <a href="/all-signup" className="landPage-btn landPage-ghost">Sign up</a>
+          <button 
+            className="landPage-mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className={mobileMenuOpen ? "landPage-open" : ""}></span>
+            <span className={mobileMenuOpen ? "landPage-open" : ""}></span>
+            <span className={mobileMenuOpen ? "landPage-open" : ""}></span>
+          </button>
+          <div className={`landPage-nav-links ${mobileMenuOpen ? "landPage-mobile-open" : ""}`}>
+            <a href="#home" onClick={() => setMobileMenuOpen(false)}>Home</a>
+            <a href="#who" onClick={() => setMobileMenuOpen(false)}>Who We Are</a>
+            <a href="#faq" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <a href="#newsletter" onClick={() => setMobileMenuOpen(false)}>Newsletter</a>
+            <a href="#reviews" onClick={() => setMobileMenuOpen(false)}>Reviews</a>
+            <a href="#start-teaching" className="landPage-pill" onClick={() => setMobileMenuOpen(false)}>Start Teaching</a>
+            <a href="/all-login" className="landPage-btn landPage-ghost" onClick={() => setMobileMenuOpen(false)}>Log in</a>
+            <a href="/all-signup" className="landPage-btn landPage-ghost" onClick={() => setMobileMenuOpen(false)}>Sign up</a>
           </div>
         </nav>
       </div>
@@ -86,15 +140,15 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
             </div>
           </div>
           <div className="landPage-hero-card">
-            <strong>Today’s snapshot</strong>
+            <strong>Today's snapshot</strong>
             <div className="landPage-grid-2 landPage-mt-12">
               <div className="landPage-card landPage-p-14">
                 <div className="landPage-muted landPage-sm-text">Active students</div>
-                <div className="landPage-stat">1,248</div>
+                <div className="landPage-stat">{stats.students.toLocaleString()}</div>
               </div>
               <div className="landPage-card landPage-p-14">
                 <div className="landPage-muted landPage-sm-text">Certified teachers</div>
-                <div className="landPage-stat">312</div>
+                <div className="landPage-stat">{stats.teachers.toLocaleString()}</div>
               </div>
             </div>
             <ul className="landPage-checklist landPage-mt-12">
@@ -163,8 +217,8 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               </div>
               <h3>Expert-Built</h3>
               <p>Co-designed with specialists, therapists, and families to ensure every feature meets real-world needs and best practices.</p>
+              </div>
             </div>
-          </div>
         </div>
       </section>
 
@@ -221,37 +275,39 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
         </div>
       </section>
 
-      {/* REVIEWS */}
-      <section id="reviews" className="landPage-section landPage-reviews">
-        <div className="landPage-container">
-          <h2 className="landPage-title">What users have to say</h2>
-          <p className="landPage-subtitle">Real feedback from our community.</p>
+      {/* REVIEWS - Only show if there are admin-approved feedbacks */}
+      {reviews.length > 0 && (
+        <section id="reviews" className="landPage-section landPage-reviews">
+          <div className="landPage-container">
+            <h2 className="landPage-title">What users have to say</h2>
+            <p className="landPage-subtitle">Real feedback from our community.</p>
 
-          <div className="landPage-rev-viewport">
-            <div className="landPage-rev-track landPage-auto" aria-label="Reviews carousel">
-              {[...reviews, ...reviews].map((r, i) => (
-                <article
-                  key={`${r.id}-${i}`}
-                  className="landPage-rev-card"
-                  aria-hidden={i >= reviews.length ? "true" : undefined}
-                >
-                  <div className="landPage-rev-card-header">
-                    <div className="landPage-rev-avatar">
-                      {r.authorName ? r.authorName.charAt(0).toUpperCase() : 'U'}
+            <div className="landPage-rev-viewport">
+              <div className="landPage-rev-track landPage-auto" aria-label="Reviews carousel">
+                {[...reviews, ...reviews].map((r, i) => (
+                  <article
+                    key={`${r.id}-${i}`}
+                    className="landPage-rev-card"
+                    aria-hidden={i >= reviews.length ? "true" : undefined}
+                  >
+                    <div className="landPage-rev-card-header">
+                      <div className="landPage-rev-avatar">
+                        {r.authorName ? r.authorName.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div className="landPage-rev-author-info">
+                        <div className="landPage-rev-author-name">{r.authorName}</div>
+                        <div className="landPage-rev-author-role">{r.authorRole}</div>
+                      </div>
                     </div>
-                    <div className="landPage-rev-author-info">
-                      <div className="landPage-rev-author-name">{r.authorName}</div>
-                      <div className="landPage-rev-author-role">{r.authorRole}</div>
-                    </div>
-                  </div>
-                  <div className="landPage-stars">{stars(r.rating)}</div>
-                  <p className="landPage-rev-text">"{r.text}"</p>
-                </article>
-              ))}
+                    <div className="landPage-stars">{stars(r.rating)}</div>
+                    <p className="landPage-rev-text">"{r.text}"</p>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FAQ */}
       <section id="faq" className="landPage-section">
@@ -307,7 +363,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
         <div className="landPage-container landPage-foot">
           <div>
             <div className="landPage-logo-lockup">
-              <img src={Logo2} alt="Platform logo" />
+              <img src={Logo} alt="Platform logo" />
             </div>
             <p className="landPage-mt-12"><small>Inclusive learning for autism & Down syndrome. Personalized, structured, and joyful.</small></p>
           </div>

@@ -1,6 +1,11 @@
 import React, { useMemo } from "react";
 
 function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructor }) {
+  // Stars function similar to landing page
+  const stars = (n) => {
+    const rating = n || 5; // Default to 5 if no rating
+    return "★".repeat(Math.max(0, rating)) + "☆".repeat(Math.max(0, 5 - rating));
+  };
   const filteredFeedback = useMemo(() => {
     let filtered = [...feedback];
     
@@ -27,7 +32,7 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
 
   const totalFeedback = feedback.length;
   const filteredCount = filteredFeedback.length;
-  const visibleCount = feedback.filter(f => f.visible).length;
+  const visibleCount = feedback.filter(f => f.show || f.visible).length;
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -61,19 +66,41 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
 
   const getUserDisplay = (feedbackItem) => {
     const u = users.find(x => x.id === feedbackItem.reporterId);
+    const userName = feedbackItem.userName || "Unknown";
+    
     if (!u) {
+      // If user not found, use feedback data
+      const nameParts = userName.split(' ');
+      const initials = nameParts.length >= 2 
+        ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+        : userName.slice(0, 2).toUpperCase();
+      
       return {
-        name: feedbackItem.userName || "Unknown",
-        role: feedbackItem.fromRole || "—",
-        avatar: "??",
+        name: userName,
+        role: feedbackItem.fromRole || "User",
+        avatar: initials,
         isInstructor: false
       };
     }
     
+    // If user found, use user data
+    const nameParts = (u.name || userName).split(' ');
+    const initials = nameParts.length >= 2 
+      ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+      : (u.name || userName).slice(0, 2).toUpperCase();
+    
+    // Normalize role display
+    let roleDisplay = u.role || "User";
+    if (roleDisplay === "instructor") {
+      roleDisplay = "Teacher";
+    } else if (roleDisplay === "student") {
+      roleDisplay = "Student";
+    }
+    
     return {
-      name: u.name,
-      role: u.role,
-      avatar: u.name.slice(0, 2).toUpperCase(),
+      name: u.name || userName,
+      role: roleDisplay,
+      avatar: initials,
       isInstructor: u.role === "instructor"
     };
   };
@@ -136,6 +163,7 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
                   <th>Topic</th>
                   <th>From</th>
                   <th>Description</th>
+                  <th>Rating</th>
                   <th>Status</th>
                   <th>Date</th>
                   <th>Actions</th>
@@ -186,7 +214,19 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
                         </div>
                       </td>
                       <td>
-                        {feedbackItem.visible ? (
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          fontSize: "16px",
+                          color: "#fbbf24",
+                          fontWeight: "500"
+                        }}>
+                          {stars(feedbackItem.rating)}
+                        </div>
+                      </td>
+                      <td>
+                        {(feedbackItem.show || feedbackItem.visible) ? (
                           <span style={{ 
                             display: "inline-flex", 
                             alignItems: "center", 
@@ -224,7 +264,7 @@ function Feedback({ feedback, users, search, onToggleVisibility, onOpenInstructo
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: "8px" }}>
-                          {!feedbackItem.visible ? (
+                          {!(feedbackItem.show || feedbackItem.visible) ? (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();

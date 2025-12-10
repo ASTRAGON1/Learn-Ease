@@ -26,6 +26,7 @@ export default function InstructorCommunity2() {
   const [mongoToken, setMongoToken] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userStatus, setUserStatus] = useState('active');
 
   // Notifications - stored in component state only (no storage)
   const [notifications, setNotifications] = useState([
@@ -159,6 +160,16 @@ export default function InstructorCommunity2() {
           
           if (teacher.email) {
             setEmail(teacher.email);
+          }
+          
+          if (teacher.userStatus) {
+            setUserStatus(teacher.userStatus);
+            // Redirect if suspended
+            if (teacher.userStatus === 'suspended') {
+              alert("Your account has been suspended. Please contact support for more information.");
+              navigate('/instructor-dashboard-2');
+              return;
+            }
           }
         }
         

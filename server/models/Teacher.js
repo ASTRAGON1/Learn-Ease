@@ -91,6 +91,14 @@ const teacherSchema = new mongoose.Schema({
   informationGatheringComplete: {
     type: Boolean,
     default: false
+  },
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
+  lastActivity: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true,

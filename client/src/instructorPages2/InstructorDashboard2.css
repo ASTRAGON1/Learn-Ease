@@ -946,9 +946,26 @@
   white-space: nowrap;
 }
 
-.ld-upload-btn:hover {
+.ld-upload-btn:hover:not(:disabled) {
   background: #6B2FD4;
   transform: translateY(-2px);
+}
+
+.ld-upload-card.ld-disabled,
+.ld-ai-card.ld-disabled {
+  opacity: 0.6;
+  background: #f3f4f6;
+  pointer-events: none;
+}
+
+.ld-upload-card.ld-disabled .ld-upload-title,
+.ld-ai-card.ld-disabled .ld-ai-title {
+  color: #9ca3af;
+}
+
+.ld-upload-card.ld-disabled .ld-upload-desc,
+.ld-ai-card.ld-disabled .ld-ai-desc {
+  color: #9ca3af;
 }
 
 /* AI Section */
@@ -1078,6 +1095,16 @@
 .ld-resource-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ld-resource-card-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.ld-resource-card-disabled:hover {
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
 .ld-resource-icon {
@@ -1775,6 +1802,16 @@
 .ld-resource-main-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ld-resource-main-card.ld-resource-card-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.ld-resource-main-card.ld-resource-card-disabled:hover {
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
 .ld-resource-main-icon {

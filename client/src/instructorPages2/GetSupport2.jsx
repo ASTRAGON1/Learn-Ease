@@ -46,6 +46,7 @@ export default function GetSupport2() {
   const [email, setEmail] = useState('');
   const [profilePic, setProfilePic] = useState('');
   const [loading, setLoading] = useState(true);
+  const [userStatus, setUserStatus] = useState('active');
   const { showToast, ToastComponent } = useSimpleToast();
 
   // Get instructor name from Firebase Auth
@@ -92,6 +93,17 @@ export default function GetSupport2() {
           }
           if (teacher.profilePic) {
             setProfilePic(teacher.profilePic);
+          }
+          if (teacher.userStatus) {
+            setUserStatus(teacher.userStatus);
+            // Redirect if suspended
+            if (teacher.userStatus === 'suspended') {
+              showToast("Your account has been suspended. Please contact support for more information.", "error");
+              setTimeout(() => {
+                navigate('/instructor-dashboard-2');
+              }, 2000);
+              return;
+            }
           }
         }
       } catch (error) {

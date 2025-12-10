@@ -108,6 +108,11 @@ router.post('/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Mark student as online
+    student.isOnline = true;
+    student.lastActivity = new Date();
+    await student.save();
+
     // Generate token
     const token = jwt.sign({ sub: student._id, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -124,6 +129,36 @@ router.post('/auth/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Student login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/students/auth/logout - Mark student as offline
+router.post('/auth/logout', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    await Student.findByIdAndUpdate(req.user.sub, {
+      isOnline: false,
+      lastActivity: new Date()
+    });
+    
+    res.json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Student logout error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/students/auth/activity - Update last activity timestamp
+router.post('/auth/activity', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    await Student.findByIdAndUpdate(req.user.sub, {
+      lastActivity: new Date(),
+      isOnline: true
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Student activity update error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

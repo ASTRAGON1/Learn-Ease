@@ -81,6 +81,35 @@ export default function InformationGathering3({ onSubmit, onBack }) {
         }
       }
 
+      // Create application for admin review
+      const applicationResponse = await fetch(`${API_URL}/api/applications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!applicationResponse.ok) {
+        // Check if application already exists (409 conflict)
+        if (applicationResponse.status === 409) {
+          // Application already exists, that's okay - continue
+          console.log('Application already exists');
+        } else {
+          const contentType = applicationResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await applicationResponse.json();
+            throw new Error(errorData.error || 'Failed to submit application.');
+          } else {
+            throw new Error('Failed to submit application.');
+          }
+        }
+      } else {
+        // Successfully created application
+        const appData = await applicationResponse.json();
+        console.log('Application submitted successfully:', appData);
+      }
+
       if (typeof onSubmit === 'function') {
         await onSubmit();
       }

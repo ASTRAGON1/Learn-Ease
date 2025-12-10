@@ -4,19 +4,27 @@ function Reports({ reports, users, search, onOpenInstructor }) {
   const filteredReports = useMemo(() => {
     let filtered = [...reports];
     
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter((r) => {
-        const u = users.find(x => x.id === r.reporterId);
-        return (
-          r.id?.toLowerCase().includes(searchLower) ||
-          (r.topic && r.topic.toLowerCase().includes(searchLower)) ||
-          (r.description && r.description.toLowerCase().includes(searchLower)) ||
-          (u && u.name?.toLowerCase().includes(searchLower))
-        );
-      });
-    }
+      // Filter by search
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filtered = filtered.filter((r) => {
+          // Try to find user by ID or name
+          let u = users.find(x => x.id === r.reporterId);
+          if (!u && r.userName) {
+            u = users.find(x => 
+              x.name?.toLowerCase() === r.userName?.toLowerCase() ||
+              x.email?.toLowerCase() === r.userName?.toLowerCase()
+            );
+          }
+          return (
+            (r.id || r._id)?.toString().toLowerCase().includes(searchLower) ||
+            (r.topic && r.topic.toLowerCase().includes(searchLower)) ||
+            (r.description && r.description.toLowerCase().includes(searchLower)) ||
+            (r.userName && r.userName.toLowerCase().includes(searchLower)) ||
+            (u && u.name?.toLowerCase().includes(searchLower))
+          );
+        });
+      }
     
     return filtered.sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -59,21 +67,62 @@ function Reports({ reports, users, search, onOpenInstructor }) {
   };
 
   const getUserDisplay = (report) => {
-    const u = users.find(x => x.id === report.reporterId);
+    // Try to find user by ID first, then by name
+    let u = users.find(x => x.id === report.reporterId);
+    if (!u && report.userName) {
+      // Try to find by name (case-insensitive)
+      u = users.find(x => 
+        x.name?.toLowerCase() === report.userName?.toLowerCase() ||
+        x.email?.toLowerCase() === report.userName?.toLowerCase()
+      );
+    }
+    
+    const userName = report.userName || "Unknown";
+    
     if (!u) {
+      // If user not found, use report data
+      const nameParts = userName.split(' ');
+      const initials = nameParts.length >= 2 
+        ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+        : userName.slice(0, 2).toUpperCase();
+      
+      // Normalize role display
+      let roleDisplay = report.fromRole || "User";
+      if (roleDisplay === "instructor") {
+        roleDisplay = "Teacher";
+      } else if (roleDisplay === "student") {
+        roleDisplay = "Student";
+      }
+      
       return {
-        name: report.userName || "Unknown",
-        role: report.fromRole || "—",
-        avatar: "??",
-        isInstructor: false
+        name: userName,
+        role: roleDisplay,
+        avatar: initials,
+        isInstructor: false,
+        userId: null
       };
     }
     
+    // If user found, use user data
+    const nameParts = (u.name || userName).split(' ');
+    const initials = nameParts.length >= 2 
+      ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+      : (u.name || userName).slice(0, 2).toUpperCase();
+    
+    // Normalize role display
+    let roleDisplay = u.role || "User";
+    if (roleDisplay === "instructor") {
+      roleDisplay = "Teacher";
+    } else if (roleDisplay === "student") {
+      roleDisplay = "Student";
+    }
+    
     return {
-      name: u.name,
-      role: u.role,
-      avatar: u.name.slice(0, 2).toUpperCase(),
-      isInstructor: u.role === "instructor"
+      name: u.name || userName,
+      role: roleDisplay,
+      avatar: initials,
+      isInstructor: u.role === "instructor",
+      userId: u.id
     };
   };
 
@@ -158,12 +207,12 @@ function Reports({ reports, users, search, onOpenInstructor }) {
                             {userInfo.avatar}
                           </div>
                           <div className="admin-reports-user-info">
-                            {userInfo.isInstructor ? (
+                            {userInfo.isInstructor && userInfo.userId ? (
                               <button
                                 className="admin-reports-user-link"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onOpenInstructor(report.reporterId);
+                                  onOpenInstructor(userInfo.userId);
                                 }}
                                 title="Click to view instructor profile"
                               >
