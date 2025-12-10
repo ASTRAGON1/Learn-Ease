@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../config/firebase";
-import loginImage from "../instructorPages2/assets/Login.png";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -422,13 +421,16 @@ export default function Login() {
   return (
     <div className="all-login-wrap">
       <div className="all-login-card">
-        {/* Image Section */}
-        <div className="all-login-image-section">
-          <img 
-            src={loginImage} 
-            alt="Login"
-            className="all-login-image"
-          />
+        {/* Branding Section */}
+        <div className="all-login-brand-section">
+          <div className="all-login-brand-content">
+            <div className="all-login-logo">
+              <div className="all-login-logo-badge">LE</div>
+              <span>LearnEase</span>
+            </div>
+            <h2 className="all-login-brand-title">Welcome Back</h2>
+            <p className="all-login-brand-subtitle">Sign in to continue your learning journey</p>
+          </div>
         </div>
 
         {/* Login Form Section */}

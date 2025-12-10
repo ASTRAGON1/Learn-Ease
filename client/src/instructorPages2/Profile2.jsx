@@ -48,7 +48,11 @@ export default function Profile2() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   // Toast notification state
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" }); // type: "success" or "error"
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  
+  // Close account confirmation modal
+  const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false); // type: "success" or "error"
   
   // Helper function to show toast notification
   const showToast = (message, type = "success") => {
@@ -778,21 +782,105 @@ export default function Profile2() {
                 <div className="pf-delete-warning">
                   <strong>Warning:</strong> If you close your account, you will lose all access to your account and data associated with it, even if you create a new account with the same email.
                 </div>
-                <button className="pf-delete-account-btn" onClick={async () => {
-                  if (window.confirm("Are you sure you want to close your account? This action cannot be undone.")) {
-                    // Sign out from Firebase
-                    try {
-                      await signOut(auth);
-                    } catch (error) {
-                      console.error('Error signing out:', error);
-                    }
-                    navigate("/all-login");
-                  }
-                }}>
+                <button className="pf-delete-account-btn" onClick={() => setShowCloseAccountModal(true)}>
                   Close account
                 </button>
               </div>
             </section>
+          )}
+
+          {/* Close Account Confirmation Modal */}
+          {showCloseAccountModal && (
+            <div className="pf-modal-overlay" onClick={() => setShowCloseAccountModal(false)}>
+              <div className="pf-modal-content pf-confirmation-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="pf-modal-icon-warning">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                </div>
+                <h3 className="pf-modal-title">Close Your Account?</h3>
+                <p className="pf-modal-message">
+                  Are you sure you want to close your account? This action cannot be undone and you will lose all access to your account and data.
+                </p>
+                
+                <div className="pf-modal-actions">
+                  <button 
+                    className="pf-secondary-btn" 
+                    onClick={() => setShowCloseAccountModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="pf-danger-btn" 
+                    onClick={async () => {
+                      setDeletingAccount(true);
+                      try {
+                        // Get MongoDB token
+                        const token = await getMongoDBToken();
+                        
+                        if (!token) {
+                          throw new Error('No authentication token found');
+                        }
+
+                        // Call API to delete account from MongoDB and Firebase
+                        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/teachers/me`, {
+                          method: 'DELETE',
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                          }
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                          throw new Error(data.error || 'Failed to delete account');
+                        }
+
+                        console.log('✅ Account deleted successfully:', data.message);
+                        
+                        // Sign out from Firebase on the client side
+                        try {
+                          await signOut(auth);
+                        } catch (error) {
+                          console.error('Error signing out:', error);
+                        }
+
+                        // Show success message
+                        setToast({
+                          show: true,
+                          message: 'Account deleted successfully',
+                          type: 'success'
+                        });
+
+                        // Close modal
+                        setShowCloseAccountModal(false);
+
+                        // Redirect to login after a short delay
+                        setTimeout(() => {
+                          navigate("/all-login");
+                        }, 1500);
+
+                      } catch (error) {
+                        console.error('Error deleting account:', error);
+                        setToast({
+                          show: true,
+                          message: error.message || 'Failed to delete account. Please try again.',
+                          type: 'error'
+                        });
+                        setDeletingAccount(false);
+                        setShowCloseAccountModal(false);
+                      }
+                    }}
+                    disabled={deletingAccount}
+                  >
+                    {deletingAccount ? 'Deleting Account...' : 'Close Account'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Password Change Modal */}

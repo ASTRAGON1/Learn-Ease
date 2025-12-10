@@ -168,11 +168,7 @@ router.patch('/users/:id/suspend', async (req, res) => {
     }
     
     if (role === 'student') {
-      const student = await Student.findByIdAndUpdate(
-        id,
-        { suspended: true, status: 'inactive' },
-        { new: true }
-      );
+      const student = await Student.findById(id);
       
       if (!student) {
         return res.status(404).json({
@@ -181,16 +177,25 @@ router.patch('/users/:id/suspend', async (req, res) => {
         });
       }
       
+      // Don't allow suspending pending students
+      if (student.status === 'pending') {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot suspend a pending student. Please accept or decline their application first.'
+        });
+      }
+      
+      // Update to suspended
+      student.suspended = true;
+      student.status = 'inactive';
+      await student.save();
+      
       return res.json({
         success: true,
         data: { id, role: 'student', status: 'suspended' }
       });
     } else if (role === 'instructor') {
-      const teacher = await Teacher.findByIdAndUpdate(
-        id,
-        { userStatus: 'suspended' },
-        { new: true }
-      );
+      const teacher = await Teacher.findById(id);
       
       if (!teacher) {
         return res.status(404).json({
@@ -198,6 +203,18 @@ router.patch('/users/:id/suspend', async (req, res) => {
           error: 'Teacher not found'
         });
       }
+      
+      // Don't allow suspending pending teachers
+      if (teacher.userStatus === 'pending') {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot suspend a pending instructor. Please accept or decline their application first.'
+        });
+      }
+      
+      // Update to suspended
+      teacher.userStatus = 'suspended';
+      await teacher.save();
       
       return res.json({
         success: true,

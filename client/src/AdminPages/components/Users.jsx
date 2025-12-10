@@ -69,6 +69,7 @@ function Users({ users, search, userFilters, onSearchChange, onFilterChange, onS
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
+            <option value="pending">Pending</option>
             <option value="suspended">Suspended</option>
           </select>
         </div>
@@ -145,6 +146,11 @@ function Users({ users, search, userFilters, onSearchChange, onFilterChange, onS
                           <span className="admin-users-status-dot"></span>
                           Active
                         </span>
+                      ) : user.status === "pending" ? (
+                        <span className="admin-users-status-badge admin-users-status-pending">
+                          <span className="admin-users-status-dot"></span>
+                          Pending
+                        </span>
                       ) : (
                         <span className="admin-users-status-badge admin-users-status-suspended">
                           <span className="admin-users-status-dot"></span>
@@ -166,7 +172,11 @@ function Users({ users, search, userFilters, onSearchChange, onFilterChange, onS
                     </td>
                     <td>
                       <div className="admin-users-actions">
-                        {user.status === "active" ? (
+                        {user.status === "pending" ? (
+                          <span className="admin-users-pending-note" title="Accept or decline this user in the Applications section first">
+                            Pending Approval
+                          </span>
+                        ) : user.status === "active" ? (
                           <button
                             className="admin-users-btn admin-users-btn-warn"
                             onClick={() => onSuspend(user.id)}

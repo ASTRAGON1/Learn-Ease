@@ -5,17 +5,23 @@ let firebaseInitialized = false;
 
 try {
   // Check if Firebase Service Account Key is provided as JSON string
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  if (process.env. FIREBASE_SERVICE_ACCOUNT_KEY) {
     // Parse the JSON service account key
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     
+
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+    
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
+      credential: admin.credential. cert(serviceAccount)
     });
     
     firebaseInitialized = true;
-    console.log('✅ Firebase Admin SDK initialized successfully');
+    console. log('✅ Firebase Admin SDK initialized successfully');
   } 
+  // ...  rest of your code
   // Fallback: Check if Firebase credentials are provided as individual environment variables
   else if (process.env.FIREBASE_PROJECT_ID && 
            process.env.FIREBASE_CLIENT_EMAIL && 

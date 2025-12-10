@@ -54,6 +54,17 @@ export default function AdminPanel2() {
     status: "all",
   });
 
+  // Delete confirmation modal state
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    userId: null,
+    userName: '',
+    userRole: ''
+  });
+
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
   const profiles = useMemo(() => ({
     students: users
       .filter(u => u.role === "student")
@@ -423,7 +434,7 @@ export default function AdminPanel2() {
   async function handleSuspend(id) {
     const user = users.find(u => u.id === id);
     if (!user) {
-      alert("User not found");
+      showToast("User not found", "error");
       return;
     }
     
@@ -433,58 +444,81 @@ export default function AdminPanel2() {
     try {
       const res = await api.suspendUser(id, user.role);
       if (!res.ok) {
-        alert(res.error || "Failed to suspend user");
+        showToast(res.error || "Failed to suspend user", "error");
         return;
       }
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
-    );
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
+      );
+      showToast("User suspended successfully", "success");
     } catch (error) {
       console.error("Error suspending user:", error);
-      alert("An error occurred while suspending the user");
+      showToast("An error occurred while suspending the user", "error");
     }
   }
   
   async function handleReinstate(id) {
     const user = users.find(u => u.id === id);
     if (!user) {
-      alert("User not found");
+      showToast("User not found", "error");
       return;
     }
     
     try {
       const res = await api.reinstateUser(id, user.role);
       if (!res.ok) {
-        alert(res.error || "Failed to reinstate user");
+        showToast(res.error || "Failed to reinstate user", "error");
         return;
       }
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
+      showToast("User reinstated successfully", "success");
     } catch (error) {
       console.error("Error reinstating user:", error);
-      alert("An error occurred while reinstating the user");
+      showToast("An error occurred while reinstating the user", "error");
     }
   }
+
+  // Show toast notification helper
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 4000);
+  };
 
   async function handleDelete(id) {
     const user = users.find(u => u.id === id);
     if (!user) {
-      alert("User not found");
+      showToast("User not found", "error");
       return;
     }
     
-    if (!confirm(`Delete this ${user.role === 'instructor' ? 'teacher' : 'student'} account permanently?`)) return;
+    // Show confirmation modal
+    setDeleteConfirmModal({
+      show: true,
+      userId: id,
+      userName: user.name || 'Unknown',
+      userRole: user.role
+    });
+  }
+
+  async function confirmDelete() {
+    const { userId, userRole } = deleteConfirmModal;
+    
+    // Close modal
+    setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' });
     
     try {
-      const res = await api.deleteUser(id, user.role);
+      const res = await api.deleteUser(userId, userRole);
       if (!res.ok) {
-        alert(res.error || "Failed to delete user");
+        showToast(res.error || "Failed to delete user", "error");
         return;
       }
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-      alert(res.message || "User deleted successfully");
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      showToast(res.message || "User deleted successfully", "success");
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("An error occurred while deleting the user");
+      showToast("An error occurred while deleting the user", "error");
     }
   }
 
@@ -908,6 +942,60 @@ export default function AdminPanel2() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal.show && (
+        <div className="admin-modal-overlay" onClick={() => setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}>
+          <div className="admin-modal-content admin-confirmation-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-icon-warning">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h3 className="admin-modal-title">Delete User Account?</h3>
+            <p className="admin-modal-message">
+              Are you sure you want to permanently delete <strong>{deleteConfirmModal.userName}</strong>'s {deleteConfirmModal.userRole === 'instructor' ? 'teacher' : 'student'} account? This action cannot be undone and all data will be lost.
+            </p>
+            
+            <div className="admin-modal-actions">
+              <button 
+                className="admin-modal-btn admin-modal-btn-secondary" 
+                onClick={() => setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="admin-modal-btn admin-modal-btn-danger" 
+                onClick={confirmDelete}
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`admin-toast admin-toast-${toast.type}`}>
+          <div className="admin-toast-content">
+            {toast.type === "success" ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            )}
+            <span className="admin-toast-message">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

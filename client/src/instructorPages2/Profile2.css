@@ -549,6 +549,81 @@
   margin-top: 24px;
 }
 
+/* Confirmation Modal Specific Styles */
+.pf-confirmation-modal {
+  text-align: center;
+  max-width: 450px;
+}
+
+.pf-modal-icon-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-radius: 50%;
+  color: #ef4444;
+}
+
+.pf-modal-icon-warning svg {
+  width: 48px;
+  height: 48px;
+  stroke-width: 2.5;
+}
+
+.pf-confirmation-modal .pf-modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: #1a1a1a;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pf-modal-message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ld-text-secondary);
+  margin: 0 0 28px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pf-confirmation-modal .pf-modal-actions {
+  justify-content: center;
+  gap: 16px;
+}
+
+.pf-danger-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.pf-danger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.pf-danger-btn:active {
+  transform: translateY(0);
+}
+
+.pf-danger-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .pf-card {

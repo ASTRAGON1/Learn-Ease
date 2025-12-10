@@ -60,7 +60,6 @@ const applicationSchema = new mongoose.Schema({
 
 // Indexes for faster queries
 applicationSchema.index({ status: 1 });
-applicationSchema.index({ teacherId: 1 });
 applicationSchema.index({ createdAt: -1 });
 
 const Application = mongoose.model('Application', applicationSchema);

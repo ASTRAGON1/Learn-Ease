@@ -2312,6 +2312,11 @@
   color: #991b1b;
 }
 
+.admin-users-status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .admin-users-status-dot {
   width: 8px;
   height: 8px;
@@ -2325,6 +2330,21 @@
 
 .admin-users-status-suspended .admin-users-status-dot {
   background: #ef4444;
+}
+
+.admin-users-status-pending .admin-users-status-dot {
+  background: #f59e0b;
+}
+
+.admin-users-pending-note {
+  font-size: 13px;
+  font-weight: 500;
+  color: #92400e;
+  font-style: italic;
+  padding: 8px 14px;
+  background: #fef3c7;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .admin-users-online-yes {
@@ -3270,6 +3290,190 @@
 
 .admin-instructor-status-badge.offline .admin-instructor-status-dot {
   background: #9ca3af;
+}
+
+/* Admin Delete Confirmation Modal */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.admin-modal-content {
+  background: var(--ld-bg-card);
+  border: 1px solid var(--ld-border);
+  border-radius: 16px;
+  padding: 32px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-confirmation-modal {
+  text-align: center;
+  max-width: 480px;
+}
+
+.admin-modal-icon-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-radius: 50%;
+  color: #ef4444;
+}
+
+.admin-modal-icon-warning svg {
+  width: 48px;
+  height: 48px;
+  stroke-width: 2.5;
+}
+
+.admin-modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: var(--ld-text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-modal-message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ld-text-secondary);
+  margin: 0 0 28px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-modal-message strong {
+  color: var(--ld-text-primary);
+  font-weight: 700;
+}
+
+.admin-modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.admin-modal-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  min-width: 120px;
+}
+
+.admin-modal-btn-secondary {
+  background: var(--ld-bg-secondary);
+  color: var(--ld-text-primary);
+  border: 2px solid var(--ld-border);
+}
+
+.admin-modal-btn-secondary:hover {
+  background: var(--ld-bg-card);
+  border-color: var(--ld-accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-modal-btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.admin-modal-btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.admin-modal-btn:active {
+  transform: translateY(0);
+}
+
+/* Admin Toast Notification */
+.admin-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10001;
+  min-width: 350px;
+  max-width: 500px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: adminToastSlideIn 0.3s ease-out;
+  font-family: 'Poppins', sans-serif;
+}
+
+@keyframes adminToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.admin-toast-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: 1px solid #059669;
+}
+
+.admin-toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: 1px solid #dc2626;
+}
+
+.admin-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-toast-content svg {
+  flex-shrink: 0;
+}
+
+.admin-toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 /* Responsive */

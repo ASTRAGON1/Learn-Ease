@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const Teacher = require('../models/Teacher');
 const Content = require('../models/Content'); // optional: for "my uploads"
 const auth = require('../middleware/auth');
+const { deleteFirebaseUser } = require('../config/firebase');
 const router = express.Router();
 
 // PATCH /api/teachers/me  — update profile (whitelisted fields)
@@ -204,12 +205,21 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
       }
     }
     
-    console.log('Teacher deleted from MongoDB:', userId);
+    console.log('✅ Teacher deleted from MongoDB:', userId);
     
-    // Return firebaseUID so frontend can delete from Firebase Auth
+    // Delete from Firebase Authentication
+    if (firebaseUID) {
+      const firebaseDeleted = await deleteFirebaseUser(firebaseUID);
+      if (firebaseDeleted) {
+        console.log('✅ Teacher deleted from Firebase:', firebaseUID);
+      } else {
+        console.warn('⚠️  Firebase deletion skipped or failed for:', firebaseUID);
+      }
+    }
+    
     res.json({ 
-      message: 'Account deleted successfully',
-      firebaseUID: firebaseUID
+      message: 'Account deleted successfully from both MongoDB and Firebase',
+      success: true
     });
   } catch (error) {
     console.error('Error deleting teacher account:', error);

@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
-import signUpStudentImage from "../instructorPages2/assets/signUPStudent.png";
-import signUpInstructorImage from "../instructorPages2/assets/signUpInstructor.png";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -342,18 +340,27 @@ export default function Signup() {
 
   return (
     <div className="all-signup-wrap">
-      <div className={`all-signup-card ${userType === "student" ? "form-left-card" : "form-right-card"}`}>
-        {/* Image Section */}
-        <div className={`all-signup-image-section ${userType === "student" ? "image-right" : "image-left"}`}>
-          <img 
-            src={userType === "student" ? signUpStudentImage : signUpInstructorImage} 
-            alt={userType === "student" ? "Student Signup" : "Instructor Signup"}
-            className="all-signup-image"
-          />
+      <div className="all-signup-card">
+        {/* Branding Section */}
+        <div className="all-signup-brand-section">
+          <div className="all-signup-brand-content">
+            <div className="all-signup-logo">
+              <div className="all-signup-logo-badge">LE</div>
+              <span>LearnEase</span>
+            </div>
+            <h2 className="all-signup-brand-title">
+              {userType === "student" ? "Start Your Learning Journey" : "Share Your Knowledge"}
+            </h2>
+            <p className="all-signup-brand-subtitle">
+              {userType === "student" 
+                ? "Join thousands of students learning new skills every day" 
+                : "Empower learners around the world with your expertise"}
+            </p>
+          </div>
         </div>
 
         {/* Signup Form Section */}
-        <div className={`all-signup-form-section ${userType === "student" ? "form-left" : "form-right"}`}>
+        <div className="all-signup-form-section">
           <div className="all-signup-title-section">
           <button
             type="button"
