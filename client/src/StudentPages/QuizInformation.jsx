@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "./QuizInformation.css";
-import logo from "../assets/logoquiz.png";
+import { Calendar, User, BookOpen, Award, Clock, CheckCircle2, XCircle, AlertCircle, PlayCircle } from "lucide-react";
 
 /** Demo data (replace with API later) */
 const DEMO = [
@@ -13,6 +14,8 @@ const DEMO = [
     date: "Just now",
     status: "upcoming", // upcoming | graded | missed
     score: null,
+    duration: "30 min",
+    questions: 15,
   },
   {
     id: "QZ-9802",
@@ -23,6 +26,9 @@ const DEMO = [
     date: "1 minute ago",
     status: "graded",
     score: 9,
+    maxScore: 10,
+    duration: "25 min",
+    questions: 12,
   },
   {
     id: "QZ-9803",
@@ -33,6 +39,8 @@ const DEMO = [
     date: "1 hour ago",
     status: "upcoming",
     score: null,
+    duration: "20 min",
+    questions: 10,
   },
   {
     id: "QZ-9804",
@@ -43,6 +51,9 @@ const DEMO = [
     date: "Yesterday",
     status: "missed",
     score: 0,
+    maxScore: 10,
+    duration: "35 min",
+    questions: 18,
   },
   {
     id: "QZ-9805",
@@ -53,186 +64,255 @@ const DEMO = [
     date: "Feb 2, 2025",
     status: "graded",
     score: 7,
+    maxScore: 10,
+    duration: "40 min",
+    questions: 20,
   },
 ];
 
 export default function QuizInformation() {
-  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
   const [tab, setTab] = useState("all"); // all | upcoming | graded | missed
-  const [openId, setOpenId] = useState(null);
 
   const rows = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return DEMO.filter((x) => {
       const matchTab = tab === "all" ? true : x.status === tab;
-      const hay = `${x.courseId} ${x.instructor} ${x.courseTitle} ${x.quizTitle}`.toLowerCase();
-      return matchTab && (q === "" || hay.includes(q));
+      return matchTab;
     });
-  }, [query, tab]);
+  }, [tab]);
 
-  const pill = (s) => (s === "graded" ? "Graded" : s === "missed" ? "Missed" : "Up coming");
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "graded":
+        return <CheckCircle2 size={18} />;
+      case "missed":
+        return <XCircle size={18} />;
+      case "upcoming":
+        return <Clock size={18} />;
+      default:
+        return <AlertCircle size={18} />;
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "graded":
+        return "Graded";
+      case "missed":
+        return "Missed";
+      case "upcoming":
+        return "Upcoming";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const handleStartQuiz = (quiz) => {
+    if (quiz.status === "upcoming") {
+      navigate("/quiz", { state: { quizId: quiz.id } });
+    }
+  };
+
+  const stats = useMemo(() => {
+    return {
+      all: DEMO.length,
+      upcoming: DEMO.filter((q) => q.status === "upcoming").length,
+      graded: DEMO.filter((q) => q.status === "graded").length,
+      missed: DEMO.filter((q) => q.status === "missed").length,
+    };
+  }, []);
 
   return (
-    <div className="qi2-page">
-
-<header className="qi2-header qi2-header--hero">
-  <div className="qi2-brand">
-    <img src={logo} alt="Logo" className="qi2-logo qi2-logo--lg" />
-    <div className="qi2-search" role="search">
-    <input
-      className="qi2-input"
-      placeholder="Search"
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
-      aria-label="Search quizzes"
-    />
-  </div>
-
-  </div>
-</header>
-
-
-<div className="qi2-actionsBar">
-  <div className="qi2-tabs" role="tablist" aria-label="Quiz filters">
-    {[
-      ["all", "All"],
-      ["upcoming", "Up Coming"],
-      ["graded", "Graded"],
-      ["missed", "Missed"],
-    ].map(([key, label]) => (
-      <button
-        key={key}
-        role="tab"
-        aria-selected={tab === key}
-        className={`qi2-tab ${tab === key ? "is-active" : ""}`}
-        onClick={() => setTab(key)}
-      >
-        {label}
-      </button>
-    ))}
-  </div>
-
-
-</div>
-
-
-      {/* MAIN TABLE */}
-      <main className="qi2-main">
-        <div className="qi2-tableWrap">
-          <table className="qi2-table">
-            <colgroup>
-              <col style={{ width: "120px" }} />
-              <col style={{ width: "220px" }} />
-              <col />
-              <col />
-              <col style={{ width: "170px" }} />
-              <col style={{ width: "120px" }} />
-            </colgroup>
-
-            <thead>
-              <tr>
-                <th>Course ID</th>
-                <th>Instructor Name</th>
-                <th>Course Title</th>
-                <th>Quiz Title</th>
-                <th>Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((r) => {
-                const open = openId === r.id;
-                return (
-                  <React.Fragment key={r.id}>
-                    <tr
-                      className={`qi2-row qi2-${r.status}`}
-                      onClick={() => setOpenId(open ? null : r.id)}
-                      aria-expanded={open}
-                    >
-                      <td>{r.courseId}</td>
-                      <td>
-                        <div className="qi2-person">
-                          <span className="qi2-avatar" aria-hidden />
-                          {r.instructor}
-                        </div>
-                      </td>
-                      <td>{r.courseTitle}</td>
-                      <td>{r.quizTitle}</td>
-                      <td className="qi2-date">
-                        <CalendarIcon /> {r.date}
-                      </td>
-                      <td>
-                        <span className={`qi2-pill qi2-${r.status}`}>{pill(r.status)}</span>
-                      </td>
-                    </tr>
-
-                    {open && (
-                      <tr className="qi2-detail">
-                        <td colSpan={6}>
-                          <div className="qi2-widget">
-                            <h3 className="qi2-w-title">{r.quizTitle}</h3>
-
-                            <div className="qi2-w-grid">
-                              <div className="qi2-kv">
-                                <span className="qi2-k">Quiz Title:</span>
-                                <span className="qi2-v">{r.quizTitle}</span>
-                              </div>
-                              <div className="qi2-kv">
-                                <span className="qi2-k">Instructor:</span>
-                                <span className="qi2-v">{r.instructor}</span>
-                              </div>
-                              <div className="qi2-kv">
-                                <span className="qi2-k">Status:</span>
-                                <span className="qi2-v">{pill(r.status)}</span>
-                              </div>
-
-                              {r.status === "graded" && (
-                                <div className="qi2-kv">
-                                  <span className="qi2-k">Grade:</span>
-                                  <span className="qi2-badge">{r.score}/10</span>
-                                </div>
-                              )}
-
-                              {r.status === "missed" && (
-                                <div className="qi2-kv">
-                                  <span className="qi2-k">Grade:</span>
-                                  <span className="qi2-badge qi2-badge--missed">0/10</span>
-                                </div>
-                              )}
-
-                              {r.status === "upcoming" && (
-                                <div className="qi2-kv">
-                                  <span className="qi2-k">Scheduled:</span>
-                                  <span className="qi2-v">{r.date}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {rows.length === 0 && (
-            <div className="qi2-empty">No quizzes match your filters.</div>
-          )}
+    <div className="qi-page">
+      {/* Header */}
+      <header className="qi-header">
+        <div className="qi-header-content">
+          <div className="qi-header-left">
+            <Link to="/student-dashboard-2" className="qi-back-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back
+            </Link>
+            <div>
+              <h1 className="qi-title">Quiz Information</h1>
+              <p className="qi-subtitle">View and manage all your quizzes</p>
+            </div>
+          </div>
         </div>
+      </header>
+
+      {/* Stats Cards */}
+      <div className="qi-stats">
+        <div className="qi-stat-card" onClick={() => setTab("all")}>
+          <div className="qi-stat-icon all">
+            <BookOpen size={24} />
+          </div>
+          <div className="qi-stat-content">
+            <div className="qi-stat-value">{stats.all}</div>
+            <div className="qi-stat-label">All Quizzes</div>
+          </div>
+        </div>
+        <div className="qi-stat-card" onClick={() => setTab("upcoming")}>
+          <div className="qi-stat-icon upcoming">
+            <Clock size={24} />
+          </div>
+          <div className="qi-stat-content">
+            <div className="qi-stat-value">{stats.upcoming}</div>
+            <div className="qi-stat-label">Upcoming</div>
+          </div>
+        </div>
+        <div className="qi-stat-card" onClick={() => setTab("graded")}>
+          <div className="qi-stat-icon graded">
+            <CheckCircle2 size={24} />
+          </div>
+          <div className="qi-stat-content">
+            <div className="qi-stat-value">{stats.graded}</div>
+            <div className="qi-stat-label">Graded</div>
+          </div>
+        </div>
+        <div className="qi-stat-card" onClick={() => setTab("missed")}>
+          <div className="qi-stat-icon missed">
+            <XCircle size={24} />
+          </div>
+          <div className="qi-stat-content">
+            <div className="qi-stat-value">{stats.missed}</div>
+            <div className="qi-stat-label">Missed</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="qi-tabs-container">
+        <div className="qi-tabs">
+          {[
+            ["all", "All", stats.all],
+            ["upcoming", "Upcoming", stats.upcoming],
+            ["graded", "Graded", stats.graded],
+            ["missed", "Missed", stats.missed],
+          ].map(([key, label, count]) => (
+            <button
+              key={key}
+              className={`qi-tab ${tab === key ? "active" : ""}`}
+              onClick={() => setTab(key)}
+            >
+              {label}
+              <span className="qi-tab-count">({count})</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Quiz Cards */}
+      <main className="qi-main">
+        {rows.length > 0 ? (
+          <div className="qi-cards-grid">
+            {rows.map((quiz) => (
+              <div key={quiz.id} className={`qi-card qi-card-${quiz.status}`}>
+                <div className="qi-card-header">
+                  <div className="qi-card-status">
+                    <span className={`qi-status-badge qi-status-${quiz.status}`}>
+                      {getStatusIcon(quiz.status)}
+                      {getStatusLabel(quiz.status)}
+                    </span>
+                  </div>
+                  <div className="qi-card-id">{quiz.courseId}</div>
+                </div>
+
+                <div className="qi-card-body">
+                  <h3 className="qi-card-title">{quiz.quizTitle}</h3>
+                  <p className="qi-card-course">{quiz.courseTitle}</p>
+
+                  <div className="qi-card-info">
+                    <div className="qi-info-item">
+                      <User size={16} />
+                      <span>{quiz.instructor}</span>
+                    </div>
+                    <div className="qi-info-item">
+                      <Calendar size={16} />
+                      <span>{quiz.date}</span>
+                    </div>
+                    <div className="qi-info-item">
+                      <Clock size={16} />
+                      <span>{quiz.duration}</span>
+                    </div>
+                    {quiz.questions && (
+                      <div className="qi-info-item">
+                        <BookOpen size={16} />
+                        <span>{quiz.questions} questions</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {quiz.status === "graded" && (
+                    <div className="qi-score-section">
+                      <div className="qi-score-header">
+                        <span className="qi-score-label">Your Score</span>
+                        <span className="qi-score-value">
+                          {quiz.score}/{quiz.maxScore}
+                        </span>
+                      </div>
+                      <div className="qi-score-bar">
+                        <div
+                          className="qi-score-fill"
+                          style={{ width: `${(quiz.score / quiz.maxScore) * 100}%` }}
+                        ></div>
+                      </div>
+                      <div className="qi-score-percentage">
+                        {Math.round((quiz.score / quiz.maxScore) * 100)}%
+                      </div>
+                    </div>
+                  )}
+
+                  {quiz.status === "missed" && (
+                    <div className="qi-missed-banner">
+                      <XCircle size={18} />
+                      <span>You missed this quiz</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="qi-card-footer">
+                  {quiz.status === "upcoming" && (
+                    <button
+                      className="qi-btn qi-btn-primary"
+                      onClick={() => handleStartQuiz(quiz)}
+                    >
+                      <PlayCircle size={18} />
+                      Start Quiz
+                    </button>
+                  )}
+                  {quiz.status === "graded" && (
+                    <button
+                      className="qi-btn qi-btn-secondary"
+                      onClick={() => navigate("/quiz-results", { state: { quiz } })}
+                    >
+                      <Award size={18} />
+                      View Results
+                    </button>
+                  )}
+                  {quiz.status === "missed" && (
+                    <button className="qi-btn qi-btn-disabled" disabled>
+                      <XCircle size={18} />
+                      Missed
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="qi-empty">
+            <div className="qi-empty-icon">
+              <BookOpen size={48} />
+            </div>
+            <h3 className="qi-empty-title">No quizzes found</h3>
+            <p className="qi-empty-text">
+              No quizzes match your current filter
+            </p>
+          </div>
+        )}
       </main>
     </div>
-  );
-}
-
-/* tiny icon */
-function CalendarIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" />
-    </svg>
   );
 }

@@ -39,7 +39,7 @@
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #5b22d1;
+  color: #4C0FAD;
 }
 
 .student-form {
@@ -67,7 +67,7 @@
 }
 
 .student-create-btn {
-  background-color: #7d4cff;
+  background-color: #4C0FAD;
   color: white;
   padding: 12px;
   border: none;
@@ -103,13 +103,13 @@
 }
 
 .student-login-link a {
-  color: #5b22d1;
+  color: #4C0FAD;
   text-decoration: none;
 }
 .student-login-link-btn {
   background: none;
   border: none;
-  color: #5b22d1;
+  color: #4C0FAD;
   text-decoration: none;
   cursor: pointer;
   padding: 0;

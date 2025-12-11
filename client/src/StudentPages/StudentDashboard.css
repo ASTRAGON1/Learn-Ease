@@ -20,7 +20,7 @@
 
 .sd-nav-logo{
   width:28px; height:28px; border-radius:6px; display:grid; place-items:center;
-  font-weight:900; color:#fff; background:linear-gradient(135deg,#5b22d1,#7d4cff);
+  font-weight:900; color:#fff; background:linear-gradient(135deg,#4C0FAD,#4C0FAD);
 }
 
 /* Keep your image sizing, just remove extra outer spacing from logo row */
@@ -38,7 +38,7 @@
   text-decoration:none; cursor:pointer; opacity:.95;
   transition:color .15s ease, opacity .15s ease;
 }
-.sd-nav-link:hover,.sd-nav-link:focus-visible{ color:#5b22d1; opacity:1; }
+.sd-nav-link:hover,.sd-nav-link:focus-visible{ color:#4C0FAD; opacity:1; }
 .sd-nav-link.active{ color:#16151f; }
 
 .sd-nav-right{ display:flex; align-items:center; gap:1rem; margin-left:2rem; }
@@ -107,7 +107,7 @@
 .sd-course-title{
   font-size:28px;                /* matches .sd-welcome scale */
   font-weight:800;
-  color:#8c5bdb;
+  color:#4C0FAD;
   margin:10px 0 12px;
 }
 
@@ -119,13 +119,13 @@
   margin:8px 0 6px;
   overflow:hidden;
 }
-.sd-progress-fill{ background:#8c5bdb; height:100%; }
+.sd-progress-fill{ background:#4C0FAD; height:100%; }
 .sd-progress-text{ font-size:12px; color:#333; }
 
 /* Right action button */
 .sd-course-action{ display:flex; align-items:center; }
 .sd-join-btn{
-  background:#8c5bdb;
+  background:#4C0FAD;
   color:#fff;
   padding:12px 20px;             /* slightly taller on the same scale */
   border:none; border-radius:22px;
@@ -171,7 +171,7 @@
   margin:0;
 }
 .qz-link{
-  background:none; border:none; color:#5b22d1; font-weight:600; cursor:pointer; text-decoration:none;
+  background:none; border:none; color:#4C0FAD; font-weight:600; cursor:pointer; text-decoration:none;
 }
 
 /* wider gutters between cards like rec cards */
@@ -222,10 +222,10 @@
   border-top:1px solid #f1effa; background:#f4f1ff;
 }
 .qz-btn{
-  border:none; background:#5b22d1; color:#fff; border-radius:10px;
+  border:none; background:#4C0FAD; color:#fff; border-radius:10px;
   padding:8px 12px; font-weight:700; cursor:pointer;
 }
-.qz-btn.ghost{ background:#fff; color:#5b22d1; border:1px solid #e5ddff; }
+.qz-btn.ghost{ background:#fff; color:#4C0FAD; border:1px solid #e5ddff; }
 .qz-btn.warn{  background:#ff6b6b; }
 .qz-btn.lg{    padding:12px 18px; border-radius:12px; }
 
@@ -269,7 +269,7 @@
   left:10px;
   background:none;
   border:none;
-  color:#5b22d1;
+  color:#4C0FAD;
   font-weight:700;
   cursor:pointer;
   font-size:21px;
@@ -281,7 +281,7 @@
 
 /* ===== RECOMMENDATIONS (BIGGER) ===== */
 .sd-rec-sec{
-  --p:#5b22d1; --bg:#f5f1ff; --card:#fff; --muted:#7a6b9e; --br:#ede4ff; --bad:#ff4d4f; --warn:#ff9f43;
+  --p:#4C0FAD; --bg:#f5f1ff; --card:#fff; --muted:#7a6b9e; --br:#ede4ff; --bad:#ff4d4f; --warn:#ff9f43;
 
   /* ⬆️ make each card bigger (width). Tweak 360–420px to taste */
   --rec-card: 380px;
@@ -340,7 +340,7 @@
 
 .sd-rec-score{
   position:absolute; left:10px; bottom:10px; font-size:12px; padding:4px 8px; border-radius:999px;
-  background:rgba(255,255,255,.9); color:#5b22d1; border:0; backdrop-filter:saturate(120%) blur(2px);
+  background:rgba(255,255,255,.9); color:#4C0FAD; border:0; backdrop-filter:saturate(120%) blur(2px);
 }
 .sd-rec-score.warn{ color:var(--warn); }
 .sd-rec-score.bad{ color:var(--bad); }
@@ -370,7 +370,7 @@
 .sd-rec-container > .sd-rec-nav{
   position:absolute; top:50%; transform:translateY(-50%);
   background:transparent; box-shadow:none; border:none; padding:0; width:auto; height:auto;
-  color:#5b22d1; font-size:40px; line-height:1; cursor:pointer; z-index:3;   /* larger arrows */
+  color:#4C0FAD; font-size:40px; line-height:1; cursor:pointer; z-index:3;   /* larger arrows */
 }
 .sd-rec-container > .sd-rec-nav.left{ left:14px; }
 .sd-rec-container > .sd-rec-nav.right{ right:14px; }
@@ -402,11 +402,11 @@
 .sd-nav-link:focus-visible,
 .sd-nav-link.active:hover,
 .sd-nav-link.active:focus-visible{
-  color:#5b22d1;
+  color:#4C0FAD;
 }
 /* ===== Enrolled Courses — match UI card look ===== */
 :root{
-  --pp:#6e3bf9;          /* primary purple */
+  --pp:#4C0FAD;          /* primary purple */
   --pp-track:#e9ddff;    /* progress track */
   --pp-text:#1b1333;
   --pp-ring:#ece7ff;
@@ -512,7 +512,7 @@
 .sd-bell-list .s{ font-size:12px; color:#6b7280; }
 
 .sd-bell-list .dot{ width:10px; height:10px; border-radius:50%; margin-top:6px; flex:0 0 auto; }
-.sd-bell-list .t-quiz   .dot{ background:#7c3aed; }
+.sd-bell-list .t-quiz   .dot{ background:#4C0FAD; }
 .sd-bell-list .t-course .dot{ background:#22c55e; }
 
 /* ===== AI ASSISTANT CHATBOT ICON ===== */
@@ -534,12 +534,12 @@
 .ai-chatbot-icon-inner {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #5b22d1 0%, #7d4cff 100%);
+  background: linear-gradient(135deg, #4C0FAD 0%, #4C0FAD 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(91, 34, 209, 0.3);
+  box-shadow: 0 8px 24px rgba(76, 15, 173, 0.3);
   position: relative;
   z-index: 2;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -547,7 +547,7 @@
 
 .ai-chatbot-icon:hover .ai-chatbot-icon-inner {
   transform: scale(1.1);
-  box-shadow: 0 12px 32px rgba(91, 34, 209, 0.4);
+  box-shadow: 0 12px 32px rgba(76, 15, 173, 0.4);
 }
 
 .ai-chatbot-svg {
@@ -570,7 +570,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, #5b22d1 0%, #7d4cff 100%);
+  background: linear-gradient(135deg, #4C0FAD 0%, #4C0FAD 100%);
   opacity: 0.4;
   z-index: 1;
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;

@@ -4,9 +4,9 @@
   --cp-bg-primary: #ffffff;
   --cp-text-primary: #1a1a1a;
   --cp-text-secondary: #6b7280;
-  --cp-accent-purple: #7c3aed;
-  --cp-accent-purple-light: #a78bfa;
-  --cp-accent-purple-dark: #6d28d9;
+  --cp-accent-purple: #4C0FAD;
+  --cp-accent-purple-light: #4C0FAD;
+  --cp-accent-purple-dark: #4C0FAD;
   --cp-border: #e5e7eb;
 }
 
@@ -128,7 +128,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #9b59b6;
+  background: #4C0FAD;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -327,7 +327,7 @@
 
 .cp-view-all-achievements:hover {
   background: var(--cp-accent-purple-light);
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(76, 15, 173, 0.1);
 }
 
 .cp-achievements-list {
@@ -348,12 +348,12 @@
 
 .cp-achievement-card:hover {
   border-color: var(--cp-accent-purple-light);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 4px 12px rgba(76, 15, 173, 0.1);
 }
 
 .cp-achievement-card.unlocked {
   border-color: var(--cp-accent-purple);
-  background: rgba(124, 58, 237, 0.02);
+  background: rgba(76, 15, 173, 0.02);
 }
 
 .cp-achievement-icon-wrapper {
@@ -364,7 +364,7 @@
   align-items: center;
   justify-content: center;
   background: var(--cp-accent-purple-light);
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(76, 15, 173, 0.1);
   border-radius: 12px;
   flex-shrink: 0;
   color: var(--cp-accent-purple);
@@ -545,12 +545,12 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 4px 12px rgba(76, 15, 173, 0.4);
 }
 
 .cp-play-button:hover {
   transform: translate(-50%, -50%) scale(1.1);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
+  box-shadow: 0 6px 20px rgba(76, 15, 173, 0.6);
 }
 
 /* Tabs */
@@ -711,7 +711,7 @@
 
 .cp-quiz-card:hover {
   border-color: var(--cp-accent-purple);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 4px 12px rgba(76, 15, 173, 0.1);
 }
 
 .cp-quiz-card-header {
@@ -772,7 +772,7 @@
 }
 
 .cp-quiz-badge.upcoming {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(76, 15, 173, 0.1);
   color: var(--cp-accent-purple);
 }
 
@@ -831,7 +831,7 @@
 .cp-quiz-start-btn:hover {
   background: var(--cp-accent-purple-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 15, 173, 0.3);
 }
 
 .cp-quiz-start-btn svg {

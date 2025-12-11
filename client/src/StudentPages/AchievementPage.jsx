@@ -273,8 +273,8 @@ export default function AchievementPage() {
         {/* Statistics Cards */}
         <section className="achv-stats-section">
           <div className="achv-stat-card">
-            <div className="achv-stat-icon" style={{ background: "rgba(124, 58, 237, 0.1)" }}>
-              <Trophy style={{ color: "#7c3aed" }} />
+            <div className="achv-stat-icon" style={{ background: "rgba(76, 15, 173, 0.1)" }}>
+              <Trophy style={{ color: "#4C0FAD" }} />
             </div>
             <div className="achv-stat-content">
               <div className="achv-stat-value">{stats.totalAchievements}</div>

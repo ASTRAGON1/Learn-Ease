@@ -20,8 +20,8 @@ function CircularProgress({ progress, size = 120, strokeWidth = 8 }) {
       <svg width={size} height={size} className="pp-circular-svg">
         <defs>
           <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7c3aed" />
-            <stop offset="100%" stopColor="#a78bfa" />
+            <stop offset="0%" stopColor="#4C0FAD" />
+            <stop offset="100%" stopColor="#4C0FAD" />
           </linearGradient>
         </defs>
         <circle
@@ -451,9 +451,6 @@ function PersonalizedPath() {
           <div>
             <h1 className="pp-main-title">My Learning Journey</h1>
             <p className="pp-subtitle">{studentPath?.pathTitle || "Personalized Learning Path"}</p>
-          </div>
-          <div className="pp-search">
-            <input id="pp-search" placeholder="Search courses..." />
           </div>
         </header>
 

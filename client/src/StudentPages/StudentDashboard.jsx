@@ -323,8 +323,8 @@ export default function StudentDashboard() {
             <circle cx="9" cy="11" r="1.5" fill="white"/>
             <circle cx="15" cy="11" r="1.5" fill="white"/>
             {/* Eye glow effect */}
-            <circle cx="9" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
-            <circle cx="15" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
+            <circle cx="9" cy="11" r="0.8" fill="#4C0FAD" opacity="0.8"/>
+            <circle cx="15" cy="11" r="0.8" fill="#4C0FAD" opacity="0.8"/>
             {/* Mouth */}
             <rect x="9" y="15" width="6" height="2" rx="1" fill="white"/>
             {/* Decorative elements */}

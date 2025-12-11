@@ -284,6 +284,12 @@ export default function CoursePlayer() {
                 >
                   Quiz
                 </button>
+                <button 
+                  className={`cp-tab ${activeTab === "achievements" ? "active" : ""}`}
+                  onClick={() => setActiveTab("achievements")}
+                >
+                  Achievement
+                </button>
               </div>
 
               {/* Tab Content */}
@@ -549,104 +555,6 @@ export default function CoursePlayer() {
                         <p className="cp-quiz-empty-text">Quizzes for this course will appear here once they are assigned.</p>
                       </div>
                     )}
-                  </div>
-                )}
-                {activeTab === "achievements" && (
-                  <div className="cp-achievements-content">
-                    <div className="cp-achievements-header">
-                      <div>
-                        <h3 className="cp-achievements-title">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                            <path d="M4 22h16"></path>
-                            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                          </svg>
-                          Course Achievements
-                        </h3>
-                        <p className="cp-achievements-subtitle">Earn achievements by completing this course</p>
-                      </div>
-                      <Link to="/achievements" className="cp-view-all-achievements">
-                        View All
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14M12 5l7 7-7 7"></path>
-                        </svg>
-                      </Link>
-                    </div>
-
-                    <div className="cp-achievements-list">
-                      {courseAchievements.map((achievement) => (
-                        <div 
-                          key={achievement.id} 
-                          className={`cp-achievement-card ${achievement.unlocked ? "unlocked" : ""}`}
-                        >
-                          <div className="cp-achievement-icon-wrapper">
-                            {achievement.icon === "trophy" && (
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                                <path d="M4 22h16"></path>
-                                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                              </svg>
-                            )}
-                            {achievement.icon === "award" && (
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="8" r="6"></circle>
-                                <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"></path>
-                              </svg>
-                            )}
-                            {achievement.icon === "star" && (
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                              </svg>
-                            )}
-                            {achievement.unlocked && (
-                              <div className="cp-achievement-check">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                          <div className="cp-achievement-content">
-                            <div className="cp-achievement-header-row">
-                              <h4 className="cp-achievement-name">{achievement.title}</h4>
-                              {achievement.unlocked && (
-                                <span className={`cp-achievement-badge ${achievement.badge}`}>
-                                  {achievement.badge === "platinum" ? "Platinum" : achievement.badge === "gold" ? "Gold" : "Silver"}
-                                </span>
-                              )}
-                            </div>
-                            <p className="cp-achievement-desc">{achievement.description}</p>
-                            {!achievement.unlocked && (
-                              <div className="cp-achievement-progress">
-                                <div className="cp-achievement-progress-bar">
-                                  <div 
-                                    className="cp-achievement-progress-fill" 
-                                    style={{ width: `${achievement.progress}%` }}
-                                  ></div>
-                                </div>
-                                <span className="cp-achievement-progress-text">{achievement.progress}%</span>
-                              </div>
-                            )}
-                            {achievement.unlocked && (
-                              <div className="cp-achievement-unlocked">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                <span>Unlocked!</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>

@@ -5,9 +5,9 @@
   --achv-bg-secondary: #f8f9fa;
   --achv-text-primary: #1a1a1a;
   --achv-text-secondary: #6b7280;
-  --achv-accent-orange: #7c3aed;
+  --achv-accent-orange: #4C0FAD;
   --achv-accent-yellow: #fbbf24;
-  --achv-accent-purple: #9b59b6;
+  --achv-accent-purple: #4C0FAD;
   --achv-border: #e5e7eb;
   --achv-border-black: #000000;
 }
@@ -90,7 +90,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
-  color: #7c3aed;
+  color: #4C0FAD;
   text-decoration: none;
   background: transparent;
   border-radius: 12px;
@@ -101,13 +101,13 @@
 }
 
 .ld-sidebar-link:hover {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(76, 15, 173, 0.1);
 }
 
 .ld-sidebar-nav li.active .ld-sidebar-link,
 .ld-sidebar-link.active {
-  background: rgba(124, 58, 237, 0.15);
-  outline: 1px solid rgba(124, 58, 237, 0.3);
+  background: rgba(76, 15, 173, 0.15);
+  outline: 1px solid rgba(76, 15, 173, 0.3);
 }
 
 .ld-sidebar-icon-wrapper {
@@ -122,7 +122,7 @@
 .ld-sidebar-icon-wrapper svg {
   width: 24px;
   height: 24px;
-  color: #7c3aed;
+  color: #4C0FAD;
   stroke: currentColor;
 }
 
@@ -395,7 +395,7 @@
   border-radius: 8px;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(76, 15, 173, 0.1);
   color: var(--achv-accent-orange);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -560,7 +560,7 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(76, 15, 173, 0.1);
   color: var(--achv-accent-orange);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -621,7 +621,7 @@
 }
 
 .achv-continue-btn:hover {
-  background: #6d28d9;
+  background: #4C0FAD;
   transform: translateY(-2px);
 }
 

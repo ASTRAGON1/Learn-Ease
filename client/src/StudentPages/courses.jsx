@@ -7,7 +7,7 @@ import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
 import icPersonalizedPath from "../assets/Path.svg";
 import cover from "../assets/quizpic.png";
-import { BookOpen, Clock, PlayCircle, ChevronRight } from "lucide-react";
+import { BookOpen, Clock, PlayCircle } from "lucide-react";
 
 /* ---- single course card ---- */
 function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" }) {
@@ -23,6 +23,7 @@ function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" 
         <div className="crs-card-list-cover">
           <img src={cover} alt={course.CoursesTitle} />
           {isFirstCourse && <span className="crs-pill">Active</span>}
+          {!isFirstCourse && <span className="crs-pill-locked">Locked</span>}
         </div>
         <div className="crs-card-list-content">
           <div className="crs-card-list-header">
@@ -43,7 +44,7 @@ function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" 
             </div>
           </div>
           <div className="crs-actions-row">
-            {isFirstCourse && (
+            {isFirstCourse ? (
               <button 
                 className="crs-btn primary"
                 onClick={() => navigate(`/course/${index}`)}
@@ -51,11 +52,16 @@ function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" 
                 <PlayCircle size={18} />
                 Continue
               </button>
+            ) : (
+              <button 
+                className="crs-btn locked"
+                disabled
+                title="Complete the previous course to unlock"
+              >
+                <PlayCircle size={18} />
+                Continue
+              </button>
             )}
-            <Link to={`/CoursePlayer`} className="crs-btn ghost">
-              View Details
-              <ChevronRight size={16} />
-            </Link>
           </div>
         </div>
       </article>
@@ -67,6 +73,7 @@ function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" 
       <div className="crs-cover">
         <img src={cover} alt={course.CoursesTitle} />
         {isFirstCourse && <span className="crs-pill">Active Course</span>}
+        {!isFirstCourse && <span className="crs-pill-locked">Locked</span>}
       </div>
 
       <div className="crs-body">
@@ -91,7 +98,7 @@ function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" 
         </div>
 
         <div className="crs-actions-row">
-          {isFirstCourse && (
+          {isFirstCourse ? (
             <button 
               className="crs-btn primary"
               onClick={() => navigate(`/course/${index}`)}
@@ -99,11 +106,16 @@ function CourseCard({ course, index, isFirstCourse, navigate, viewMode = "grid" 
               <PlayCircle size={18} />
               Continue
             </button>
+          ) : (
+            <button 
+              className="crs-btn locked"
+              disabled
+              title="Complete the previous course to unlock"
+            >
+              <PlayCircle size={18} />
+              Continue
+            </button>
           )}
-          <Link to={`/CoursePlayer`} className="crs-btn ghost">
-            View Details
-            <ChevronRight size={16} />
-          </Link>
         </div>
       </div>
     </article>
@@ -115,7 +127,6 @@ export default function Courses() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const [q, setQ] = useState("");
   const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
 
   // Get student's path type (this should come from user profile/API)
@@ -137,14 +148,8 @@ export default function Courses() {
     }));
   }, [studentPath]);
 
-  // Filter courses based on search
-  const filteredCourses = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return courses;
-    return courses.filter(course => 
-      course.CoursesTitle.toLowerCase().includes(term)
-    );
-  }, [courses, q]);
+  // Use all courses (no filtering)
+  const filteredCourses = courses;
 
   // Determine active route
   const getActiveKey = () => {
@@ -276,21 +281,6 @@ export default function Courses() {
               <h1 className="crs-page-title">Course Catalog</h1>
               <p className="crs-page-subtitle">Explore all available courses in your curriculum</p>
             </div>
-            <div className="crs-search-container">
-              <div className="crs-search-wrapper">
-                <svg className="crs-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="M21 21l-4.35-4.35"></path>
-                </svg>
-                <input
-                  type="text"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search courses..."
-                  className="crs-search-input"
-                />
-              </div>
-            </div>
           </div>
         </header>
 
@@ -347,8 +337,8 @@ export default function Courses() {
           ) : (
             <div className="crs-empty-state">
               <BookOpen size={48} className="crs-empty-icon" />
-              <h3 className="crs-empty-title">No courses found</h3>
-              <p className="crs-empty-text">Try adjusting your search terms</p>
+              <h3 className="crs-empty-title">No courses available</h3>
+              <p className="crs-empty-text">Check back later for new courses</p>
             </div>
           )}
         </section>
