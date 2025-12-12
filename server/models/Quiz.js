@@ -34,6 +34,23 @@ const quizSchema = new mongoose.Schema({
     ref: 'Lesson',
     required: [true, 'Lesson is required']
   },
+  // IDs for proper linking to curriculum structure
+  pathId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Path'
+  },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
+  topicId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Topic'
+  },
+  lessonId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lesson'
+  },
   difficulty: {
     type: String,
     enum: {
@@ -89,6 +106,10 @@ quizSchema.index({ teacher: 1 });
 quizSchema.index({ category: 1 });
 quizSchema.index({ course: 1 });
 quizSchema.index({ lesson: 1 });
+quizSchema.index({ pathId: 1 });
+quizSchema.index({ courseId: 1 });
+quizSchema.index({ topicId: 1 });
+quizSchema.index({ lessonId: 1 });
 quizSchema.index({ status: 1 });
 
 const Quiz = mongoose.model('Quiz', quizSchema);

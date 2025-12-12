@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./PersonalizedPath.css";
-import { USER_CURRICULUM } from "../data/curriculum";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
@@ -207,6 +207,8 @@ function PersonalizedPath() {
   const [expandedCourse, setExpandedCourse] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [studentPathType] = useState("autism"); // Should come from user profile/API
+  const [studentPath, setStudentPath] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   // Mock student progress - should come from backend/API
   const [studentProgress] = useState({
@@ -224,11 +226,40 @@ function PersonalizedPath() {
     }
   });
 
-  // Get student's curriculum path
-  const studentPath = useMemo(() => {
-    return USER_CURRICULUM.find(
-      path => path.GeneralPath.toLowerCase() === studentPathType.toLowerCase()
-    );
+  // Fetch learning path from API
+  useEffect(() => {
+    const fetchPath = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
+            const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(studentPathType.toLowerCase())));
+            if (path) {
+              // Transform to expected format
+              setStudentPath({
+                GeneralPath: normalizedType,
+                pathTitle: path.name,
+                Courses: path.courses.map(course => ({
+                  CoursesTitle: course.name,
+                  Topics: course.topics.map(topic => ({
+                    TopicsTitle: topic.name,
+                    lessons: topic.lessons.map(lesson => lesson.name)
+                  }))
+                }))
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching learning path:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPath();
   }, [studentPathType]);
 
   // Transform courses with progress data

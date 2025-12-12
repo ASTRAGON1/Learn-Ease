@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const pathSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: true
-  },
   type: {
     type: String,
     required: [true, 'Path type is required'],
@@ -20,7 +16,7 @@ const pathSchema = new mongoose.Schema({
     maxlength: [200, 'Title cannot exceed 200 characters']
   },
   courses: [{
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Course'
   }],
   estimatedDuration: {
@@ -33,8 +29,7 @@ const pathSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  collection: 'Path',
-  _id: false
+  collection: 'Path'
 });
 
 // Indexes

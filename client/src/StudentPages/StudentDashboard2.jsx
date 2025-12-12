@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./StudentDashboard2.css";
-import { USER_CURRICULUM } from "../data/curriculum";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
@@ -18,6 +18,8 @@ export default function StudentDashboard2() {
   // Get student's path type (this should come from user profile/API)
   // For now, using a default - you'll need to fetch this from backend
   const studentPathType = "autism"; // or "Down Syndrome" - get from user profile
+  const [studentPath, setStudentPath] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   // Student progress data (this should come from backend/API)
   // Structure: { currentCourseIndex, completedCourses: [], courseProgress: { courseIndex: { completedLessons, totalLessons } } }
@@ -29,11 +31,40 @@ export default function StudentDashboard2() {
     }
   });
 
-  // Get the student's curriculum path
-  const studentPath = useMemo(() => {
-    return USER_CURRICULUM.find(
-      path => path.GeneralPath.toLowerCase() === studentPathType.toLowerCase()
-    );
+  // Fetch learning path from API
+  useEffect(() => {
+    const fetchPath = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
+            const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(studentPathType.toLowerCase())));
+            if (path) {
+              // Transform to expected format
+              setStudentPath({
+                GeneralPath: normalizedType,
+                pathTitle: path.name,
+                Courses: path.courses.map(course => ({
+                  CoursesTitle: course.name,
+                  Topics: course.topics.map(topic => ({
+                    TopicsTitle: topic.name,
+                    lessons: topic.lessons.map(lesson => lesson.name)
+                  }))
+                }))
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching learning path:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPath();
   }, [studentPathType]);
 
   // Helper function to assign colors

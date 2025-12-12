@@ -185,10 +185,220 @@ const api = {
       return { ok: false, error: 'Network error' };
     }
   },
-  getLearningPaths: async () => ({ ok: true, data: [] }),
-  renameCourse: async () => ({ ok: true }),
-  renameTopic: async () => ({ ok: true }),
-  renameLesson: async () => ({ ok: true }),
+  getLearningPaths: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+      if (!response.ok) {
+        return { ok: false, data: [] };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data || [] };
+    } catch (error) {
+      console.error('Error fetching learning paths:', error);
+      return { ok: false, data: [] };
+    }
+  },
+  createPath: async (name, type) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to create path' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error creating path:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  createCourse: async (pathId, name) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to create course' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error creating course:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  createTopic: async (pathId, courseId, name) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}/topics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to create topic' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error creating topic:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  createLesson: async (pathId, courseId, topicId, name) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}/topics/${topicId}/lessons`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to create lesson' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  renameCourse: async (pathId, courseId, name) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to rename course' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error renaming course:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  renameTopic: async (pathId, courseId, topicId, name) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}/topics/${topicId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to rename topic' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error renaming topic:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  renameLesson: async (pathId, courseId, topicId, lessonId, name) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}/topics/${topicId}/lessons/${lessonId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to rename lesson' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error renaming lesson:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  bulkImportLearningPaths: async (data) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to import data' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result };
+    } catch (error) {
+      console.error('Error bulk importing:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  deletePath: async (pathId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to delete path' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error deleting path:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  deleteCourse: async (pathId, courseId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to delete course' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  deleteTopic: async (pathId, courseId, topicId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}/topics/${topicId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to delete topic' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error deleting topic:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  deleteLesson: async (pathId, courseId, topicId, lessonId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/learning-paths/${pathId}/courses/${courseId}/topics/${topicId}/lessons/${lessonId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to delete lesson' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error deleting lesson:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
   getSettings: async () => ({ ok: true, data: {} }),
   saveSettings: async (settings) => ({ ok: true, settings }),
   addUser: async (payload) => ({ ok: true, payload }),

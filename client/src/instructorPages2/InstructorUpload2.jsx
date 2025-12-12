@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./InstructorUpload2.css";
-import { USER_CURRICULUM } from "../data/curriculum";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
@@ -208,12 +208,49 @@ export default function InstructorUpload2() {
   const [errors, setErrors] = useState({});
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [curriculumData, setCurriculumData] = useState([]);
+
+  // Fetch learning paths data
+  useEffect(() => {
+    const fetchPaths = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            // Keep full structure with IDs and names
+            const transformed = result.data.map(path => ({
+              id: path.id,
+              GeneralPath: path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id,
+              pathTitle: path.name,
+              Courses: path.courses.map(course => ({
+                id: course.id,
+                CoursesTitle: course.name,
+                Topics: course.topics.map(topic => ({
+                  id: topic.id,
+                  TopicsTitle: topic.name,
+                  lessons: topic.lessons.map(lesson => ({
+                    id: lesson.id,
+                    name: lesson.name
+                  }))
+                }))
+              }))
+            }));
+            setCurriculumData(transformed);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching learning paths:', error);
+      }
+    };
+    fetchPaths();
+  }, []);
 
   // Get current path based on category
   const currentPath = useMemo(() => {
     const pathKey = category === "Autism" ? "autism" : "Down Syndrome";
-    return USER_CURRICULUM.find(p => p.GeneralPath === pathKey);
-  }, [category]);
+    return curriculumData.find(p => p.GeneralPath === pathKey || p.GeneralPath === (pathKey === "autism" ? "autism" : "downSyndrome"));
+  }, [category, curriculumData]);
 
   // Get available courses for current category
   const availableCourses = useMemo(() => {
@@ -233,6 +270,21 @@ export default function InstructorUpload2() {
     const selectedTopic = availableTopics.find(t => t.TopicsTitle === topic);
     return selectedTopic?.lessons || [];
   }, [topic, availableTopics]);
+
+  // Get IDs for selected items
+  const getSelectedIds = useMemo(() => {
+    if (!currentPath) return { pathId: null, courseId: null, topicId: null, lessonId: null };
+    
+    const pathId = currentPath.id;
+    const selectedCourse = currentPath.Courses.find(c => c.CoursesTitle === course);
+    const courseId = selectedCourse?.id || null;
+    const selectedTopic = selectedCourse?.Topics.find(t => t.TopicsTitle === topic);
+    const topicId = selectedTopic?.id || null;
+    const selectedLesson = selectedTopic?.lessons.find(l => l.name === lesson);
+    const lessonId = selectedLesson?.id || null;
+    
+    return { pathId, courseId, topicId, lessonId };
+  }, [currentPath, course, topic, lesson]);
 
   // Reset dependent selections when category or course changes
   const handleCategoryChange = (newCategory) => {
@@ -265,8 +317,8 @@ export default function InstructorUpload2() {
   // Get current path for quiz based on quiz category
   const quizCurrentPath = useMemo(() => {
     const pathKey = quizCategory === "Autism" ? "autism" : "Down Syndrome";
-    return USER_CURRICULUM.find(p => p.GeneralPath === pathKey);
-  }, [quizCategory]);
+    return curriculumData.find(p => p.GeneralPath === pathKey || p.GeneralPath === (pathKey === "autism" ? "autism" : "downSyndrome"));
+  }, [quizCategory, curriculumData]);
 
   // Get available courses for quiz category
   const quizAvailableCourses = useMemo(() => {
@@ -286,6 +338,21 @@ export default function InstructorUpload2() {
     const selectedTopic = quizAvailableTopics.find(t => t.TopicsTitle === quizTopic);
     return selectedTopic?.lessons || [];
   }, [quizTopic, quizAvailableTopics]);
+
+  // Get IDs for selected quiz items
+  const getSelectedQuizIds = useMemo(() => {
+    if (!quizCurrentPath) return { pathId: null, courseId: null, topicId: null, lessonId: null };
+    
+    const pathId = quizCurrentPath.id;
+    const selectedCourse = quizCurrentPath.Courses.find(c => c.CoursesTitle === quizCourse);
+    const courseId = selectedCourse?.id || null;
+    const selectedTopic = selectedCourse?.Topics.find(t => t.TopicsTitle === quizTopic);
+    const topicId = selectedTopic?.id || null;
+    const selectedLesson = selectedTopic?.lessons.find(l => l.name === quizLesson);
+    const lessonId = selectedLesson?.id || null;
+    
+    return { pathId, courseId, topicId, lessonId };
+  }, [quizCurrentPath, quizCourse, quizTopic, quizLesson]);
 
   // Reset dependent selections when quiz category or course changes
   const handleQuizCategoryChange = (newCategory) => {
@@ -458,6 +525,10 @@ export default function InstructorUpload2() {
       // Use the actual detected file type for MongoDB, not the user's selection
       const mongoType = actualFileType || fileType;
 
+      // Debug: Log the IDs being sent
+      console.log('Selected IDs for content:', getSelectedIds);
+      console.log('Course:', course, 'Topic:', topic, 'Lesson:', lesson);
+
       const response = await fetch(`${API_URL}/api/content`, {
         method: 'POST',
         headers: {
@@ -471,6 +542,11 @@ export default function InstructorUpload2() {
           topic: topic,
           lesson: lesson,
           course: course,
+          // Add IDs for proper linking
+          pathId: getSelectedIds.pathId,
+          courseId: getSelectedIds.courseId,
+          topicId: getSelectedIds.topicId,
+          lessonId: getSelectedIds.lessonId,
           description: desc.trim(),
           difficulty: difficulty || null,
           url: uploadResult.url,
@@ -789,6 +865,11 @@ export default function InstructorUpload2() {
           topic: quizTopic,
           lesson: quizLesson,
           course: quizCourse,
+          // Add IDs for proper linking
+          pathId: getSelectedQuizIds.pathId,
+          courseId: getSelectedQuizIds.courseId,
+          topicId: getSelectedQuizIds.topicId,
+          lessonId: getSelectedQuizIds.lessonId,
           difficulty: quizDifficulty,
           questionsAndAnswers: questionsAndAnswers,
           status: status === "Published" ? "published" : "draft"
@@ -1411,7 +1492,7 @@ export default function InstructorUpload2() {
                   >
                     <option value="" disabled>Choose a lesson</option>
                     {availableLessons.map(l => (
-                      <option key={l} value={l}>{l}</option>
+                      <option key={l.id} value={l.name}>{l.name}</option>
                     ))}
                   </select>
                   {errors.lesson && <span className="ld-upload-error-text">{errors.lesson}</span>}
@@ -1531,7 +1612,7 @@ export default function InstructorUpload2() {
                 >
                   <option value="" disabled>Lesson</option>
                   {quizAvailableLessons.map(l => (
-                    <option key={l} value={l}>{l}</option>
+                    <option key={l.id} value={l.name}>{l.name}</option>
                   ))}
                 </select>
               </div>

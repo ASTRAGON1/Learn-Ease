@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./InstructorDashboard2.css";
-import { USER_CURRICULUM } from "../data/curriculum";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
@@ -42,6 +42,8 @@ export default function InstructorDashboard2() {
   const [expandedCourses, setExpandedCourses] = useState(new Set());
   const [expandedTopics, setExpandedTopics] = useState(new Set());
   const [suspensionModal, setSuspensionModal] = useState({ show: false, message: '', title: '' });
+  const [curriculumData, setCurriculumData] = useState([]);
+  const [curriculumLoading, setCurriculumLoading] = useState(true);
 
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
@@ -183,6 +185,40 @@ export default function InstructorDashboard2() {
 
     fetchDailyTip();
   }, []); // Fetch once on mount - tip changes daily on server
+
+  // Fetch learning paths data
+  useEffect(() => {
+    const fetchPaths = async () => {
+      try {
+        setCurriculumLoading(true);
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            // Transform to expected format
+            const transformed = result.data.map(path => ({
+              GeneralPath: path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id,
+              pathTitle: path.name,
+              Courses: path.courses.map(course => ({
+                CoursesTitle: course.name,
+                Topics: course.topics.map(topic => ({
+                  TopicsTitle: topic.name,
+                  lessons: topic.lessons.map(lesson => lesson.name)
+                }))
+              }))
+            }));
+            setCurriculumData(transformed);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching learning paths:', error);
+      } finally {
+        setCurriculumLoading(false);
+      }
+    };
+
+    fetchPaths();
+  }, []);
 
   // Sample data for instructor dashboard
   const sampleMetrics = [
@@ -801,14 +837,18 @@ export default function InstructorDashboard2() {
 
   // Render Curriculum Section
   const renderCurriculumSection = () => {
-    const totalCourses = USER_CURRICULUM.reduce((sum, path) => sum + path.Courses.length, 0);
-    const totalTopics = USER_CURRICULUM.reduce((sum, path) => 
-      sum + path.Courses.reduce((cSum, course) => cSum + (course.Topics?.length || 0), 0), 0
+    if (curriculumLoading) {
+      return <div style={{ padding: "40px", textAlign: "center" }}>Loading curriculum...</div>;
+    }
+
+    const totalCourses = curriculumData.reduce((sum, path) => sum + (path.Courses?.length || 0), 0);
+    const totalTopics = curriculumData.reduce((sum, path) => 
+      sum + (path.Courses?.reduce((cSum, course) => cSum + (course.Topics?.length || 0), 0) || 0), 0
     );
-    const totalLessons = USER_CURRICULUM.reduce((sum, path) => 
-      sum + path.Courses.reduce((cSum, course) => 
+    const totalLessons = curriculumData.reduce((sum, path) => 
+      sum + (path.Courses?.reduce((cSum, course) => 
         cSum + (course.Topics?.reduce((tSum, topic) => tSum + (topic.lessons?.length || 0), 0) || 0), 0
-      ), 0
+      ) || 0), 0
     );
 
     return (
@@ -854,7 +894,7 @@ export default function InstructorDashboard2() {
                 marginBottom: "4px",
                 fontFamily: "'Poppins', sans-serif"
               }}>
-                {USER_CURRICULUM.length}
+                {curriculumData.length}
               </div>
               <div style={{
                 fontSize: "13px",
@@ -927,7 +967,7 @@ export default function InstructorDashboard2() {
 
         {/* Learning Paths Content */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          {USER_CURRICULUM.map((path) => {
+          {curriculumData.map((path) => {
             const courseCount = path.Courses.length;
             const topicCount = path.Courses.reduce((sum, c) => sum + (c.Topics?.length || 0), 0);
             const lessonCount = path.Courses.reduce((sum, c) => 

@@ -1,46 +1,4 @@
 // Demo data generators and constants
-import { USER_CURRICULUM } from "../../data/curriculum";
-
-/**
- * Convert curriculum.js data structure to learning paths format
- * Structure: Path → Courses → Topics → Lessons
- */
-export function loadLearningPathsFromCurriculum() {
-  return USER_CURRICULUM.map((pathData, pathIndex) => {
-    const pathId = pathData.GeneralPath.toLowerCase().replace(/\s+/g, "-");
-    
-    const courses = pathData.Courses.map((courseData, courseIndex) => {
-      const courseId = `${pathId}-course-${courseIndex + 1}`;
-      
-      const topics = courseData.Topics.map((topicData, topicIndex) => {
-        const topicId = `${courseId}-topic-${topicIndex + 1}`;
-        
-        const lessons = topicData.lessons.map((lessonName, lessonIndex) => ({
-          id: `${topicId}-lesson-${lessonIndex + 1}`,
-          name: lessonName,
-        }));
-        
-        return {
-          id: topicId,
-          name: topicData.TopicsTitle,
-          lessons,
-        };
-      });
-      
-      return {
-        id: courseId,
-        name: courseData.CoursesTitle,
-        topics,
-      };
-    });
-    
-    return {
-      id: pathId,
-      name: pathData.pathTitle,
-      courses,
-    };
-  });
-}
 
 export const demoEngagement = Array.from({ length: 14 }).map((_, i) => {
   const d = new Date();

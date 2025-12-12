@@ -42,6 +42,23 @@ const contentSchema = new mongoose.Schema({
     ref: 'Course',
     required: [true, 'Course is required']
   },
+  // IDs for proper linking to curriculum structure
+  pathId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Path'
+  },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
+  topicId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Topic'
+  },
+  lessonId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lesson'
+  },
   description: {
     type: String,
     trim: true,
@@ -120,6 +137,10 @@ contentSchema.index({ type: 1 });
 contentSchema.index({ course: 1 });
 contentSchema.index({ topic: 1 });
 contentSchema.index({ lesson: 1 });
+contentSchema.index({ pathId: 1 });
+contentSchema.index({ courseId: 1 });
+contentSchema.index({ topicId: 1 });
+contentSchema.index({ lessonId: 1 });
 contentSchema.index({ status: 1 });
 contentSchema.index({ difficulty: 1 });
 

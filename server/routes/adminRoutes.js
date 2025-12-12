@@ -3,6 +3,10 @@ const router = express.Router();
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const Admin = require('../models/Admin');
+const Path = require('../models/Path');
+const Course = require('../models/Course');
+const Topic = require('../models/Topic');
+const Lesson = require('../models/Lesson');
 const { deleteFirebaseUser } = require('../config/firebase');
 
 /**
@@ -578,6 +582,732 @@ router.get('/teacher/:email/deleted-quizzes', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching deleted teacher quizzes:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ==================== LEARNING PATHS API ====================
+
+/**
+ * @route   GET /api/admin/learning-paths
+ * @desc    Get all learning paths with nested courses, topics, and lessons
+ * @access  Admin
+ */
+router.get('/learning-paths', async (req, res) => {
+  try {
+    const paths = await Path.find({ isPublished: true }).sort({ createdAt: 1 });
+    
+    const pathsWithData = await Promise.all(
+      paths.map(async (path) => {
+        const courses = await Course.find({ pathId: path._id }).sort({ order: 1 });
+        
+        const coursesWithData = await Promise.all(
+          courses.map(async (course) => {
+            const topics = await Topic.find({ courseId: course._id, pathId: path._id }).sort({ order: 1 });
+            
+            const topicsWithData = await Promise.all(
+              topics.map(async (topic) => {
+                const lessons = await Lesson.find({ 
+                  topicId: topic._id, 
+                  courseId: course._id, 
+                  pathId: path._id 
+                }).sort({ order: 1 });
+                
+                return {
+                  id: topic._id,
+                  name: topic.title,
+                  lessons: lessons.map(l => ({
+                    id: l._id,
+                    name: l.title
+                  }))
+                };
+              })
+            );
+            
+            return {
+              id: course._id,
+              name: course.title,
+              topics: topicsWithData
+            };
+          })
+        );
+        
+        return {
+          id: path._id,
+          name: path.title,
+          courses: coursesWithData
+        };
+      })
+    );
+    
+    res.json({
+      success: true,
+      data: pathsWithData
+    });
+  } catch (error) {
+    console.error('Error fetching learning paths:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/learning-paths
+ * @desc    Create a new learning path
+ * @access  Admin
+ */
+router.post('/learning-paths', async (req, res) => {
+  try {
+    const { name, type } = req.body;
+    
+    if (!name || !type) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name and type are required'
+      });
+    }
+    
+    if (!['autism', 'downSyndrome'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Type must be either "autism" or "downSyndrome"'
+      });
+    }
+    
+    const path = new Path({
+      type,
+      title: name,
+      courses: [],
+      isPublished: true
+    });
+    
+    await path.save();
+    
+    res.json({
+      success: true,
+      data: {
+        id: path._id,
+        name: path.title,
+        courses: []
+      }
+    });
+  } catch (error) {
+    console.error('Error creating learning path:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/learning-paths/:pathId/courses
+ * @desc    Create a new course in a path
+ * @access  Admin
+ */
+router.post('/learning-paths/:pathId/courses', async (req, res) => {
+  try {
+    const { pathId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Course name is required'
+      });
+    }
+    
+    const path = await Path.findById(pathId);
+    if (!path) {
+      return res.status(404).json({
+        success: false,
+        error: 'Path not found'
+      });
+    }
+    
+    const course = new Course({
+      title: name,
+      pathId: pathId,
+      topics: [],
+      order: path.courses.length
+    });
+    
+    await course.save();
+    
+    path.courses.push(course._id);
+    await path.save();
+    
+    res.json({
+      success: true,
+      data: {
+        id: course._id,
+        name: course.title,
+        topics: []
+      }
+    });
+  } catch (error) {
+    console.error('Error creating course:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/learning-paths/:pathId/courses/:courseId/topics
+ * @desc    Create a new topic in a course
+ * @access  Admin
+ */
+router.post('/learning-paths/:pathId/courses/:courseId/topics', async (req, res) => {
+  try {
+    const { pathId, courseId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Topic name is required'
+      });
+    }
+    
+    const course = await Course.findById(courseId);
+    if (!course || course.pathId.toString() !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Course not found'
+      });
+    }
+    
+    const topic = new Topic({
+      title: name,
+      courseId: courseId,
+      pathId: pathId,
+      lessons: [],
+      order: course.topics.length
+    });
+    
+    await topic.save();
+    
+    course.topics.push(topic._id);
+    await course.save();
+    
+    res.json({
+      success: true,
+      data: {
+        id: topic._id,
+        name: topic.title,
+        lessons: []
+      }
+    });
+  } catch (error) {
+    console.error('Error creating topic:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons
+ * @desc    Create a new lesson in a topic
+ * @access  Admin
+ */
+router.post('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons', async (req, res) => {
+  try {
+    const { pathId, courseId, topicId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Lesson name is required'
+      });
+    }
+    
+    const topic = await Topic.findById(topicId);
+    if (!topic || topic.courseId.toString() !== courseId || topic.pathId.toString() !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Topic not found'
+      });
+    }
+    
+    const lesson = new Lesson({
+      title: name,
+      topicId: topicId,
+      courseId: courseId,
+      pathId: pathId,
+      order: topic.lessons.length
+    });
+    
+    await lesson.save();
+    
+    topic.lessons.push(lesson._id);
+    await topic.save();
+    
+    res.json({
+      success: true,
+      data: {
+        id: lesson._id,
+        name: lesson.title
+      }
+    });
+  } catch (error) {
+    console.error('Error creating lesson:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/learning-paths/:pathId/courses/:courseId
+ * @desc    Rename a course
+ * @access  Admin
+ */
+router.put('/learning-paths/:pathId/courses/:courseId', async (req, res) => {
+  try {
+    const { pathId, courseId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Course name is required'
+      });
+    }
+    
+    const course = await Course.findByIdAndUpdate(
+      courseId,
+      { title: name },
+      { new: true }
+    );
+    
+    if (!course || course.pathId !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Course not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: { id: course._id, name: course.title }
+    });
+  } catch (error) {
+    console.error('Error renaming course:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/learning-paths/:pathId/courses/:courseId/topics/:topicId
+ * @desc    Rename a topic
+ * @access  Admin
+ */
+router.put('/learning-paths/:pathId/courses/:courseId/topics/:topicId', async (req, res) => {
+  try {
+    const { pathId, courseId, topicId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Topic name is required'
+      });
+    }
+    
+    const topic = await Topic.findByIdAndUpdate(
+      topicId,
+      { title: name },
+      { new: true }
+    );
+    
+    if (!topic || topic.courseId !== courseId || topic.pathId !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Topic not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: { id: topic._id, name: topic.title }
+    });
+  } catch (error) {
+    console.error('Error renaming topic:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:lessonId
+ * @desc    Rename a lesson
+ * @access  Admin
+ */
+router.put('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:lessonId', async (req, res) => {
+  try {
+    const { pathId, courseId, topicId, lessonId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Lesson name is required'
+      });
+    }
+    
+    const lesson = await Lesson.findByIdAndUpdate(
+      lessonId,
+      { title: name },
+      { new: true }
+    );
+    
+    if (!lesson || lesson.topicId !== topicId || lesson.courseId !== courseId || lesson.pathId !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Lesson not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: { id: lesson._id, name: lesson.title }
+    });
+  } catch (error) {
+    console.error('Error renaming lesson:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/learning-paths/bulk-import
+ * @desc    Bulk import learning paths, courses, topics, and lessons from JSON
+ * @access  Admin
+ */
+router.post('/learning-paths/bulk-import', async (req, res) => {
+  try {
+    const { data } = req.body;
+    
+    if (!data || !Array.isArray(data)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid data format. Expected an array of paths.'
+      });
+    }
+
+    let totalPaths = 0;
+    let totalCourses = 0;
+    let totalTopics = 0;
+    let totalLessons = 0;
+    const errors = [];
+
+    // Process each path in the data
+    for (const pathData of data) {
+      try {
+        // Determine path type
+        let pathType = 'autism';
+        if (pathData.GeneralPath) {
+          const generalPath = pathData.GeneralPath.toLowerCase();
+          if (generalPath.includes('down')) {
+            pathType = 'downSyndrome';
+          } else if (generalPath.includes('autism')) {
+            pathType = 'autism';
+        }
+      }
+
+        // Create Path
+        const path = new Path({
+          type: pathType,
+          title: pathData.pathTitle || pathData.name || `Path ${totalPaths + 1}`,
+          courses: [],
+          isPublished: true
+        });
+
+        await path.save();
+        totalPaths++;
+
+        // Process each course
+        const courses = pathData.Courses || pathData.courses || [];
+        for (let courseIndex = 0; courseIndex < courses.length; courseIndex++) {
+          try {
+            const courseData = courses[courseIndex];
+
+            // Create Course
+            const course = new Course({
+              title: courseData.CoursesTitle || courseData.name || courseData.title || `Course ${courseIndex + 1}`,
+              pathId: path._id,
+              topics: [],
+              order: courseIndex + 1,
+              isPublished: true
+            });
+
+            await course.save();
+            totalCourses++;
+            path.courses.push(course._id);
+
+            // Process each topic
+            const topics = courseData.Topics || courseData.topics || [];
+            for (let topicIndex = 0; topicIndex < topics.length; topicIndex++) {
+              try {
+                const topicData = topics[topicIndex];
+
+                // Create Topic
+                const topic = new Topic({
+                  title: topicData.TopicsTitle || topicData.name || topicData.title || `Topic ${topicIndex + 1}`,
+                  courseId: course._id,
+                  pathId: path._id,
+                  lessons: [],
+                  order: topicIndex + 1
+                });
+
+                await topic.save();
+                totalTopics++;
+                course.topics.push(topic._id);
+
+                // Process each lesson
+                const lessons = topicData.lessons || topicData.lessons || [];
+                for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
+                  try {
+                    const lessonName = typeof lessons[lessonIndex] === 'string' 
+                      ? lessons[lessonIndex] 
+                      : (lessons[lessonIndex].name || lessons[lessonIndex].title || `Lesson ${lessonIndex + 1}`);
+
+                    // Create Lesson
+                    const lesson = new Lesson({
+                      title: lessonName,
+                      topicId: topic._id,
+                      courseId: course._id,
+                      pathId: path._id,
+                      order: lessonIndex + 1
+                    });
+
+                    await lesson.save();
+                    totalLessons++;
+                    topic.lessons.push(lesson._id);
+                  } catch (lessonError) {
+                    errors.push(`Error creating lesson ${lessonIndex + 1} in topic "${topic.title}": ${lessonError.message}`);
+                  }
+                }
+
+                await topic.save();
+              } catch (topicError) {
+                errors.push(`Error creating topic ${topicIndex + 1} in course "${course.title}": ${topicError.message}`);
+              }
+            }
+
+            await course.save();
+          } catch (courseError) {
+            errors.push(`Error creating course ${courseIndex + 1} in path "${path.title}": ${courseError.message}`);
+          }
+        }
+
+        await path.save();
+      } catch (pathError) {
+        errors.push(`Error creating path "${pathData.pathTitle || pathData.name}": ${pathError.message}`);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Bulk import completed',
+      summary: {
+        paths: totalPaths,
+        courses: totalCourses,
+        topics: totalTopics,
+        lessons: totalLessons
+      },
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    console.error('Error during bulk import:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/learning-paths/:pathId
+ * @desc    Delete a learning path and all its content
+ * @access  Admin
+ */
+router.delete('/learning-paths/:pathId', async (req, res) => {
+  try {
+    const { pathId } = req.params;
+    
+    const path = await Path.findById(pathId);
+    if (!path) {
+      return res.status(404).json({
+        success: false,
+        error: 'Path not found'
+      });
+    }
+    
+    // Delete all courses and their nested content
+    const courses = await Course.find({ pathId });
+    for (const course of courses) {
+      const topics = await Topic.find({ courseId: course._id });
+      for (const topic of topics) {
+        await Lesson.deleteMany({ topicId: topic._id });
+        await Topic.findByIdAndDelete(topic._id);
+      }
+      await Course.findByIdAndDelete(course._id);
+    }
+    
+    await Path.findByIdAndDelete(pathId);
+    
+    res.json({
+      success: true,
+      message: 'Path and all its content deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting path:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/learning-paths/:pathId/courses/:courseId
+ * @desc    Delete a course and all its topics and lessons
+ * @access  Admin
+ */
+router.delete('/learning-paths/:pathId/courses/:courseId', async (req, res) => {
+  try {
+    const { pathId, courseId } = req.params;
+    
+    const course = await Course.findById(courseId);
+    if (!course || course.pathId !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Course not found'
+      });
+    }
+    
+    // Delete all topics and their lessons
+    const topics = await Topic.find({ courseId });
+    for (const topic of topics) {
+      await Lesson.deleteMany({ topicId: topic._id });
+      await Topic.findByIdAndDelete(topic._id);
+    }
+    
+    // Remove course from path
+    const path = await Path.findById(pathId);
+    if (path) {
+      path.courses = path.courses.filter(id => id !== courseId);
+      await path.save();
+    }
+    
+    await Course.findByIdAndDelete(courseId);
+    
+    res.json({
+      success: true,
+      message: 'Course and all its content deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/learning-paths/:pathId/courses/:courseId/topics/:topicId
+ * @desc    Delete a topic and all its lessons
+ * @access  Admin
+ */
+router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId', async (req, res) => {
+  try {
+    const { pathId, courseId, topicId } = req.params;
+    
+    const topic = await Topic.findById(topicId);
+    if (!topic || topic.courseId !== courseId || topic.pathId !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Topic not found'
+      });
+    }
+    
+    // Delete all lessons
+    await Lesson.deleteMany({ topicId });
+    
+    // Remove topic from course
+    const course = await Course.findById(courseId);
+    if (course) {
+      course.topics = course.topics.filter(id => id !== topicId);
+      await course.save();
+    }
+    
+    await Topic.findByIdAndDelete(topicId);
+    
+    res.json({
+      success: true,
+      message: 'Topic and all its lessons deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting topic:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:lessonId
+ * @desc    Delete a lesson
+ * @access  Admin
+ */
+router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:lessonId', async (req, res) => {
+  try {
+    const { pathId, courseId, topicId, lessonId } = req.params;
+    
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson || lesson.topicId !== topicId || lesson.courseId !== courseId || lesson.pathId !== pathId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Lesson not found'
+      });
+    }
+    
+    // Remove lesson from topic
+    const topic = await Topic.findById(topicId);
+    if (topic) {
+      topic.lessons = topic.lessons.filter(id => id !== lessonId);
+      await topic.save();
+    }
+    
+    await Lesson.findByIdAndDelete(lessonId);
+    
+    res.json({
+      success: true,
+      message: 'Lesson deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting lesson:', error);
     res.status(500).json({
       success: false,
       error: error.message

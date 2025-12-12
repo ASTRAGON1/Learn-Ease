@@ -17,7 +17,7 @@ import Settings from "./components/Settings";
 
 // Utils
 import api from "./utils/api";
-import { loadLearningPathsFromCurriculum, demoApplications, demoReports, demoFeedback, demoPeople } from "./utils/constants";
+import { demoApplications, demoReports, demoFeedback, demoPeople } from "./utils/constants";
 
 // Icons
 import fullLogo from "../assets/OrangeLogo.png";
@@ -44,7 +44,7 @@ export default function AdminPanel2() {
   const [reports, setReports] = useState(demoReports);
   const [feedback, setFeedback] = useState([]);
   const [modLog, setModLog] = useState([]); // {id, userId, type, name, reason, at}
-  const [learningPaths, setLearningPaths] = useState(() => loadLearningPathsFromCurriculum());
+  const [learningPaths, setLearningPaths] = useState([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState(null);
 
   const [search, setSearch] = useState(""); // Global search for all components except Users
@@ -249,6 +249,41 @@ export default function AdminPanel2() {
       return () => clearInterval(interval);
     } else {
       setUsers(demoPeople);
+    }
+  }, [isAuthed]);
+
+  // Fetch learning paths on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchLearningPaths = async () => {
+        try {
+          console.log('Fetching learning paths from API...');
+          const res = await api.getLearningPaths();
+          console.log('Learning paths API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} learning paths:`, res.data);
+              setLearningPaths(res.data);
+            } else {
+              console.log('No learning paths data, setting empty array');
+              setLearningPaths([]);
+            }
+          } else {
+            console.warn('Failed to fetch learning paths:', res);
+            setLearningPaths([]);
+          }
+        } catch (error) {
+          console.error('Error fetching learning paths:', error);
+          setLearningPaths([]);
+        }
+      };
+      fetchLearningPaths();
+      
+      // Refresh learning paths every 30 seconds
+      const interval = setInterval(fetchLearningPaths, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setLearningPaths([]);
     }
   }, [isAuthed]);
 
@@ -526,7 +561,7 @@ export default function AdminPanel2() {
     try {
       const res = await api.renameCourse(pathId, courseId, name);
       if (!res.ok) {
-        alert("Failed to rename course");
+        alert(res.error || "Failed to rename course");
         return;
       }
       setLearningPaths((prev) =>
@@ -539,9 +574,10 @@ export default function AdminPanel2() {
             : p
         )
       );
+      showToast("Course renamed successfully", "success");
     } catch (error) {
       console.error("Error renaming course:", error);
-      alert("An error occurred while renaming the course");
+      showToast("An error occurred while renaming the course", "error");
     }
   }
 
@@ -549,7 +585,7 @@ export default function AdminPanel2() {
     try {
       const res = await api.renameTopic(pathId, courseId, topicId, name);
       if (!res.ok) {
-        alert("Failed to rename topic");
+        alert(res.error || "Failed to rename topic");
         return;
       }
       setLearningPaths((prev) =>
@@ -569,9 +605,10 @@ export default function AdminPanel2() {
             : p
         )
       );
+      showToast("Topic renamed successfully", "success");
     } catch (error) {
       console.error("Error renaming topic:", error);
-      alert("An error occurred while renaming the topic");
+      showToast("An error occurred while renaming the topic", "error");
     }
   }
 
@@ -579,7 +616,7 @@ export default function AdminPanel2() {
     try {
       const res = await api.renameLesson(pathId, courseId, topicId, lessonId, name);
       if (!res.ok) {
-        alert("Failed to rename lesson");
+        alert(res.error || "Failed to rename lesson");
         return;
       }
       setLearningPaths((prev) =>
@@ -608,9 +645,183 @@ export default function AdminPanel2() {
             : p
         )
       );
+      showToast("Lesson renamed successfully", "success");
     } catch (error) {
       console.error("Error renaming lesson:", error);
-      alert("An error occurred while renaming the lesson");
+      showToast("An error occurred while renaming the lesson", "error");
+    }
+  }
+
+  async function handleCreatePath(name, type) {
+    try {
+      const res = await api.createPath(name, type);
+      if (!res.ok) {
+        showToast(res.error || "Failed to create path", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Path created successfully", "success");
+    } catch (error) {
+      console.error("Error creating path:", error);
+      showToast("An error occurred while creating the path", "error");
+    }
+  }
+
+  async function handleCreateCourse(pathId, name) {
+    try {
+      const res = await api.createCourse(pathId, name);
+      if (!res.ok) {
+        showToast(res.error || "Failed to create course", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Course created successfully", "success");
+    } catch (error) {
+      console.error("Error creating course:", error);
+      showToast("An error occurred while creating the course", "error");
+    }
+  }
+
+  async function handleCreateTopic(pathId, courseId, name) {
+    try {
+      const res = await api.createTopic(pathId, courseId, name);
+      if (!res.ok) {
+        showToast(res.error || "Failed to create topic", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Topic created successfully", "success");
+    } catch (error) {
+      console.error("Error creating topic:", error);
+      showToast("An error occurred while creating the topic", "error");
+    }
+  }
+
+  async function handleCreateLesson(pathId, courseId, topicId, name) {
+    try {
+      const res = await api.createLesson(pathId, courseId, topicId, name);
+      if (!res.ok) {
+        showToast(res.error || "Failed to create lesson", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Lesson created successfully", "success");
+    } catch (error) {
+      console.error("Error creating lesson:", error);
+      showToast("An error occurred while creating the lesson", "error");
+    }
+  }
+
+  async function handleBulkImport(data) {
+    try {
+      const res = await api.bulkImportLearningPaths(data);
+      if (!res.ok) {
+        showToast(res.error || "Failed to import data", "error");
+        return { success: false, error: res.error };
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Bulk import completed successfully", "success");
+      return { success: true, data: res.data };
+    } catch (error) {
+      console.error("Error bulk importing:", error);
+      showToast("An error occurred during bulk import", "error");
+      return { success: false, error: error.message };
+    }
+  }
+
+  async function handleDeletePath(pathId) {
+    try {
+      const res = await api.deletePath(pathId);
+      if (!res.ok) {
+        showToast(res.error || "Failed to delete path", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Path deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting path:", error);
+      showToast("An error occurred while deleting the path", "error");
+    }
+  }
+
+  async function handleDeleteCourse(pathId, courseId) {
+    try {
+      const res = await api.deleteCourse(pathId, courseId);
+      if (!res.ok) {
+        showToast(res.error || "Failed to delete course", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Course deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      showToast("An error occurred while deleting the course", "error");
+    }
+  }
+
+  async function handleDeleteTopic(pathId, courseId, topicId) {
+    try {
+      const res = await api.deleteTopic(pathId, courseId, topicId);
+      if (!res.ok) {
+        showToast(res.error || "Failed to delete topic", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Topic deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting topic:", error);
+      showToast("An error occurred while deleting the topic", "error");
+    }
+  }
+
+  async function handleDeleteLesson(pathId, courseId, topicId, lessonId) {
+    try {
+      const res = await api.deleteLesson(pathId, courseId, topicId, lessonId);
+      if (!res.ok) {
+        showToast(res.error || "Failed to delete lesson", "error");
+        return;
+      }
+      // Refresh learning paths
+      const fetchRes = await api.getLearningPaths();
+      if (fetchRes.ok) {
+        setLearningPaths(fetchRes.data || []);
+      }
+      showToast("Lesson deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      showToast("An error occurred while deleting the lesson", "error");
     }
   }
   
@@ -919,6 +1130,15 @@ export default function AdminPanel2() {
               onRenameCourse={handleRenameCourse}
               onRenameTopic={handleRenameTopic}
               onRenameLesson={handleRenameLesson}
+              onCreatePath={handleCreatePath}
+              onCreateCourse={handleCreateCourse}
+              onCreateTopic={handleCreateTopic}
+              onCreateLesson={handleCreateLesson}
+              onBulkImport={handleBulkImport}
+              onDeletePath={handleDeletePath}
+              onDeleteCourse={handleDeleteCourse}
+              onDeleteTopic={handleDeleteTopic}
+              onDeleteLesson={handleDeleteLesson}
             />
           )}
           {section === "profiles" && (

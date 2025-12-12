@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./InstructorDashboard2.css";
 import "./AIQuiz2.css";
-import { USER_CURRICULUM } from "../data/curriculum";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
@@ -116,12 +116,54 @@ export default function AIQuiz2() {
   const [numQ, setNumQ] = useState(3);
   const [answersPerQ, setAnswersPerQ] = useState(3);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [curriculumData, setCurriculumData] = useState([]);
+
+  // Fetch learning paths data
+  useEffect(() => {
+    const fetchPaths = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            // Keep full structure with IDs and names
+            const transformed = result.data.map(path => ({
+              id: path.id,
+              GeneralPath: path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id,
+              pathTitle: path.name,
+              Courses: path.courses.map(course => ({
+                id: course.id,
+                CoursesTitle: course.name,
+                Topics: course.topics.map(topic => ({
+                  id: topic.id,
+                  TopicsTitle: topic.name,
+                  lessons: topic.lessons.map(lesson => ({
+                    id: lesson.id,
+                    name: lesson.name
+                  }))
+                }))
+              }))
+            }));
+            setCurriculumData(transformed);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching learning paths:', error);
+      }
+    };
+    fetchPaths();
+  }, []);
 
   // Get current path based on category
   const currentPath = useMemo(() => {
     const pathKey = normalizeKey(category);
-    return USER_CURRICULUM.find((p) => normalizeKey(p.GeneralPath) === pathKey);
-  }, [category]);
+    return curriculumData.find((p) => {
+      const normalizedPath = normalizeKey(p.GeneralPath);
+      return normalizedPath === pathKey || 
+             (pathKey === "down syndrome" && normalizedPath === "downsyndrome") ||
+             (pathKey === "autism" && normalizedPath === "autism");
+    });
+  }, [category, curriculumData]);
 
   // Get available courses for current category
   const availableCourses = useMemo(() => currentPath?.Courses || [], [currentPath]);
@@ -139,6 +181,21 @@ export default function AIQuiz2() {
     const selectedTopic = availableTopics.find((t) => t.TopicsTitle === topic);
     return selectedTopic?.lessons || [];
   }, [topic, availableTopics]);
+
+  // Get IDs for selected items
+  const getSelectedIds = useMemo(() => {
+    if (!currentPath) return { pathId: null, courseId: null, topicId: null, lessonId: null };
+    
+    const pathId = currentPath.id;
+    const selectedCourse = currentPath.Courses.find(c => c.CoursesTitle === course);
+    const courseId = selectedCourse?.id || null;
+    const selectedTopic = selectedCourse?.Topics.find(t => t.TopicsTitle === topic);
+    const topicId = selectedTopic?.id || null;
+    const selectedLesson = selectedTopic?.lessons.find(l => l.name === lesson);
+    const lessonId = selectedLesson?.id || null;
+    
+    return { pathId, courseId, topicId, lessonId };
+  }, [currentPath, course, topic, lesson]);
 
   // Reset dependent selections when category or course changes
   const handleCategoryChange = (newCategory) => {
@@ -331,6 +388,11 @@ export default function AIQuiz2() {
           topic,
           lesson,
           course,
+          // Add IDs for proper linking
+          pathId: getSelectedIds.pathId,
+          courseId: getSelectedIds.courseId,
+          topicId: getSelectedIds.topicId,
+          lessonId: getSelectedIds.lessonId,
           difficulty,
           questionsAndAnswers,
           status: status === "Published" ? "published" : "draft"
@@ -643,8 +705,8 @@ export default function AIQuiz2() {
                   >
                     <option value="" disabled>Lesson</option>
                     {availableLessons.map((l) => (
-                      <option key={l} value={l}>
-                        {l}
+                      <option key={l.id} value={l.name}>
+                        {l.name}
                       </option>
                     ))}
                   </select>

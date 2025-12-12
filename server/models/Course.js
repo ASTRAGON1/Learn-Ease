@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: true
-  },
   title: {
     type: String,
     required: [true, 'Course title is required'],
@@ -12,12 +8,12 @@ const courseSchema = new mongoose.Schema({
     maxlength: [200, 'Title cannot exceed 200 characters']
   },
   pathId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Path',
     required: [true, 'Path reference is required']
   },
   topics: [{
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Topic'
   }],
   order: {
@@ -30,13 +26,12 @@ const courseSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  collection: 'Course',
-  _id: false
+  collection: 'Course'
 });
 
 // Indexes
 courseSchema.index({ pathId: 1 });
-courseSchema. index({ order: 1 });
+courseSchema.index({ order: 1 });
 courseSchema.index({ isPublished: 1 });
 
 const Course = mongoose.model('Course', courseSchema);

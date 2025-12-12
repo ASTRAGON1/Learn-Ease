@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const topicSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: true
-  },
   title: {
     type: String,
     required: [true, 'Topic title is required'],
@@ -12,17 +8,17 @@ const topicSchema = new mongoose.Schema({
     maxlength: [200, 'Title cannot exceed 200 characters']
   },
   courseId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',
     required: [true, 'Course reference is required']
   },
   pathId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Path',
     required: [true, 'Path reference is required']
   },
   lessons: [{
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Lesson'
   }],
   order: {
@@ -31,13 +27,12 @@ const topicSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  collection: 'Topic',
-  _id: false
+  collection: 'Topic'
 });
 
 // Indexes
 topicSchema.index({ courseId: 1 });
-topicSchema. index({ pathId: 1 });
+topicSchema.index({ pathId: 1 });
 topicSchema.index({ order: 1 });
 
 const Topic = mongoose.model('Topic', topicSchema);
