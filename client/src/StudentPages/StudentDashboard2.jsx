@@ -109,8 +109,8 @@ export default function StudentDashboard2() {
             if (student.email) {
               setStudentEmail(student.email);
             }
-            if (student.avatar) {
-              setProfilePic(student.avatar);
+            if (student.profilePic) {
+              setProfilePic(student.profilePic);
             }
             // Set student type from diagnostic test results
             if (student.type) {
@@ -140,9 +140,7 @@ export default function StudentDashboard2() {
   const [studentProgress] = useState({
     currentCourseIndex: 0, // Index of current course (0 = first course)
     completedCourses: [], // Array of completed course indices
-    courseProgress: {
-      0: { completedLessons: 5, totalLessons: 20 } // Progress for each course
-    }
+    courseProgress: {} // No demo progress data
   });
 
   // Fetch learning path from API

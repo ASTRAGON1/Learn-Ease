@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
 router.get('/users', async (req, res) => {
   try {
     // Fetch all students
-    const students = await Student.find({}).select('name email type status suspended createdAt avatar lastActivity');
+    const students = await Student.find({}).select('name email type status suspended createdAt profilePic lastActivity');
     
     // Fetch all teachers
     const teachers = await Teacher.find({}).select('fullName email userStatus ranking profilePic headline bio createdAt isOnline lastActivity');
@@ -89,7 +89,7 @@ router.get('/users', async (req, res) => {
         status: student.userStatus || 'active',
         online: false, // Students don't have isOnline field
         category: student.type === 'autism' ? 'Autism' : student.type === 'downSyndrome' ? 'Down Syndrome' : 'Not Assigned',
-        avatar: student.avatar,
+        avatar: student.profilePic,
         createdAt: student.createdAt,
         lastActivity: student.lastActivity
       };

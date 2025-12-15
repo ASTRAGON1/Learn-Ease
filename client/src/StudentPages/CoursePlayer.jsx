@@ -77,50 +77,146 @@ export default function CoursePlayer() {
   const [topics, setTopics] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [courseLoading, setCourseLoading] = useState(true);
+  const [studentPathType, setStudentPathType] = useState(null);
+  const [learningPath, setLearningPath] = useState(null);
 
-  // Fetch course data from API
+  // Fetch student type from API
   useEffect(() => {
-    const fetchCourseData = async () => {
+    const fetchStudentType = async () => {
       const token = window.sessionStorage.getItem('token');
-      if (!token || !id) {
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/students/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data && data.data.type) {
+            setStudentPathType(data.data.type);
+            console.log('✅ Student type:', data.data.type);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching student type:', error);
+      }
+    };
+
+    fetchStudentType();
+  }, []);
+
+  // Fetch learning path based on student type
+  useEffect(() => {
+    const fetchLearningPath = async () => {
+      if (!studentPathType) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
+            const path = result.data.find(p => {
+              if (!p.id) return false;
+              const pathId = p.id.toLowerCase();
+              const pathName = p.name.toLowerCase();
+              return pathId.includes(normalizedType) || 
+                     pathName.includes(normalizedType) ||
+                     (normalizedType === 'autism' && (pathId.includes('autism') || pathName.includes('autism'))) ||
+                     (normalizedType === 'downsyndrome' && (pathId.includes('downsyndrome') || pathName.includes('down syndrome')));
+            });
+            
+            if (path) {
+              console.log(`✅ Found learning path:`, path.name);
+              setLearningPath(path);
+            } else {
+              console.warn(`⚠️ No learning path found for type: ${normalizedType}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching learning path:', error);
+      }
+    };
+
+    fetchLearningPath();
+  }, [studentPathType]);
+
+  // Get course data from learning path based on course ID
+  useEffect(() => {
+    if (!learningPath || !id) {
+      setCourseLoading(false);
+      return;
+    }
+
+    try {
+      // Parse course index from id (e.g., "0" for first course, "1" for second, etc.)
+      const courseIndex = parseInt(id);
+      
+      if (isNaN(courseIndex) || courseIndex < 0 || courseIndex >= learningPath.courses.length) {
+        console.error('Invalid course index:', id);
+        setCourseData(null);
+        setTopics([]);
+        setLessons([]);
         setCourseLoading(false);
         return;
       }
 
-      try {
-        // TODO: Replace with actual API endpoint when available
-        // const response = await fetch(`${API_URL}/api/courses/${id}`, {
-        //   headers: { 'Authorization': `Bearer ${token}` }
-        // });
-        // if (response.ok) {
-        //   const data = await response.json();
-        //   setCourseData(data.course);
-        //   setLessons(data.lessons || []);
-        //   setTopics(data.topics || []);
-        //   setQuizzes(data.quizzes || []);
-        //   setCourseAchievements(data.achievements || []);
-        // }
-        
-        // For now, set empty/null data
-        setCourseData(null);
-        setLessons([]);
-        setTopics([]);
-        setQuizzes([]);
-        setCourseAchievements([]);
-      } catch (error) {
-        console.error('Error fetching course data:', error);
-        setCourseData(null);
-        setLessons([]);
-        setTopics([]);
-        setQuizzes([]);
-        setCourseAchievements([]);
-      } finally {
-        setCourseLoading(false);
-      }
-    };
+      const course = learningPath.courses[courseIndex];
+      console.log(`✅ Loading course ${courseIndex}:`, course.name);
 
-    fetchCourseData();
-  }, [id]);
+      // Set course data
+      setCourseData({
+        title: course.name,
+        description: course.description || `Learn ${course.name}`,
+        instructor: "LearnEase Team",
+        duration: `${course.topics?.length || 0} topics`,
+        level: "Beginner"
+      });
+
+      // Set topics and lessons
+      if (course.topics && course.topics.length > 0) {
+        const formattedTopics = course.topics.map((topic, topicIndex) => ({
+          id: `topic-${topicIndex}`,
+          name: topic.name,
+          description: topic.description || '',
+          lessons: topic.lessons || []
+        }));
+        
+        setTopics(formattedTopics);
+
+        // Flatten all lessons from all topics
+        const allLessons = course.topics.flatMap((topic, topicIndex) => 
+          (topic.lessons || []).map((lesson, lessonIndex) => ({
+            id: `lesson-${topicIndex}-${lessonIndex}`,
+            title: typeof lesson === 'string' ? lesson : lesson.name,
+            topic: topic.name,
+            duration: "15 min",
+            completed: false
+          }))
+        );
+        
+        setLessons(allLessons);
+        console.log(`✅ Loaded ${allLessons.length} lessons from ${formattedTopics.length} topics`);
+      } else {
+        setTopics([]);
+        setLessons([]);
+      }
+
+      // TODO: Fetch quizzes and achievements from API when available
+      setQuizzes([]);
+      setCourseAchievements([]);
+      
+    } catch (error) {
+      console.error('Error loading course data:', error);
+      setCourseData(null);
+      setTopics([]);
+      setLessons([]);
+    } finally {
+      setCourseLoading(false);
+    }
+  }, [learningPath, id]);
 
   const passedQuizzes = quizzes.filter(q => q.status === "passed");
   const upcomingQuizzes = quizzes.filter(q => q.status === "upcoming");
@@ -149,7 +245,7 @@ export default function CoursePlayer() {
             </h1>
           </div>
           <div className="cp-header-center">
-            <h2 className="cp-header-course-title">{courseData.title}</h2>
+            <h2 className="cp-header-course-title">{courseData?.title || "Loading Course..."}</h2>
           </div>
           <div className="cp-header-right">
             <button className="cp-notification-btn">
@@ -174,7 +270,8 @@ export default function CoursePlayer() {
         <div className="cp-content-new">
           {courseLoading ? (
             <div className="cp-loading">
-              <p>Loading course...</p>
+              <div className="cp-loading-spinner"></div>
+              <p>Loading course data...</p>
             </div>
           ) : courseData ? (
             <>
@@ -183,34 +280,39 @@ export default function CoursePlayer() {
                 <button className="cp-back-btn" onClick={() => navigate("/student-dashboard-2")}>
                   <span className="cp-back-chev">‹</span> Dashboard
                 </button>
-                <div>
-                  <h2 className="cp-course-title">{courseData.title}</h2>
-                  {courseData.currentLesson && (
-                    <p className="cp-course-subtitle">{courseData.currentLesson}</p>
-                  )}
-                </div>
               </div>
 
               {/* Course Badges */}
-              {(courseData.lessons || courseData.duration) && (
-                <div className="cp-badges">
-                  {courseData.lessons && (
-                    <div className="cp-badge-item">
-                      <span className="cp-badge-value">{courseData.lessons}</span>
-                      <span className="cp-badge-label">lessons</span>
-                    </div>
-                  )}
-                  {courseData.duration && (
-                    <div className="cp-badge-item">
-                      <span className="cp-badge-value">{courseData.duration}</span>
-                    </div>
-                  )}
+              <div className="cp-badges">
+                <div className="cp-badge-item">
+                  <span className="cp-badge-value">{lessons.length}</span>
+                  <span className="cp-badge-label">lessons</span>
                 </div>
-              )}
+                <div className="cp-badge-item">
+                  <span className="cp-badge-value">{topics.length}</span>
+                  <span className="cp-badge-label">topics</span>
+                </div>
+                {courseData.level && (
+                  <div className="cp-badge-item">
+                    <span className="cp-badge-label">{courseData.level}</span>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <div className="cp-empty">
-              <p>Course not found</p>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              <h3>Course Not Found</h3>
+              <p>The course you're looking for doesn't exist or you don't have access to it.</p>
+              <button className="cp-back-to-courses" onClick={() => navigate('/courses')}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                </svg>
+                Back to Courses
+              </button>
             </div>
           )}
 
@@ -272,17 +374,26 @@ export default function CoursePlayer() {
                     ) : (
                       <p className="cp-description-text">No description available for this course.</p>
                     )}
-                    {topics.length > 0 ? (
-                      <div className="cp-topics-list">
-                        {topics.map((topic, index) => (
-                          <div key={index} className="cp-topic-item">
-                            <span className="cp-topic-time">{topic.time}</span>
-                            <span className="cp-topic-title">{topic.title}</span>
-                          </div>
-                        ))}
+                    {topics.length > 0 && (
+                      <div className="cp-topics-section">
+                        <h4 className="cp-topics-heading">Course Topics</h4>
+                        <div className="cp-topics-list">
+                          {topics.map((topic, index) => (
+                            <div key={topic.id} className="cp-topic-item">
+                              <div className="cp-topic-number">{index + 1}</div>
+                              <div className="cp-topic-content">
+                                <div className="cp-topic-title">{topic.name}</div>
+                                {topic.description && (
+                                  <div className="cp-topic-description">{topic.description}</div>
+                                )}
+                                <div className="cp-topic-lessons-count">
+                                  {topic.lessons?.length || 0} lessons
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ) : (
-                      <p>No topics available for this course.</p>
                     )}
                   </div>
                 )}
@@ -554,6 +665,9 @@ export default function CoursePlayer() {
                       >
                         <div className="cp-lesson-info">
                           <div className="cp-lesson-title">{lesson.title}</div>
+                          {lesson.topic && (
+                            <div className="cp-lesson-topic">Topic: {lesson.topic}</div>
+                          )}
                           <div className="cp-lesson-duration">{lesson.duration}</div>
                         </div>
                         <button className="cp-expand-btn">

@@ -43,7 +43,7 @@ const studentSchema = new mongoose.Schema({
     enum: ['autism', 'downSyndrome'],
     default: null
   },
-  avatar: {
+  profilePic: {
     type: String,
     default: 'default-avatar.png'
   },

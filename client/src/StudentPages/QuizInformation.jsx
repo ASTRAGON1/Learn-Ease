@@ -79,26 +79,25 @@ export default function QuizInformation() {
 
   const stats = useMemo(() => {
     return {
-      all: DEMO.length,
-      upcoming: DEMO.filter((q) => q.status === "upcoming").length,
-      graded: DEMO.filter((q) => q.status === "graded").length,
+      all: quizzes.length,
+      upcoming: quizzes.filter((q) => q.status === "upcoming").length,
+      graded: quizzes.filter((q) => q.status === "graded").length,
     };
-  }, []);
+  }, [quizzes]);
 
   return (
     <div className="qi-page">
       {/* Header */}
       <header className="qi-header">
+        <Link to="/student-dashboard-2" className="qi-back-btn">
+          <span className="qi-back-chev">‹</span> Back to Dashboard
+        </Link>
         <div className="qi-header-content">
-          <div className="qi-header-left">
-            <Link to="/student-dashboard-2" className="qi-back-btn">
-              <span className="qi-back-chev">‹</span> Dashboard
-            </Link>
-            <div>
-              <h1 className="qi-title">Quiz Information</h1>
-              <p className="qi-subtitle">View and manage all your quizzes</p>
-            </div>
+          <div className="qi-header-icon">
+            <BookOpen size={32} />
           </div>
+          <h1 className="qi-title">Quiz Information</h1>
+          <p className="qi-subtitle">View and manage all your quizzes</p>
         </div>
       </header>
 

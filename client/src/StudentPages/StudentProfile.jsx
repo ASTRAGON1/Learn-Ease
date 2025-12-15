@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import { 
   User, Mail, Phone, Calendar, GraduationCap, Award, 
-  Settings, Lock, Bell, Eye, EyeOff, Download, 
+  Settings, Lock, Bell, Eye, EyeOff, 
   Edit2, Save, X, Camera, TrendingUp, BookOpen,
   Clock, Star, Target, CheckCircle, ArrowLeft, Shield, Bell as BellIcon
 } from "lucide-react";
@@ -11,23 +11,45 @@ import "./StudentProfile.css";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function StudentProfile() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
-  const [profile, setProfile] = useState({
+const initialProfileState = {
+  id: "",
+  name: "",
+  email: "",
+  phone: "",
+  profilePic: "",
+  joinedDate: null,
+  stars: 0,
+  attendancePercent: 0,
+  coursesCompleted: 0,
+  coursesInProgress: 0,
+  totalHours: 0,
+  currentStreak: 0,
+  longestStreak: 0,
+  diagnosis: [],
+  age: 0,
+  pronouns: "",
+  gradeLevel: "",
+  dateOfBirth: "",
+  location: "",
+  preferences: "",
+  guardian: {
     name: "",
     email: "",
     phone: "",
-    avatar: "",
-    joinedDate: null,
-    stars: 0,
-    attendancePercent: 0,
-    coursesCompleted: 0,
-    coursesInProgress: 0,
-    totalHours: 0,
-    currentStreak: 0,
-    longestStreak: 0,
-  });
+    relationship: ""
+  },
+  emergency: {
+    name: "",
+    phone: "",
+    relation: ""
+  }
+};
+
+export default function StudentProfile() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [profile, setProfile] = useState(initialProfileState);
+  const [initialProfile, setInitialProfile] = useState(initialProfileState);
   const [recentAchievements, setRecentAchievements] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
 
@@ -73,13 +95,16 @@ export default function StudentProfile() {
             const student = data.data || data;
             
             if (student.name || student.fullName) {
-              setProfile(prev => ({
-                ...prev,
-                name: student.name || student.fullName,
-                email: student.email || prev.email,
-                avatar: student.avatar || prev.avatar,
-                joinedDate: student.createdAt || prev.joinedDate
-              }));
+              const updatedProfile = {
+                ...initialProfileState,
+                id: student._id || student.id || "",
+                name: student.name || student.fullName || "",
+                email: student.email || "",
+                profilePic: student.profilePic || "",
+                joinedDate: student.createdAt || null
+              };
+              setProfile(updatedProfile);
+              setInitialProfile(updatedProfile);
             }
 
             // TODO: Fetch achievements and activity from API when endpoints are available
@@ -119,36 +144,112 @@ export default function StudentProfile() {
       alert("New passwords do not match!");
       return;
     }
-    if (passwordData.new.length < 8) {
-      alert("Password must be at least 8 characters!");
+    if (passwordData.new.length < 6) {
+      alert("Password must be at least 6 characters!");
       return;
     }
-    // API call would go here
-    // await fetch("/api/student/password", { method: "PUT", body: JSON.stringify(passwordData) });
-    setPasswordData({ current: "", new: "", confirm: "" });
-    alert("Password changed successfully!");
+
+    if (!passwordData.current) {
+      alert("Please enter your current password!");
+      return;
+    }
+
+    try {
+      const token = window.sessionStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/students/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.current,
+          newPassword: passwordData.new
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPasswordData({ current: "", new: "", confirm: "" });
+        alert(data.message || "Password changed successfully!");
+      } else {
+        alert(data.error || "Failed to change password. Please try again.");
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert('Error changing password. Please try again.');
+    }
   };
 
-  const handleUploadAvatar = (e) => {
+  const handleUploadAvatar = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfile((p) => ({ ...p, avatar: reader.result }));
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const handleDownloadData = () => {
-    // Create a downloadable JSON file
-    const dataStr = JSON.stringify(profile, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `profile-data-${profile.id}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (JPG, PNG, GIF, WEBP)');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    try {
+      // Show loading state (preview the image immediately)
+      const loadingReader = new FileReader();
+      loadingReader.onloadend = () => {
+        setProfile((p) => ({ ...p, profilePic: loadingReader.result }));
+      };
+      loadingReader.readAsDataURL(file);
+
+      // Convert to base64 and upload to MongoDB
+      // This works for all users regardless of Firebase authentication
+      console.log('📤 Converting image to base64 for upload...');
+      
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result;
+        
+        // Update MongoDB via API with base64 image
+        const token = window.sessionStorage.getItem('token');
+        const response = await fetch(`${API_URL}/api/students/profile-picture`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ profilePic: base64Image })
+        });
+
+        if (response.ok) {
+          console.log('✅ Profile picture updated successfully');
+          setProfile((p) => ({ ...p, profilePic: base64Image }));
+          setInitialProfile((p) => ({ ...p, profilePic: base64Image }));
+          alert('Profile picture updated successfully!');
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Failed to update profile picture:', errorData);
+          alert('Failed to update profile picture. Please try again.');
+          // Revert to original picture
+          setProfile((p) => ({ ...p, profilePic: initialProfile.profilePic }));
+        }
+      };
+      reader.onerror = () => {
+        console.error('Error reading file');
+        alert('Error reading file. Please try again.');
+        setProfile((p) => ({ ...p, profilePic: initialProfile.profilePic }));
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert(`Error uploading profile picture: ${error.message}`);
+      // Revert to original picture
+      setProfile((p) => ({ ...p, profilePic: initialProfile.profilePic }));
+    }
   };
 
   return (
@@ -171,8 +272,8 @@ export default function StudentProfile() {
             <div className="sp-hero-left">
               <div className="sp-avatar-container-new">
                 <div className="sp-avatar-wrapper-new">
-              {profile.avatar ? (
-                    <img src={profile.avatar} alt={profile.name} className="sp-avatar-image-new" />
+              {profile.profilePic ? (
+                    <img src={profile.profilePic} alt={profile.name} className="sp-avatar-image-new" />
               ) : (
                     <div className="sp-avatar-placeholder-new">
                   {profile.name.slice(0, 2).toUpperCase()}
@@ -182,18 +283,25 @@ export default function StudentProfile() {
                 <input type="file" accept="image/*" onChange={handleUploadAvatar} />
                     <Camera size={16} />
               </label>
-            </div>
+                </div>
               </div>
               <div className="sp-hero-info-new">
                 <h2 className="sp-hero-name-new">{profile.name}</h2>
                 <p className="sp-hero-email-new">{profile.email}</p>
                 <div className="sp-badges-container-new">
-                {profile.diagnosis.map((d, idx) => (
+                {profile.diagnosis && profile.diagnosis.length > 0 ? (
+                  profile.diagnosis.map((d, idx) => (
                     <span key={idx} className="sp-badge-new">
                       <CheckCircle size={14} />
                       {d}
                     </span>
-                ))}
+                  ))
+                ) : (
+                  <span className="sp-badge-new">
+                    <CheckCircle size={14} />
+                    Student
+                  </span>
+                )}
               </div>
             </div>
             </div>
@@ -366,19 +474,15 @@ export default function StudentProfile() {
                   <div className="sp-contact-list">
                     <div className="sp-contact-item">
                       <Mail size={18} />
-                      <span>{profile.guardian.email}</span>
+                      <span>{profile.guardian?.email || "Not provided"}</span>
                     </div>
                     <div className="sp-contact-item">
                       <Phone size={18} />
-                      <span>{profile.guardian.phone}</span>
+                      <span>{profile.guardian?.phone || "Not provided"}</span>
                     </div>
                     <div className="sp-contact-item">
                       <User size={18} />
-                      <span>Guardian: {profile.guardian.name}</span>
-                    </div>
-                    <div className="sp-contact-item">
-                      <Phone size={18} />
-                      <span>Emergency: {profile.emergency.name} ({profile.emergency.phone})</span>
+                      <span>Guardian: {profile.guardian?.name || "Not provided"}</span>
                     </div>
                   </div>
                 </div>
@@ -425,24 +529,6 @@ export default function StudentProfile() {
                         type="number"
                         value={profile.age}
                         onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || 0 })}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  <div className="sp-form-group">
-                      <label>Pronouns</label>
-                      <input
-                        type="text"
-                        value={profile.pronouns}
-                        onChange={(e) => setProfile({ ...profile, pronouns: e.target.value })}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  <div className="sp-form-group">
-                      <label>Grade Level</label>
-                      <input
-                        type="text"
-                        value={profile.gradeLevel}
-                        onChange={(e) => setProfile({ ...profile, gradeLevel: e.target.value })}
                         disabled={!isEditing}
                       />
                     </div>
@@ -502,39 +588,6 @@ export default function StudentProfile() {
                   </div>
                 </div>
               </div>
-
-              <div className="sp-form-card">
-                <h3 className="sp-form-title">Emergency Contact</h3>
-                <div className="sp-form-grid">
-                  <div className="sp-form-group">
-                    <label>Emergency Contact Name</label>
-                    <input
-                      type="text"
-                      value={profile.emergency.name}
-                      onChange={(e) => setProfile({ ...profile, emergency: { ...profile.emergency, name: e.target.value } })}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                  <div className="sp-form-group">
-                      <label>Emergency Phone</label>
-                      <input
-                        type="tel"
-                        value={profile.emergency.phone}
-                        onChange={(e) => setProfile({ ...profile, emergency: { ...profile.emergency, phone: e.target.value } })}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  <div className="sp-form-group">
-                      <label>Relation</label>
-                      <input
-                        type="text"
-                        value={profile.emergency.relation}
-                        onChange={(e) => setProfile({ ...profile, emergency: { ...profile.emergency, relation: e.target.value } })}
-                        disabled={!isEditing}
-                      />
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -557,21 +610,6 @@ export default function StudentProfile() {
                     <input type="email" value={profile.email} disabled />
                     <small>Contact support to change your email address</small>
                   </div>
-                </div>
-              </div>
-
-              <div className="sp-form-card">
-                <div className="sp-card-header-with-action">
-                  <div>
-                    <h3 className="sp-form-title">Download Your Data</h3>
-                    <p className="sp-card-description">
-                  Download a copy of your profile data, achievements, and progress in JSON format.
-                </p>
-                  </div>
-                  <button className="sp-btn-secondary" onClick={handleDownloadData}>
-                    <Download size={18} />
-                    Download
-                  </button>
                 </div>
               </div>
             </div>
@@ -608,7 +646,7 @@ export default function StudentProfile() {
                         type={showPassword ? "text" : "password"}
                         value={passwordData.new}
                         onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
-                        placeholder="Enter new password (min. 8 characters)"
+                        placeholder="Enter new password (min. 6 characters)"
                       />
                     </div>
                   </div>

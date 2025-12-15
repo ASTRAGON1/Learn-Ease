@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Allow authenticated users to upload their profile pictures
+    match /profile-pictures/{userId}/{fileName} {
+      // Allow read for all authenticated users
+      allow read: if request.auth != null;
+      
+      // Allow write (upload, update, delete) only for the owner
+      // File size must be less than 5MB
+      // File must be an image (jpg, jpeg, png, gif, webp)
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Deny all other access by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

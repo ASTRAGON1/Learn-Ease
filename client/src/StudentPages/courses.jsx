@@ -441,12 +441,24 @@ export default function Courses() {
       {/* Main Content */}
       <div className={`courses-main ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
         {/* Header Section */}
-        <header className="courses-header">
-          <div className="courses-header-content">
-            <div className="courses-header-text">
-              <h1 className="courses-page-title">All Courses</h1>
-              <p className="courses-page-subtitle">{stats.total} courses available</p>
+        <header className="courses-header-new">
+          <div className="courses-header-gradient">
+            <div className="courses-header-content-new">
+              <div className="courses-header-text">
+                <h1 className="courses-page-title-new">All Courses</h1>
+                <p className="courses-page-subtitle-new">{stats.total} courses available</p>
+              </div>
+              <div className="courses-header-icon-wrapper">
+                <svg className="courses-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+              </div>
             </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="courses-search-section">
             <div className="courses-header-search">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -463,56 +475,56 @@ export default function Courses() {
           </div>
 
           {/* Stats Overview */}
-          <div className="courses-stats-overview">
-            <div className="courses-stat-card">
-              <div className="courses-stat-icon" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="courses-stats-overview-new">
+            <div className="courses-stat-card-new">
+              <div className="courses-stat-icon-new" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                 </svg>
               </div>
-              <div className="courses-stat-content">
-                <div className="courses-stat-value">{stats.total}</div>
-                <div className="courses-stat-label">Total</div>
+              <div className="courses-stat-content-new">
+                <div className="courses-stat-value-new">{stats.total}</div>
+                <div className="courses-stat-label-new">TOTAL</div>
               </div>
             </div>
 
-            <div className="courses-stat-card">
-              <div className="courses-stat-icon" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="courses-stat-card-new">
+              <div className="courses-stat-icon-new" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"></circle>
                   <polygon points="10 8 16 12 10 16 10 8"></polygon>
                 </svg>
               </div>
-              <div className="courses-stat-content">
-                <div className="courses-stat-value">{stats.inProgress}</div>
-                <div className="courses-stat-label">Active</div>
+              <div className="courses-stat-content-new">
+                <div className="courses-stat-value-new">{stats.inProgress}</div>
+                <div className="courses-stat-label-new">ACTIVE</div>
               </div>
             </div>
 
-            <div className="courses-stat-card">
-              <div className="courses-stat-icon" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="courses-stat-card-new">
+              <div className="courses-stat-icon-new" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
               </div>
-              <div className="courses-stat-content">
-                <div className="courses-stat-value">{stats.completed}</div>
-                <div className="courses-stat-label">Done</div>
+              <div className="courses-stat-content-new">
+                <div className="courses-stat-value-new">{stats.completed}</div>
+                <div className="courses-stat-label-new">DONE</div>
               </div>
             </div>
 
-            <div className="courses-stat-card">
-              <div className="courses-stat-icon" style={{ background: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="courses-stat-card-new">
+              <div className="courses-stat-icon-new" style={{ background: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
               </div>
-              <div className="courses-stat-content">
-                <div className="courses-stat-value">{stats.locked}</div>
-                <div className="courses-stat-label">Locked</div>
+              <div className="courses-stat-content-new">
+                <div className="courses-stat-value-new">{stats.locked}</div>
+                <div className="courses-stat-label-new">LOCKED</div>
               </div>
             </div>
           </div>

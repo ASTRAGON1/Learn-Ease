@@ -166,7 +166,7 @@ router.get('/auth/me', require('../middleware/auth')(['student']), requireDiagno
         name: student.name,
         fullName: student.name,
         email: student.email,
-        avatar: student.avatar,
+        profilePic: student.profilePic,
         type: student.type,
         userStatus: student.userStatus,
         assignedPath: student.assignedPath,
@@ -328,6 +328,95 @@ router.get('/achievements', require('../middleware/auth')(['student']), requireD
   } catch (error) {
     console.error('Get student achievements error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT /api/students/profile-picture - Update student profile picture
+router.put('/profile-picture', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const { profilePic } = req.body;
+
+    if (!profilePic) {
+      return res.status(400).json({ error: 'Profile picture URL is required' });
+    }
+
+    // Validate URL or base64 format
+    if (!profilePic.startsWith('http') && !profilePic.startsWith('data:image/')) {
+      return res.status(400).json({ error: 'Invalid profile picture format. Must be a URL or base64 data URI' });
+    }
+
+    const student = await Student.findByIdAndUpdate(
+      req.user.sub,
+      { profilePic },
+      { new: true }
+    ).select('-pass');
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    console.log(`✅ Profile picture updated for student: ${student._id}`);
+
+    res.json({
+      success: true,
+      data: {
+        profilePic: student.profilePic
+      }
+    });
+  } catch (error) {
+    console.error('Update profile picture error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT /api/students/change-password - Change student password
+router.put('/change-password', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    const studentId = req.user.sub;
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Check if student has a password (not Firebase-only account)
+    if (!student.pass) {
+      // Student is Firebase-only, set new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      await Student.findByIdAndUpdate(studentId, { pass: hashedNewPassword });
+      return res.json({ 
+        success: true, 
+        message: 'Password set successfully. You can now use both Firebase and email/password login.' 
+      });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, student.pass);
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash and update new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await Student.findByIdAndUpdate(studentId, { pass: hashedNewPassword });
+
+    res.json({ 
+      success: true, 
+      message: 'Password updated successfully' 
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Server error while updating password' });
   }
 });
 

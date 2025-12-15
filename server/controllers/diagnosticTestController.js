@@ -68,11 +68,9 @@ exports.getQuestions = async (req, res) => {
 // Get all questions for admin (including inactive)
 exports.getAllQuestionsForAdmin = async (req, res) => {
   try {
-    console.log('🔍 Fetching all questions for admin from MongoDB...');
     const questions = await DiagnosticQuestion.find()
       .sort({ section: 1, order: 1 });
 
-    console.log(`📊 Found ${questions.length} questions in MongoDB`);
     res.json({ ok: true, data: questions });
   } catch (error) {
     console.error('❌ Get all questions error:', error);
