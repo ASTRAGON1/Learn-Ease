@@ -14,7 +14,7 @@ import LearningPaths from "./components/LearningPaths";
 import Profiles from "./components/Profiles";
 import InstructorProfile from "./components/InstructorProfile";
 import Settings from "./components/Settings";
-import Achievements from "./components/Achievements";
+import AchievementsAndTests from "./components/AchievementsAndTests";
 
 // Utils
 import api from "./utils/api";
@@ -47,6 +47,7 @@ export default function AdminPanel2() {
   const [modLog, setModLog] = useState([]); // {id, userId, type, name, reason, at}
   const [learningPaths, setLearningPaths] = useState([]);
   const [achievements, setAchievements] = useState([]);
+  const [diagnosticQuestions, setDiagnosticQuestions] = useState([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState(null);
 
   const [search, setSearch] = useState(""); // Global search for all components except Users
@@ -325,6 +326,41 @@ export default function AdminPanel2() {
       return () => clearInterval(interval);
     } else {
       setAchievements([]);
+    }
+  }, [isAuthed]);
+
+  // Fetch diagnostic questions on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchDiagnosticQuestions = async () => {
+        try {
+          console.log('Fetching diagnostic questions from API...');
+          const res = await api.getDiagnosticQuestions();
+          console.log('Diagnostic questions API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} diagnostic questions:`, res.data);
+              setDiagnosticQuestions(res.data);
+            } else {
+              console.log('No diagnostic questions data, setting empty array');
+              setDiagnosticQuestions([]);
+            }
+          } else {
+            console.warn('Failed to fetch diagnostic questions:', res);
+            setDiagnosticQuestions([]);
+          }
+        } catch (error) {
+          console.error('Error fetching diagnostic questions:', error);
+          setDiagnosticQuestions([]);
+        }
+      };
+      fetchDiagnosticQuestions();
+      
+      // Refresh diagnostic questions every 30 seconds
+      const interval = setInterval(fetchDiagnosticQuestions, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setDiagnosticQuestions([]);
     }
   }, [isAuthed]);
 
@@ -919,43 +955,80 @@ export default function AdminPanel2() {
     }
   }
 
-  async function handleToggleAchievementStatus(id, isActive) {
+  // Removed handleToggleAchievementStatus - achievements no longer have isActive status
+
+  
+  // Diagnostic Questions Handlers
+  async function handleCreateDiagnosticQuestion(questionData) {
     try {
-      const res = await api.toggleAchievementStatus(id, isActive);
+      const res = await api.createDiagnosticQuestion(questionData);
       if (!res.ok) {
-        showToast(res.error || "Failed to toggle achievement status", "error");
+        showToast(res.error || "Failed to create question", "error");
         return;
       }
-      setAchievements((prev) =>
-        prev.map((a) => ((a._id || a.id) === id ? { ...a, isActive } : a))
-      );
-      showToast(`Achievement ${isActive ? 'enabled' : 'disabled'} successfully`, "success");
+      // Refresh questions
+      const fetchRes = await api.getDiagnosticQuestions();
+      if (fetchRes.ok) {
+        setDiagnosticQuestions(fetchRes.data || []);
+      }
+      showToast("Question created successfully", "success");
     } catch (error) {
-      console.error("Error toggling achievement status:", error);
-      showToast("An error occurred while toggling achievement status", "error");
+      console.error("Error creating question:", error);
+      showToast("An error occurred while creating the question", "error");
     }
   }
 
-  async function handleBulkImportAchievements(achievementsData) {
+  async function handleUpdateDiagnosticQuestion(id, questionData) {
     try {
-      const res = await api.bulkImportAchievements(achievementsData);
+      const res = await api.updateDiagnosticQuestion(id, questionData);
       if (!res.ok) {
-        showToast(res.error || "Failed to import achievements", "error");
-        return { success: false, error: res.error };
+        showToast(res.error || "Failed to update question", "error");
+        return;
       }
-      // Refresh achievements
-      const fetchRes = await api.getAchievements();
+      // Refresh questions
+      const fetchRes = await api.getDiagnosticQuestions();
       if (fetchRes.ok) {
-        setAchievements(fetchRes.data || []);
+        setDiagnosticQuestions(fetchRes.data || []);
       }
-      showToast(`Bulk import completed: ${res.data.count} achievements imported`, "success");
-      return { success: true, data: res.data };
+      showToast("Question updated successfully", "success");
     } catch (error) {
-      console.error("Error bulk importing achievements:", error);
-      showToast("An error occurred during bulk import", "error");
-      return { success: false, error: error.message };
+      console.error("Error updating question:", error);
+      showToast("An error occurred while updating the question", "error");
     }
   }
+
+  async function handleDeleteDiagnosticQuestion(id) {
+    try {
+      const res = await api.deleteDiagnosticQuestion(id);
+      if (!res.ok) {
+        showToast(res.error || "Failed to delete question", "error");
+        return;
+      }
+      setDiagnosticQuestions((prev) => prev.filter((q) => (q._id || q.id) !== id));
+      showToast("Question deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      showToast("An error occurred while deleting the question", "error");
+    }
+  }
+
+  async function handleToggleDiagnosticQuestionStatus(id, isActive) {
+    try {
+      const res = await api.toggleDiagnosticQuestionStatus(id, isActive);
+      if (!res.ok) {
+        showToast(res.error || "Failed to toggle question status", "error");
+        return;
+      }
+      setDiagnosticQuestions((prev) =>
+        prev.map((q) => ((q._id || q.id) === id ? { ...q, isActive } : q))
+      );
+      showToast(`Question ${isActive ? 'enabled' : 'disabled'} successfully`, "success");
+    } catch (error) {
+      console.error("Error toggling question status:", error);
+      showToast("An error occurred while toggling question status", "error");
+    }
+  }
+
   
   function openInstructor(id) {
     setSelectedInstructorId(id);
@@ -1056,15 +1129,15 @@ export default function AdminPanel2() {
       onClick: () => setSection("learning")
     },
     { 
-      key: "achievements", 
-      label: "Achievements", 
+      key: "achievements-tests", 
+      label: "Achievements & Tests", 
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="8" r="7"></circle>
           <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
         </svg>
       ),
-      onClick: () => setSection("achievements")
+      onClick: () => setSection("achievements-tests")
     },
     { 
       key: "profiles", 
@@ -1170,19 +1243,19 @@ export default function AdminPanel2() {
                  placeholder={
                    section === "users" 
                      ? "Users have their own search below" 
-                     : section === "settings" || section === "learning" || section === "achievements"
+                     : section === "settings" || section === "learning" || section === "achievements-tests"
                      ? "Search not available in this section"
                      : "Search anything..."
                  } 
-                value={section === "users" || section === "settings" || section === "learning" || section === "achievements" ? "" : search} 
+                value={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests" ? "" : search} 
                 onChange={(e) => {
-                  if (section !== "users" && section !== "settings" && section !== "learning" && section !== "achievements") {
+                  if (section !== "users" && section !== "settings" && section !== "learning" && section !== "achievements-tests") {
                     setSearch(e.target.value);
                   }
                 }}
-                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements"}
+                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"}
                 style={
-                  section === "users" || section === "settings" || section === "learning" || section === "achievements"
+                  section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"
                     ? { opacity: 0.5, cursor: "not-allowed" }
                     : {}
                 }
@@ -1190,9 +1263,9 @@ export default function AdminPanel2() {
                <button 
                 className="ld-search-btn" 
                 type="button"
-                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements"}
+                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"}
                 style={
-                  section === "users" || section === "settings" || section === "learning" || section === "achievements"
+                  section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"
                     ? { opacity: 0.5, cursor: "not-allowed" }
                     : {}
                 }
@@ -1284,14 +1357,17 @@ export default function AdminPanel2() {
               onDeleteLesson={handleDeleteLesson}
             />
           )}
-          {section === "achievements" && (
-            <Achievements
+          {section === "achievements-tests" && (
+            <AchievementsAndTests
               achievements={achievements}
               onCreateAchievement={handleCreateAchievement}
               onUpdateAchievement={handleUpdateAchievement}
               onDeleteAchievement={handleDeleteAchievement}
-              onToggleStatus={handleToggleAchievementStatus}
-              onBulkImport={handleBulkImportAchievements}
+              diagnosticQuestions={diagnosticQuestions}
+              onCreateQuestion={handleCreateDiagnosticQuestion}
+              onUpdateQuestion={handleUpdateDiagnosticQuestion}
+              onDeleteQuestion={handleDeleteDiagnosticQuestion}
+              onToggleQuestionStatus={handleToggleDiagnosticQuestionStatus}
             />
           )}
           {section === "profiles" && (

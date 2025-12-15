@@ -1,9 +1,27 @@
 const mongoose = require('mongoose');
 
 const achievementSchema = new mongoose.Schema({
-  name: {
+  type: {
     type: String,
     required: true,
+    enum: ['course', 'extra'],
+    trim: true
+  },
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true
+  },
+  course: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  badge: {
+    type: String,
+    required: true,
+    enum: ['platinum', 'gold', 'silver'],
     trim: true
   },
   description: {
@@ -11,56 +29,21 @@ const achievementSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  icon: {
-    type: String,
-    required: true,
-    trim: true,
-    enum: ['trophy', 'star', 'medal', 'certificate', 'crown', 'badge', 'flag', 'rocket', 'target', 'fire', 'lightning', 'heart', 'book', 'graduation', 'award']
-  },
   category: {
     type: String,
     required: true,
-    enum: ['learning', 'progress', 'social', 'special', 'milestone'],
-    default: 'learning'
-  },
-  points: {
-    type: Number,
-    required: true,
-    min: 0,
-    default: 10
-  },
-  requirement: {
-    type: {
-      type: String,
-      enum: ['courses_completed', 'quizzes_passed', 'lessons_finished', 'study_hours', 'perfect_scores', 'streak_days', 'custom'],
-      required: true
-    },
-    threshold: {
-      type: Number,
-      required: true,
-      min: 1
-    }
-  },
-  rarity: {
-    type: String,
-    enum: ['common', 'rare', 'epic', 'legendary'],
-    default: 'common'
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  createdBy: {
-    type: String,
-    default: 'admin'
+    enum: ['Core Course', 'Extra Course'],
+    trim: true
   }
 }, {
   timestamps: true
 });
 
 // Index for faster queries
-achievementSchema.index({ category: 1, isActive: 1 });
-achievementSchema.index({ 'requirement.type': 1 });
+// Note: title already has unique: true which creates an index, so we don't need to add it again
+achievementSchema.index({ type: 1 });
+achievementSchema.index({ category: 1 });
+achievementSchema.index({ badge: 1 });
 
 const Achievement = mongoose.model('Achievement', achievementSchema);
 

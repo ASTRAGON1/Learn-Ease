@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Trophy, Award, Star, TrendingUp, BookOpen, Medal, ChevronRight } from "lucide-react";
+import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import "./AchievementPage.css";
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
 import icPersonalizedPath from "../assets/Path.svg";
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function AchievementPage() {
   const navigate = useNavigate();
@@ -13,95 +16,64 @@ export default function AchievementPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
-  // Sample achievement data - this should come from your backend/API
-  const achievements = [
-    {
-      id: "a1",
-      type: "course",
-      title: "Listening Skills Master",
-      course: "Listening Skills",
-      grade: 98,
-      badge: "platinum",
-      completedAt: "2024-12-15",
-      description: "Completed with exceptional performance",
-      category: "Core Course"
-    },
-    {
-      id: "a2",
-      type: "course",
-      title: "Communication Excellence",
-      course: "Communication Skills",
-      grade: 92,
-      badge: "gold",
-      completedAt: "2024-12-10",
-      description: "Outstanding achievement in communication",
-      category: "Core Course"
-    },
-    {
-      id: "a3",
-      type: "extra",
-      title: "Digital Art Pro",
-      course: "Digital Illustration with Adobe Illustrator",
-      grade: 95,
-      badge: "platinum",
-      completedAt: "2024-12-05",
-      description: "Extra course completed with high grade",
-      category: "Extra Course"
-    },
-    {
-      id: "a4",
-      type: "course",
-      title: "Social Interaction Champion",
-      course: "Social Skills",
-      grade: 88,
-      badge: "gold",
-      completedAt: "2024-11-28",
-      description: "Great progress in social interactions",
-      category: "Core Course"
-    },
-    {
-      id: "a5",
-      type: "extra",
-      title: "Public Speaking Expert",
-      course: "Public Speaking and Leadership",
-      grade: 90,
-      badge: "gold",
-      completedAt: "2024-11-20",
-      description: "Completed extra course successfully",
-      category: "Extra Course"
-    },
-    {
-      id: "a6",
-      type: "course",
-      title: "Emotional Intelligence",
-      course: "Understanding Emotions",
-      grade: 85,
-      badge: "gold",
-      completedAt: "2024-11-15",
-      description: "Strong performance in emotional learning",
-      category: "Core Course"
-    }
-  ];
+  // Check if diagnostic quiz is completed
+  useDiagnosticQuizCheck();
 
-  // In-progress extra courses
-  const inProgressCourses = [
-    {
-      id: "ip1",
-      title: "Creative Writing Fundamentals",
-      progress: 65,
-      currentLesson: 13,
-      totalLessons: 20,
-      category: "Extra Course"
-    },
-    {
-      id: "ip2",
-      title: "Introduction to Psychology",
-      progress: 40,
-      currentLesson: 8,
-      totalLessons: 20,
-      category: "Extra Course"
-    }
-  ];
+  const [achievements, setAchievements] = useState([]);
+  const [inProgressCourses, setInProgressCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch achievements from API
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch student achievements from API
+        const response = await fetch(`${API_URL}/api/students/achievements`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setAchievements(data.data.achievements || []);
+            setInProgressCourses([]);
+          } else {
+            setAchievements([]);
+            setInProgressCourses([]);
+          }
+        } else {
+          console.error('Failed to fetch achievements:', response.status);
+          setAchievements([]);
+          setInProgressCourses([]);
+        }
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+        setAchievements([]);
+        setInProgressCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
+
+  // Get recent achievements (most recent 3)
+  const recentAchievements = useMemo(() => {
+    return achievements
+      .sort((a, b) => {
+        const dateA = a.earnedAt ? new Date(a.earnedAt) : (a.completedAt ? new Date(a.completedAt) : new Date(0));
+        const dateB = b.earnedAt ? new Date(b.earnedAt) : (b.completedAt ? new Date(b.completedAt) : new Date(0));
+        return dateB - dateA;
+      })
+      .slice(0, 3);
+  }, [achievements]);
 
   // Filter achievements based on active tab
   const filteredAchievements = activeTab === "all" 
@@ -109,14 +81,26 @@ export default function AchievementPage() {
     : achievements.filter(a => a.type === activeTab);
 
   // Calculate statistics
-  const stats = {
-    totalAchievements: achievements.length,
-    highGrades: achievements.filter(a => a.grade >= 90).length,
-    platinumBadges: achievements.filter(a => a.badge === "platinum").length,
-    goldBadges: achievements.filter(a => a.badge === "gold").length,
-    averageGrade: Math.round(achievements.reduce((sum, a) => sum + a.grade, 0) / achievements.length),
-    extraCourses: achievements.filter(a => a.type === "extra").length
-  };
+  const stats = useMemo(() => {
+    const total = achievements.length;
+    const highGrades = achievements.filter(a => a.grade && a.grade >= 90).length;
+    const platinumBadges = achievements.filter(a => a.badge === "platinum").length;
+    const goldBadges = achievements.filter(a => a.badge === "gold").length;
+    const gradesWithValues = achievements.filter(a => a.grade !== null && a.grade !== undefined);
+    const averageGrade = gradesWithValues.length > 0
+      ? Math.round(gradesWithValues.reduce((sum, a) => sum + a.grade, 0) / gradesWithValues.length)
+      : 0;
+    const extraCourses = achievements.filter(a => a.type === "extra").length;
+
+    return {
+      totalAchievements: total,
+      highGrades,
+      platinumBadges,
+      goldBadges,
+      averageGrade,
+      extraCourses
+    };
+  }, [achievements]);
 
   const getBadgeIcon = (badge) => {
     switch(badge) {
@@ -260,73 +244,122 @@ export default function AchievementPage() {
       {/* Main Content */}
       <div className={`achv-main ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
         {/* Header */}
-        <header className="achv-header">
-          <div className="achv-header-content">
-            <h1 className="achv-page-title">
-              <Trophy className="achv-title-icon" />
-              My Achievements
-            </h1>
-            <p className="achv-page-subtitle">Track your progress and celebrate your success</p>
+        <header className="achv-header-new">
+          <div className="achv-header-gradient">
+            <div className="achv-header-content-new">
+              <div className="achv-header-text">
+                <h1 className="achv-page-title-new">My Achievements</h1>
+                <p className="achv-page-subtitle-new">Celebrate your learning journey and milestones</p>
+              </div>
+              <div className="achv-header-icon-wrapper">
+                <Trophy className="achv-header-trophy" />
+              </div>
+            </div>
           </div>
         </header>
 
+        {/* Recent Achievements Section */}
+        {recentAchievements.length > 0 && (
+          <section className="achv-recent-section">
+            <div className="achv-recent-header">
+              <h2 className="achv-recent-title">
+                <Star className="achv-recent-icon" />
+                Recent Achievements
+              </h2>
+            </div>
+            <div className="achv-recent-grid">
+              {recentAchievements.map((achievement) => (
+                <div key={achievement.id} className="achv-recent-card">
+                  <div className="achv-recent-badge-wrapper">
+                    <div 
+                      className="achv-recent-badge-icon"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${getBadgeColor(achievement.badge)}40, ${getBadgeColor(achievement.badge)}20)`,
+                        borderColor: getBadgeColor(achievement.badge)
+                      }}
+                    >
+                      {getBadgeIcon(achievement.badge)}
+                    </div>
+                  </div>
+                  <div className="achv-recent-content">
+                    <h3 className="achv-recent-card-title">{achievement.title}</h3>
+                    <p className="achv-recent-card-course">{achievement.course}</p>
+                    {achievement.grade !== null && achievement.grade !== undefined && (
+                      <div className="achv-recent-grade">{achievement.grade}%</div>
+                    )}
+                    {(achievement.earnedAt || achievement.completedAt) && (
+                      <div className="achv-recent-date">
+                        {new Date(achievement.earnedAt || achievement.completedAt).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Statistics Cards */}
-        <section className="achv-stats-section">
-          <div className="achv-stat-card">
-            <div className="achv-stat-icon" style={{ background: "rgba(76, 15, 173, 0.1)" }}>
-              <Trophy style={{ color: "#4C0FAD" }} />
+        <section className="achv-stats-section-new">
+          <div className="achv-stat-card-new">
+            <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #4C0FAD 0%, #7C3AED 100%)" }}>
+              <Trophy />
             </div>
-            <div className="achv-stat-content">
-              <div className="achv-stat-value">{stats.totalAchievements}</div>
-              <div className="achv-stat-label">Total Achievements</div>
-            </div>
-          </div>
-          <div className="achv-stat-card">
-            <div className="achv-stat-icon" style={{ background: "rgba(251, 191, 36, 0.1)" }}>
-              <Star style={{ color: "#fbbf24" }} />
-            </div>
-            <div className="achv-stat-content">
-              <div className="achv-stat-value">{stats.highGrades}</div>
-              <div className="achv-stat-label">High Grades (90+)</div>
+            <div className="achv-stat-content-new">
+              <div className="achv-stat-value-new">{stats.totalAchievements}</div>
+              <div className="achv-stat-label-new">Total Achievements</div>
             </div>
           </div>
-          <div className="achv-stat-card">
-            <div className="achv-stat-icon" style={{ background: "rgba(203, 213, 225, 0.1)" }}>
-              <Medal style={{ color: "#cbd5e1" }} />
+          <div className="achv-stat-card-new">
+            <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)" }}>
+              <Star />
             </div>
-            <div className="achv-stat-content">
-              <div className="achv-stat-value">{stats.platinumBadges}</div>
-              <div className="achv-stat-label">Platinum Badges</div>
+            <div className="achv-stat-content-new">
+              <div className="achv-stat-value-new">{stats.highGrades}</div>
+              <div className="achv-stat-label-new">High Grades (90+)</div>
             </div>
           </div>
-          <div className="achv-stat-card">
-            <div className="achv-stat-icon" style={{ background: "rgba(16, 185, 129, 0.1)" }}>
-              <TrendingUp style={{ color: "#10b981" }} />
+          <div className="achv-stat-card-new">
+            <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)" }}>
+              <Medal />
             </div>
-            <div className="achv-stat-content">
-              <div className="achv-stat-value">{stats.averageGrade}%</div>
-              <div className="achv-stat-label">Average Grade</div>
+            <div className="achv-stat-content-new">
+              <div className="achv-stat-value-new">{stats.platinumBadges}</div>
+              <div className="achv-stat-label-new">Platinum Badges</div>
+            </div>
+          </div>
+          <div className="achv-stat-card-new">
+            <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)" }}>
+              <TrendingUp />
+            </div>
+            <div className="achv-stat-content-new">
+              <div className="achv-stat-value-new">{stats.averageGrade}%</div>
+              <div className="achv-stat-label-new">Average Grade</div>
             </div>
           </div>
         </section>
 
         {/* Tabs */}
-        <section className="achv-tabs-section">
-          <div className="achv-tabs">
+        <section className="achv-tabs-section-new">
+          <div className="achv-tabs-new">
             <button
-              className={`achv-tab ${activeTab === "all" ? "active" : ""}`}
+              className={`achv-tab-new ${activeTab === "all" ? "active" : ""}`}
               onClick={() => setActiveTab("all")}
             >
               All Achievements
             </button>
             <button
-              className={`achv-tab ${activeTab === "course" ? "active" : ""}`}
+              className={`achv-tab-new ${activeTab === "course" ? "active" : ""}`}
               onClick={() => setActiveTab("course")}
             >
               Core Courses
             </button>
             <button
-              className={`achv-tab ${activeTab === "extra" ? "active" : ""}`}
+              className={`achv-tab-new ${activeTab === "extra" ? "active" : ""}`}
               onClick={() => setActiveTab("extra")}
             >
               Extra Courses
@@ -336,7 +369,12 @@ export default function AchievementPage() {
 
         {/* Achievements Grid */}
         <section className="achv-achievements-section">
-          {filteredAchievements.length > 0 ? (
+          {loading ? (
+            <div className="achv-empty">
+              <Trophy className="achv-empty-icon" />
+              <p>Loading achievements...</p>
+            </div>
+          ) : filteredAchievements.length > 0 ? (
             <div className="achv-grid">
               {filteredAchievements.map((achievement) => (
                 <div key={achievement.id} className="achv-card">
@@ -357,21 +395,25 @@ export default function AchievementPage() {
                     <p className="achv-card-course">{achievement.course}</p>
                     <p className="achv-card-description">{achievement.description}</p>
                     <div className="achv-card-footer">
-                      <div className="achv-grade-display">
-                        <span className="achv-grade-label">Final Grade</span>
-                        <span className="achv-grade-value">{achievement.grade}%</span>
-                      </div>
+                      {achievement.grade !== null && achievement.grade !== undefined && (
+                        <div className="achv-grade-display">
+                          <span className="achv-grade-label">Final Grade</span>
+                          <span className="achv-grade-value">{achievement.grade}%</span>
+                        </div>
+                      )}
                       <div className="achv-badge-label">
                         {achievement.badge.charAt(0).toUpperCase() + achievement.badge.slice(1)} Badge
                       </div>
                     </div>
-                    <div className="achv-date">
-                      Earned on {new Date(achievement.completedAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </div>
+                    {(achievement.earnedAt || achievement.completedAt) && (
+                      <div className="achv-date">
+                        Earned on {new Date(achievement.earnedAt || achievement.completedAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

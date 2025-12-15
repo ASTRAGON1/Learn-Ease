@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import "./PersonalizedPath.css";
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import fullLogo from "../assets/OrangeLogo.png";
@@ -206,29 +207,140 @@ function PersonalizedPath() {
   const location = useLocation();
   const [expandedCourse, setExpandedCourse] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const [studentPathType] = useState("autism"); // Should come from user profile/API
+  const [studentPathType, setStudentPathType] = useState(null);
   const [studentPath, setStudentPath] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // Mock student progress - should come from backend/API
-  const [studentProgress] = useState({
-    currentCourseIndex: 1,
-    completedCourses: [0],
-    courseProgress: {
-      0: { completedLessons: 20, totalLessons: 20 },
-      1: { completedLessons: 8, totalLessons: 18 },
-    },
+  const [progressData, setProgressData] = useState(null);
+  const [recentAchievements, setRecentAchievements] = useState([]);
+  const [achievementsLoading, setAchievementsLoading] = useState(true);
+  const [studentProgress, setStudentProgress] = useState({
+    currentCourseIndex: 0,
+    completedCourses: [],
+    courseProgress: {},
     stats: {
-      courses: { completed: 1, total: 7 },
-      quizzes: { completed: 30, total: 70 },
-      hours: 12,
-      streak: 5,
+      courses: { completed: 0, total: 7 },
+      quizzes: { completed: 0, total: 70 },
+      hours: 0,
+      streak: 0,
     }
   });
+  
+  // Check if diagnostic quiz is completed
+  useDiagnosticQuizCheck();
 
-  // Fetch learning path from API
+  // Fetch student info and progress
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        // Fetch student info to get type
+        const infoResponse = await fetch(`${API_URL}/api/students/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (infoResponse.ok) {
+          const infoData = await infoResponse.json();
+          if (infoData.data && infoData.data.type) {
+            setStudentPathType(infoData.data.type);
+          }
+        }
+
+        // Fetch student progress
+        const progressResponse = await fetch(`${API_URL}/api/students/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (progressResponse.ok) {
+          const progressResult = await progressResponse.json();
+          if (progressResult.success && progressResult.data) {
+            setProgressData(progressResult.data);
+            
+            // Update student progress state
+            setStudentProgress(prev => ({
+              ...prev,
+              courseProgress: progressResult.data.courseProgress.reduce((acc, cp) => {
+                const courseIndex = parseInt(cp.courseId) || 0;
+                acc[courseIndex] = {
+                  completedLessons: cp.completedLessons,
+                  totalLessons: cp.totalLessons
+                };
+                return acc;
+              }, {}),
+              completedCourses: progressResult.data.courseProgress
+                .filter(cp => cp.status === 'completed')
+                .map(cp => parseInt(cp.courseId) || 0),
+              currentCourseIndex: progressResult.data.courseProgress
+                .findIndex(cp => cp.status === 'in_progress') || 0,
+              stats: {
+                courses: { 
+                  completed: progressResult.data.coursesCompleted, 
+                  total: progressResult.data.totalCourses 
+                },
+                quizzes: { 
+                  completed: progressResult.data.quizzesCompleted, 
+                  total: progressResult.data.totalQuizzes 
+                },
+                hours: progressResult.data.hoursStudied,
+                streak: progressResult.data.currentStreak,
+              }
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching student data:', error);
+      }
+    };
+
+    fetchStudentData();
+  }, [navigate]);
+
+  // Fetch recent achievements
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token) {
+        setAchievementsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/students/achievements`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Get the 3 most recent achievements
+            const achievements = data.data.achievements || [];
+            setRecentAchievements(achievements.slice(0, 3));
+          } else {
+            setRecentAchievements([]);
+          }
+        } else {
+          setRecentAchievements([]);
+        }
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+        setRecentAchievements([]);
+      } finally {
+        setAchievementsLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
+
+  // Fetch learning path from API based on student type
   useEffect(() => {
     const fetchPath = async () => {
+      if (!studentPathType) return;
+      
       setLoading(true);
       try {
         const response = await fetch(`${API_URL}/api/admin/learning-paths`);
@@ -236,7 +348,7 @@ function PersonalizedPath() {
           const result = await response.json();
           if (result.success && result.data) {
             const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
-            const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(studentPathType.toLowerCase())));
+            const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(normalizedType)));
             if (path) {
               // Transform to expected format
               setStudentPath({
@@ -404,23 +516,23 @@ function PersonalizedPath() {
       icon: "📚", 
       label: "Courses", 
       value: `${studentProgress.stats.courses.completed}/${studentProgress.stats.courses.total}`,
-      trend: 5
+      trend: null
     },
     { 
       icon: "🧪", 
       label: "Quizzes", 
       value: `${studentProgress.stats.quizzes.completed}/${studentProgress.stats.quizzes.total}`,
-      trend: 8
+      trend: null
     },
     { 
       icon: "⏱", 
-      label: "Hours", 
+      label: "Hours Studied", 
       value: `${studentProgress.stats.hours}h`,
-      trend: 2
+      trend: null
     },
     { 
       icon: "🔥", 
-      label: "Streak", 
+      label: "Day Streak", 
       value: `${studentProgress.stats.streak} days`,
       trend: null
     },
@@ -478,10 +590,14 @@ function PersonalizedPath() {
       </aside>
 
       <div className={`pp-content ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
-        <header className="pp-top">
-          <div>
-            <h1 className="pp-main-title">My Learning Journey</h1>
-            <p className="pp-subtitle">{studentPath?.pathTitle || "Personalized Learning Path"}</p>
+        <header className="pp-header-new">
+          <div className="pp-header-gradient">
+            <div className="pp-header-content-new">
+              <div className="pp-header-text">
+                <h1 className="pp-page-title-new">My Learning Journey</h1>
+                <p className="pp-page-subtitle-new">{studentPath?.pathTitle || "Personalized Learning Path"}</p>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -496,27 +612,29 @@ function PersonalizedPath() {
           ) : (
             <main className="pp-main">
               {/* Overall Progress Section */}
-              <section className="pp-progress-section">
-                <div className="pp-progress-card">
-                  <div className="pp-progress-header">
-                    <div>
-                      <h2 className="pp-progress-title">Overall Progress</h2>
-                      <div className="pp-progress-meta">
-                        <span className="pp-level-badge">{getLevel()}</span>
-                        <span className="pp-progress-text">
+              <section className="pp-progress-section-new">
+                <div className="pp-progress-card-new">
+                  <div className="pp-progress-header-new">
+                    <div className="pp-progress-left">
+                      <h2 className="pp-progress-title-new">Overall Progress</h2>
+                      <div className="pp-progress-meta-new">
+                        <span className="pp-level-badge-new">{getLevel()}</span>
+                        <span className="pp-progress-text-new">
                           {courses.filter(c => c.status === "completed").length} of {courses.length} courses completed
                         </span>
                       </div>
                     </div>
-                    <CircularProgress progress={overallProgress} size={140} strokeWidth={10} />
+                    <div className="pp-progress-right">
+                      <CircularProgress progress={overallProgress} size={100} strokeWidth={8} />
+                    </div>
                   </div>
                 </div>
               </section>
 
             {/* Statistics Dashboard */}
-            <section className="pp-stats-section">
-              <h3 className="pp-section-title">Your Learning Stats</h3>
-              <div className="pp-stats-grid">
+            <section className="pp-stats-section-new">
+              <h3 className="pp-section-title-new">Your Learning Stats</h3>
+              <div className="pp-stats-grid-new">
                 {stats.map((stat, idx) => (
                   <StatCard key={idx} {...stat} />
                 ))}
@@ -604,76 +722,52 @@ function PersonalizedPath() {
 
           {/* Right Sidebar */}
           <aside className="pp-aside">
-            {/* Calendar */}
-            <section className="pp-card pp-calendar">
-              <div className="pp-cal-head">
-                <strong>December 2024</strong>
-                <div className="pp-cal-nav">
-                  <button aria-label="Prev month" className="pp-cal-btn">
-                    <span aria-hidden>‹</span>
-                  </button>
-                  <button aria-label="Next month" className="pp-cal-btn">
-                    <span aria-hidden>›</span>
-                  </button>
-                </div>
+            {/* Recent Achievements */}
+            <section className="pp-achievements-new">
+              <div className="pp-achievements-header-new">
+                <h3 className="pp-aside-title-new">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                    <path d="M4 22h16"></path>
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                  </svg>
+                  Recent Achievements
+                </h3>
               </div>
-              <div className="pp-cal-week">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span>
-                <span>Fri</span><span>Sat</span><span>Sun</span>
-              </div>
-              <div className="pp-cal-days">
-                <button className="muted">25</button>
-                <button className="muted">26</button>
-                <button className="muted">27</button>
-                <button className="muted">28</button>
-                <button className="muted">29</button>
-                <button className="muted">30</button>
-                <button className="pp-cal-day active">01</button>
-                <button>02</button>
-                <button>03</button>
-                <button>04</button>
-                <button>05</button>
-                <button>06</button>
-                <button>07</button>
-              </div>
-              <div className="pp-due-card">
-                <div className="pp-due-left">📅</div>
-                <div className="pp-due-right">
-                  <div className="pp-due-title">Upcoming Assignment</div>
-                  <div className="pp-due-row">
-                    <span>📅</span><span>Dec 05, 2024</span>
-                  </div>
-                  <p>Complete next lesson to unlock new content</p>
+              {achievementsLoading ? (
+                <div className="pp-achievements-loading">
+                  <p>Loading achievements...</p>
                 </div>
-              </div>
-            </section>
-
-            {/* Achievements */}
-            <section className="pp-achievements">
-              <h3 className="pp-aside-title">Recent Achievements</h3>
-              <div className="pp-achievements-list">
-                <div className="pp-achievement-item">
-                  <div className="pp-achievement-icon">🏆</div>
-                  <div className="pp-achievement-content">
-                    <div className="pp-achievement-title">Course Completed</div>
-                    <div className="pp-achievement-desc">Finished Listening Skills</div>
-                  </div>
+              ) : recentAchievements.length > 0 ? (
+                <div className="pp-achievements-list-new">
+                  {recentAchievements.map((achievement) => {
+                    const getAchievementIcon = () => {
+                      if (achievement.badge === "platinum") return "🏆";
+                      if (achievement.badge === "gold") return "⭐";
+                      return "🎖️";
+                    };
+                    return (
+                      <div key={achievement.id} className="pp-achievement-item-new">
+                        <div className="pp-achievement-icon-new">{getAchievementIcon()}</div>
+                        <div className="pp-achievement-content-new">
+                          <div className="pp-achievement-title-new">{achievement.title}</div>
+                          <div className="pp-achievement-desc-new">{achievement.course}</div>
+                          {achievement.grade !== null && achievement.grade !== undefined && (
+                            <div className="pp-achievement-grade-new">{achievement.grade}%</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="pp-achievement-item">
-                  <div className="pp-achievement-icon">🔥</div>
-                  <div className="pp-achievement-content">
-                    <div className="pp-achievement-title">5 Day Streak</div>
-                    <div className="pp-achievement-desc">Keep it up!</div>
-                  </div>
+              ) : (
+                <div className="pp-achievements-empty">
+                  <p>No achievements yet. Keep learning to unlock achievements!</p>
                 </div>
-                <div className="pp-achievement-item">
-                  <div className="pp-achievement-icon">⭐</div>
-                  <div className="pp-achievement-content">
-                    <div className="pp-achievement-title">Quiz Master</div>
-                    <div className="pp-achievement-desc">Scored 90%+ on 5 quizzes</div>
-                  </div>
-                </div>
-              </div>
+              )}
             </section>
           </aside>
         </div>

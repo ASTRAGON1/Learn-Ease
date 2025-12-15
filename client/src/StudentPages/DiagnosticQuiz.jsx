@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../config/firebase';
 import './DiagnosticQuiz.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -16,6 +17,66 @@ export default function DiagnosticQuiz() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
+
+  // Check if quiz is already completed - prevent retaking
+  useEffect(() => {
+    const checkQuizStatus = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/diagnostic-quiz/status`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data.completed) {
+            // Quiz already completed, redirect to dashboard
+            navigate('/student-dashboard-2', { replace: true });
+          }
+        }
+      } catch (error) {
+        console.error('Error checking quiz status:', error);
+      }
+    };
+
+    checkQuizStatus();
+  }, [navigate]);
+
+  // Block navigation and logout during quiz
+  useEffect(() => {
+    // Set flag to indicate quiz is in progress (prevents logout)
+    sessionStorage.setItem('diagnosticQuizInProgress', 'true');
+
+    // Block browser back button
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = 'You must complete the diagnostic quiz before leaving. Your progress will be lost.';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Block browser history navigation
+    const blockNavigation = () => {
+      window.history.pushState(null, '', window.location.pathname);
+    };
+
+    window.history.pushState(null, '', window.location.pathname);
+    window.addEventListener('popstate', blockNavigation);
+
+    return () => {
+      // Clean up flag when component unmounts
+      sessionStorage.removeItem('diagnosticQuizInProgress');
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', blockNavigation);
+    };
+  }, []);
 
   useEffect(() => {
     fetchQuiz();
@@ -101,12 +162,17 @@ export default function DiagnosticQuiz() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Clear the quiz-in-progress flag since it's now completed
+        sessionStorage.removeItem('diagnosticQuizInProgress');
+        
         // Navigate to dashboard with success message
         navigate('/student-dashboard-2', { 
+          replace: true,
           state: { 
             diagnosticComplete: true,
             studentType: data.data.studentType,
-            message: data.data.message
+            message: 'You finally finished your first step! You will get a personalized path made just for you. 🎉'
           } 
         });
       } else {
@@ -173,10 +239,31 @@ export default function DiagnosticQuiz() {
 
   return (
     <div className="dq-page">
+      {/* Logout Warning Modal */}
+      {showLogoutWarning && (
+        <div className="dq-modal-overlay" onClick={() => setShowLogoutWarning(false)}>
+          <div className="dq-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="dq-modal-icon">⚠️</div>
+            <h3 className="dq-modal-title">Cannot Logout During Quiz</h3>
+            <p className="dq-modal-message">
+              You must complete the diagnostic quiz at least once before you can logout. 
+              This helps us create your personalized learning path.
+            </p>
+            <button 
+              className="dq-btn dq-btn-primary" 
+              onClick={() => setShowLogoutWarning(false)}
+            >
+              Continue Quiz
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="dq-container">
         <div className="dq-header">
           <h1 className="dq-title">Welcome to LearnEase!</h1>
           <p className="dq-subtitle">Let's get to know you better. This quiz helps us create your personalized learning path.</p>
+          <p className="dq-warning">⚠️ You cannot logout until you complete this quiz at least once</p>
         </div>
 
         <div className="dq-progress-container">

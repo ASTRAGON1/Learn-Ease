@@ -1,72 +1,53 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import "./QuizInformation.css";
 import { Calendar, User, BookOpen, Award, Clock, CheckCircle2, AlertCircle, PlayCircle } from "lucide-react";
 
-/** Demo data (replace with API later) */
-const DEMO = [
-  {
-    id: "QZ-9801",
-    courseId: "#CM9801",
-    instructor: "Natali Craig",
-    courseTitle: "Landing Page",
-    quizTitle: "Meadow Lane Oakland",
-    date: "Just now",
-    status: "upcoming", // upcoming | graded
-    score: null,
-    duration: "30 min",
-    questions: 15,
-  },
-  {
-    id: "QZ-9802",
-    courseId: "#CM9802",
-    instructor: "Kate Morrison",
-    courseTitle: "CRM Admin pages",
-    quizTitle: "Larry San Francisco",
-    date: "1 minute ago",
-    status: "graded",
-    score: 9,
-    maxScore: 10,
-    duration: "25 min",
-    questions: 12,
-  },
-  {
-    id: "QZ-9803",
-    courseId: "#CM9803",
-    instructor: "Drew Cano",
-    courseTitle: "Client Project",
-    quizTitle: "Bagwell Avenue Ocala",
-    date: "1 hour ago",
-    status: "upcoming",
-    score: null,
-    duration: "20 min",
-    questions: 10,
-  },
-  {
-    id: "QZ-9805",
-    courseId: "#CM9805",
-    instructor: "Andi Lane",
-    courseTitle: "App Landing Page",
-    quizTitle: "Nest Lane Olivette",
-    date: "Feb 2, 2025",
-    status: "graded",
-    score: 7,
-    maxScore: 10,
-    duration: "40 min",
-    questions: 20,
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function QuizInformation() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("all"); // all | upcoming | graded
+  const [quizzes, setQuizzes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Check if diagnostic quiz is completed
+  useDiagnosticQuizCheck();
+
+  // Fetch quizzes from API
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        // TODO: Replace with actual API endpoint when available
+        // const response = await fetch(`${API_URL}/api/quizzes/student`, {
+        //   headers: { 'Authorization': `Bearer ${token}` }
+        // });
+        // if (response.ok) {
+        //   const data = await response.json();
+        //   setQuizzes(data.quizzes || []);
+        // }
+        setQuizzes([]); // Empty array until API is ready
+      } catch (error) {
+        console.error('Error fetching quizzes:', error);
+        setQuizzes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, []);
 
   const rows = useMemo(() => {
-    return DEMO.filter((x) => {
+    return quizzes.filter((x) => {
       const matchTab = tab === "all" ? true : x.status === tab;
       return matchTab;
     });
-  }, [tab]);
+  }, [quizzes, tab]);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -174,7 +155,14 @@ export default function QuizInformation() {
 
       {/* Quiz Cards */}
       <main className="qi-main">
-        {rows.length > 0 ? (
+        {loading ? (
+          <div className="qi-empty">
+            <div className="qi-empty-icon">
+              <BookOpen size={48} />
+            </div>
+            <h3 className="qi-empty-title">Loading quizzes...</h3>
+          </div>
+        ) : rows.length > 0 ? (
           <div className="qi-cards-grid">
             {rows.map((quiz) => (
               <div key={quiz.id} className={`qi-card qi-card-${quiz.status}`}>

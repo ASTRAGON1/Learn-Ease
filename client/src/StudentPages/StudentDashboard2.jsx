@@ -20,10 +20,7 @@ export default function StudentDashboard2() {
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
   const [profilePic, setProfilePic] = useState("");
-
-  // Get student's path type (this should come from user profile/API)
-  // For now, using a default - you'll need to fetch this from backend
-  const studentPathType = "autism"; // or "Down Syndrome" - get from user profile
+  const [studentPathType, setStudentPathType] = useState(null); // Fetched from diagnostic test results
   const [studentPath, setStudentPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -32,7 +29,10 @@ export default function StudentDashboard2() {
   useEffect(() => {
     const checkDiagnosticQuiz = async () => {
       const token = window.sessionStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
       try {
         const response = await fetch(`${API_URL}/api/diagnostic-quiz/status`, {
@@ -46,18 +46,27 @@ export default function StudentDashboard2() {
           const data = await response.json();
           if (!data.data.completed) {
             // Redirect to diagnostic quiz if not completed
-            navigate('/diagnostic-quiz');
+            navigate('/diagnostic-quiz', { replace: true });
           } else {
             // Check if we just completed the quiz (from location state)
-            if (location.state?.diagnosticComplete) {
+            if (location.state?.diagnosticComplete && location.state?.message) {
               setShowSuccessMessage(true);
-              // Hide message after 5 seconds
-              setTimeout(() => setShowSuccessMessage(false), 5000);
+              // Hide message after 8 seconds
+              setTimeout(() => {
+                setShowSuccessMessage(false);
+                // Clear location state to prevent showing message on refresh
+                window.history.replaceState({}, document.title);
+              }, 8000);
             }
           }
+        } else {
+          // If status check fails, redirect to diagnostic quiz to be safe
+          navigate('/diagnostic-quiz', { replace: true });
         }
       } catch (error) {
         console.error('Error checking diagnostic quiz status:', error);
+        // On error, redirect to diagnostic quiz to be safe
+        navigate('/diagnostic-quiz', { replace: true });
       }
     };
 
@@ -102,6 +111,18 @@ export default function StudentDashboard2() {
             }
             if (student.avatar) {
               setProfilePic(student.avatar);
+            }
+            // Set student type from diagnostic test results
+            if (student.type) {
+              setStudentPathType(student.type);
+              console.log('✅ Student type from diagnostic test:', student.type);
+            }
+          } else if (response.status === 403) {
+            // Quiz required - redirect to diagnostic quiz
+            const errorData = await response.json().catch(() => ({}));
+            if (errorData.quizRequired) {
+              navigate('/diagnostic-quiz', { replace: true });
+              return;
             }
           }
         } catch (error) {
@@ -233,7 +254,7 @@ export default function StudentDashboard2() {
   const activeCourse = courses.find(c => c.status === 'active' && !c.isLocked);
   const nextLockedCourse = courses.find(c => c.isLocked);
 
-  // Sample next lessons data (filtered to current course)
+  // Next lessons data (filtered to current course)
   const nextLessons = useMemo(() => {
     if (!studentPath || courses.length === 0) return [];
     
@@ -247,9 +268,10 @@ export default function StudentDashboard2() {
           id: `${studentProgress.currentCourseIndex}-${topicIndex}-${lessonIndex}`,
           lesson: lesson,
           course: currentCourse.CoursesTitle,
-          teacher: "Instructor",
-          teacherAvatar: "IN",
-          duration: "20 min"
+          // TODO: Fetch actual teacher data from API
+          teacher: null,
+          teacherAvatar: null,
+          duration: null
         });
       });
     });
@@ -257,27 +279,32 @@ export default function StudentDashboard2() {
     return lessons.slice(0, 5); // Return first 5 lessons
   }, [studentPath, studentProgress.currentCourseIndex]);
 
-  // Quizzes data (filtered to current course)
-  const quizzes = useMemo(() => {
-    if (!studentPath || courses.length === 0) return [];
-    
-    const currentCourse = studentPath.Courses[studentProgress.currentCourseIndex];
-    if (!currentCourse) return [];
-    
-    return [
-      {
-        id: "q1",
-        title: `${currentCourse.CoursesTitle} Quiz 1`,
-        courseName: currentCourse.CoursesTitle,
-        instructor: "Instructor",
-        status: "upcoming",
-        date: "Dec 20, 10:00",
-        duration: "30 mins",
-        grade: null,
-        scorePct: null
+  // Quizzes data - fetch from API
+  const [quizzes, setQuizzes] = useState([]);
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        // TODO: Replace with actual API endpoint when available
+        // const response = await fetch(`${API_URL}/api/quizzes/student`, {
+        //   headers: { 'Authorization': `Bearer ${token}` }
+        // });
+        // if (response.ok) {
+        //   const data = await response.json();
+        //   setQuizzes(data.quizzes || []);
+        // }
+        setQuizzes([]); // Empty array until API is ready
+      } catch (error) {
+        console.error('Error fetching quizzes:', error);
+        setQuizzes([]);
       }
-    ];
-  }, [studentPath, studentProgress.currentCourseIndex]);
+    };
+
+    fetchQuizzes();
+  }, []);
 
   // Filter quizzes by status
   const filteredQuizzes = activeQuizTab === "all" 
@@ -285,9 +312,21 @@ export default function StudentDashboard2() {
     : quizzes.filter(q => q.status === activeQuizTab);
 
   const handleLogout = () => {
+    // Check if diagnostic quiz is in progress
+    const quizInProgress = sessionStorage.getItem('diagnosticQuizInProgress');
+    
+    if (quizInProgress === 'true') {
+      // Prevent logout and show warning
+      alert('⚠️ You cannot logout while the diagnostic quiz is in progress.\n\nPlease complete the quiz first to access your personalized learning path.');
+      return;
+    }
+    
+    // Clear all auth data
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userId");
+    sessionStorage.removeItem("token");
+    
     navigate("/login");
   };
 
@@ -526,24 +565,38 @@ export default function StudentDashboard2() {
         <div className="ld-content">
           {/* Success Message */}
           {showSuccessMessage && location.state?.message && (
-            <div className="ld-success-message" style={{
-              background: '#d1fae5',
-              border: '1px solid #10b981',
-              color: '#065f46',
-              padding: '16px 24px',
-              borderRadius: '8px',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              <div>
-                <strong>Welcome! 🎉</strong>
-                <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>{location.state.message}</p>
+            <div className="ld-success-message">
+              <div className="ld-success-message-content">
+                <div className="ld-success-icon-wrapper">
+                  <div className="ld-success-icon-circle">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                  <div className="ld-success-sparkles">
+                    <span className="ld-sparkle">✨</span>
+                    <span className="ld-sparkle">🎉</span>
+                    <span className="ld-sparkle">⭐</span>
+                  </div>
+                </div>
+                <div className="ld-success-text-wrapper">
+                  <h3 className="ld-success-title">
+                    Congratulations!
+                  </h3>
+                  <p className="ld-success-message-text">
+                    {location.state.message}
+                  </p>
+                </div>
+                <button
+                  className="ld-success-close-btn"
+                  onClick={() => setShowSuccessMessage(false)}
+                  aria-label="Close message"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
           )}
@@ -653,7 +706,6 @@ export default function StudentDashboard2() {
                 <div className="ld-lessons-table">
                   <div className="ld-lessons-header">
                     <div className="ld-lesson-col">Lesson</div>
-                    <div className="ld-teacher-col">Teacher</div>
                     <div className="ld-duration-col">Duration</div>
                   </div>
                   {nextLessons.map((lesson) => (
@@ -661,10 +713,6 @@ export default function StudentDashboard2() {
                       <div className="ld-lesson-col">
                         <div className="ld-lesson-title">{lesson.lesson}</div>
                         <div className="ld-lesson-course">{lesson.course}</div>
-                      </div>
-                      <div className="ld-teacher-col">
-                        <div className="ld-teacher-avatar">{lesson.teacherAvatar}</div>
-                        <span className="ld-teacher-name">{lesson.teacher}</span>
                       </div>
                       <div className="ld-duration-col">{lesson.duration}</div>
                     </div>

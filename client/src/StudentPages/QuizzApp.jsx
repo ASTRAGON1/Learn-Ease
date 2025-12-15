@@ -1,47 +1,72 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import "./quizPurple.css";
 
-
-
-// ---------- Demo data (replace with API) ----------
-const DEMO_QUIZ = {
-  id: "demo-onepage",
-  courseTitle: "Speaking I - SPEK101",
-  courseCode: "SPEK101",
-  instructorName: "Dr. Jane Smith",
-  instructorEmail: "jane.smith@university.edu",
-  title: "Speaking Fundamentals — Unit 2 Quiz",
-  durationSec: 0, // single page has no timer by default
-  questions: [
-    { id: "q1", text: "Which greeting is most formal?", options: ["Hey there!", "Good morning", "Yo!", "What's up?"], answerIndex: 1, category: "Etiquette" },
-    { id: "q2", text: "Choose the correct response to 'How do you do?'", options: ["Fine, thanks.", "How do you do?", "Not bad.", "Great!"], answerIndex: 1, category: "Etiquette" },
-    { id: "q3", text: "Pick the sentence with correct subject–verb agreement.", options: ["She go to class.", "They goes to class.", "He goes to class.", "I goes to class."], answerIndex: 2, category: "Grammar" },
-    { id: "q4", text: "Which is a polite way to ask for help?", options: ["You, help me.", "Help.", "Can you please help me?", "Do this."], answerIndex: 2, category: "Politeness" },
-    { id: "q5", text: "Select the best phrase to disagree politely.", options: ["You're wrong.", "I don't think that's quite right.", "Nope.", "Wrong."], answerIndex: 1, category: "Politeness" },
-    { id: "q6", text: "Which closing is appropriate in a formal email?", options: ["Cheers,", "See ya,", "Later,", "Best regards,"], answerIndex: 3, category: "Email" },
-    { id: "q7", text: "Choose the correct preposition: 'I'm interested ___ linguistics.'", options: ["on", "at", "in", "for"], answerIndex: 2, category: "Grammar" },
-  ],
-};
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ---------- Helpers ----------
 function computeScore(quiz, answers) {
+  if (!quiz || !quiz.questions) return { correct: 0, total: 0 };
   let correct = 0;
   quiz.questions.forEach((q) => { if (answers[q.id] === q.answerIndex) correct++; });
   return { correct, total: quiz.questions.length };
 }
 
 // ---------- Component ----------
-export default function QuizzApp({ quiz = DEMO_QUIZ }) {
+export default function QuizzApp() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [quiz, setQuiz] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState({}); // { qid: optionIndex }
   const [submitted, setSubmitted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const formRef = useRef(null);
 
+  // Check if diagnostic quiz is completed
+  useDiagnosticQuizCheck();
+
+  // Fetch quiz data
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      const token = window.sessionStorage.getItem('token');
+      const quizId = location.state?.quizId;
+      
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        // TODO: Replace with actual API endpoint when available
+        // if (quizId) {
+        //   const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+        //     headers: { 'Authorization': `Bearer ${token}` }
+        //   });
+        //   if (response.ok) {
+        //     const data = await response.json();
+        //     setQuiz(data.quiz);
+        //   }
+        // }
+        
+        // For now, show empty state
+        setQuiz(null);
+      } catch (error) {
+        console.error('Error fetching quiz:', error);
+        setQuiz(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuiz();
+  }, [navigate, location.state]);
+
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [submitted]);
 
   const byCat = useMemo(() => {
+    if (!quiz || !quiz.questions) return {};
     const m = {};
     quiz.questions.forEach((q) => {
       const ok = answers[q.id] === q.answerIndex;
@@ -50,7 +75,7 @@ export default function QuizzApp({ quiz = DEMO_QUIZ }) {
       if (ok) m[q.category].ok += 1;
     });
     return m;
-  }, [quiz.questions, answers]);
+  }, [quiz, answers]);
 
   const score = useMemo(() => computeScore(quiz, answers), [quiz, answers]);
 
@@ -60,6 +85,8 @@ export default function QuizzApp({ quiz = DEMO_QUIZ }) {
 
   function handleSubmit(e) {
     e?.preventDefault?.();
+    if (!quiz || !quiz.questions) return;
+    
     // ensure all answered
     const firstUnansweredIdx = quiz.questions.findIndex((q) => answers[q.id] == null);
     if (firstUnansweredIdx !== -1) {
@@ -74,16 +101,24 @@ export default function QuizzApp({ quiz = DEMO_QUIZ }) {
 
   // Quiz is automatically marked as passed upon submission
   useEffect(() => {
-    if (submitted) {
-      // Here you would typically send the quiz results to the backend
-      // to mark it as passed in the database
-      // Example: await submitQuizResults(quiz.id, answers, score);
+    if (submitted && quiz) {
+      // TODO: Send quiz results to backend
+      // const token = window.sessionStorage.getItem('token');
+      // await fetch(`${API_URL}/api/quizzes/${quiz.id}/submit`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${token}`
+      //   },
+      //   body: JSON.stringify({ answers, score })
+      // });
       const finalScore = computeScore(quiz, answers);
-      console.log('Quiz submitted and marked as passed', { quizId: quiz.id, score: finalScore });
+      console.log('Quiz submitted', { quizId: quiz.id, score: finalScore });
     }
   }, [submitted, quiz, answers]);
 
   const handleNext = () => {
+    if (!quiz || !quiz.questions) return;
     if (currentQuestion < quiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     }
@@ -96,8 +131,29 @@ export default function QuizzApp({ quiz = DEMO_QUIZ }) {
   };
 
   const handleBackToCourse = () => {
-    navigate("/CoursePlayer");
+    navigate("/student-dashboard-2");
   };
+
+  if (loading) {
+    return (
+      <div className="quizPurple-page">
+        <div className="quizPurple-loading">
+          <p>Loading quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <div className="quizPurple-page">
+        <div className="quizPurple-empty">
+          <p>No quiz available</p>
+          <button onClick={() => navigate("/student-dashboard-2")}>Back to Dashboard</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="quizPurple-page">
@@ -333,14 +389,4 @@ export default function QuizzApp({ quiz = DEMO_QUIZ }) {
       </section>
     </div>
   );
-}
-
-// ---------- DEV TESTS ----------
-if (typeof window !== "undefined" && import.meta?.env?.DEV) {
-  console.group("onepage quiz tests");
-  const t1 = computeScore(DEMO_QUIZ, { q1:1,q2:1,q3:2,q4:2,q5:1,q6:3,q7:2 });
-  console.assert(t1.correct === 7, "All-correct should be 7/7");
-  const t2 = computeScore(DEMO_QUIZ, { q1:0,q2:0,q3:0,q4:0,q5:0,q6:0,q7:0 });
-  console.assert(t2.correct === 0, "All-wrong should be 0/7");
-  console.groupEnd();
 }

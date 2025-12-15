@@ -1,0 +1,323 @@
+{
+  "section1": [
+    {
+      "questionId": "s1q1",
+      "section": 1,
+      "order": 1,
+      "question": "Do you prefer learning with pictures or words?",
+      "options": ["Pictures only", "Words only", "Both pictures and words", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 },
+        "downSyndrome": { "1": 1 }
+      }
+    },
+    {
+      "questionId": "s1q2",
+      "section": 1,
+      "order": 2,
+      "question": "Do you like step-by-step instructions or exploring on your own?",
+      "options": ["Step-by-step instructions", "Exploring on my own", "Both ways", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 },
+        "downSyndrome": { "1": 1 }
+      }
+    },
+    {
+      "questionId": "s1q3",
+      "section": 1,
+      "order": 3,
+      "question": "Do you prefer short tasks or long tasks?",
+      "options": ["Short tasks only", "Long tasks only", "Both types", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 1 }
+      }
+    },
+    {
+      "questionId": "s1q4",
+      "section": 1,
+      "order": 4,
+      "question": "Do you feel overwhelmed when there is too much information?",
+      "options": ["Yes, often", "Sometimes", "Rarely", "Never"],
+      "scoring": {
+        "autism": { "0": 2, "1": 1 }
+      }
+    },
+    {
+      "questionId": "s1q5",
+      "section": 1,
+      "order": 5,
+      "question": "Do you remember things better when you see them or hear them?",
+      "options": ["See them", "Hear them", "Both ways", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 1 },
+        "downSyndrome": { "1": 1 }
+      }
+    },
+    {
+      "questionId": "s1q6",
+      "section": 1,
+      "order": 6,
+      "question": "Do you like to work alone or with others?",
+      "options": ["Alone only", "With others only", "Both ways", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 },
+        "downSyndrome": { "1": 2 }
+      }
+    },
+    {
+      "questionId": "s1q7",
+      "section": 1,
+      "order": 7,
+      "question": "Do you prefer quiet places or noisy places to learn?",
+      "options": ["Quiet places", "Noisy places", "Both are fine", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 }
+      }
+    },
+    {
+      "questionId": "s1q8",
+      "section": 1,
+      "order": 8,
+      "question": "Do you like following the same routine every day?",
+      "options": ["Yes, I like routines", "No, I like change", "Both are fine", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 }
+      }
+    },
+    {
+      "questionId": "s1q9",
+      "section": 1,
+      "order": 9,
+      "question": "Do you need breaks when learning new things?",
+      "options": ["Yes, often", "Sometimes", "Rarely", "Never"],
+      "scoring": {
+        "downSyndrome": { "0": 2, "1": 1 }
+      }
+    },
+    {
+      "questionId": "s1q10",
+      "section": 1,
+      "order": 10,
+      "question": "Do you prefer learning with games or textbooks?",
+      "options": ["Games only", "Textbooks only", "Both ways", "I am not sure"],
+      "scoring": {
+        "downSyndrome": { "0": 1 }
+      }
+    }
+  ],
+  "section2": [
+    {
+      "questionId": "s2q1",
+      "section": 2,
+      "order": 1,
+      "question": "What comes after 2?",
+      "options": ["1", "3", "4", "5"],
+      "correctAnswer": 1,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q2",
+      "section": 2,
+      "order": 2,
+      "question": "Which color is the sky?",
+      "options": ["Red", "Blue", "Green", "Yellow"],
+      "correctAnswer": 1,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q3",
+      "section": 2,
+      "order": 3,
+      "question": "Which one is a fruit?",
+      "options": ["Apple", "Car", "Book", "Chair"],
+      "correctAnswer": 0,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q4",
+      "section": 2,
+      "order": 4,
+      "question": "How are you feeling right now?",
+      "options": ["Happy", "Sad", "Tired", "Feeling good"],
+      "correctAnswer": 3,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q5",
+      "section": 2,
+      "order": 5,
+      "question": "What is 1 + 2?",
+      "options": ["1", "2", "3", "4"],
+      "correctAnswer": 2,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q6",
+      "section": 2,
+      "order": 6,
+      "question": "How many fingers do you have on one hand?",
+      "options": ["3", "4", "5", "6"],
+      "correctAnswer": 2,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q7",
+      "section": 2,
+      "order": 7,
+      "question": "What do you use to read?",
+      "options": ["Something to read", "Something to eat", "Something to play with", "Something to wear"],
+      "correctAnswer": 0,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q8",
+      "section": 2,
+      "order": 8,
+      "question": "What is 2 + 2?",
+      "options": ["2", "3", "4", "5"],
+      "correctAnswer": 2,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q9",
+      "section": 2,
+      "order": 9,
+      "question": "Which color is a stop sign?",
+      "options": ["Red", "Blue", "Green", "Yellow"],
+      "correctAnswer": 0,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q10",
+      "section": 2,
+      "order": 10,
+      "question": "Who is someone you trust?",
+      "options": ["Someone you like", "Someone you don't know", "Someone who is mean", "Someone who is always busy"],
+      "correctAnswer": 0,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q11",
+      "section": 2,
+      "order": 11,
+      "question": "What is 3 + 2?",
+      "options": ["3", "4", "5", "6"],
+      "correctAnswer": 2,
+      "scoring": {}
+    },
+    {
+      "questionId": "s2q12",
+      "section": 2,
+      "order": 12,
+      "question": "Which letter comes after 'A' in the alphabet?",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": 1,
+      "scoring": {}
+    }
+  ],
+  "section3": [
+    {
+      "questionId": "s3q1",
+      "section": 3,
+      "order": 1,
+      "question": "Do you like to talk to people you don't know?",
+      "options": ["Yes", "No", "Sometimes", "I am not sure"],
+      "scoring": {
+        "autism": { "1": 2 },
+        "downSyndrome": { "0": 1 }
+      }
+    },
+    {
+      "questionId": "s3q2",
+      "section": 3,
+      "order": 2,
+      "question": "Do you get upset when your routine changes?",
+      "options": ["Yes, often", "Sometimes", "Rarely", "Never"],
+      "scoring": {
+        "autism": { "0": 2, "1": 1 }
+      }
+    },
+    {
+      "questionId": "s3q3",
+      "section": 3,
+      "order": 3,
+      "question": "Do loud noises bother you?",
+      "options": ["Yes, very much", "Sometimes", "Not really", "Not at all"],
+      "scoring": {
+        "autism": { "0": 2, "1": 1 }
+      }
+    },
+    {
+      "questionId": "s3q4",
+      "section": 3,
+      "order": 4,
+      "question": "Do you like learning about the same topics over and over?",
+      "options": ["Yes, I do", "Sometimes", "No, I like new topics", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 }
+      }
+    },
+    {
+      "questionId": "s3q5",
+      "section": 3,
+      "order": 5,
+      "question": "Do you prefer the app to speak or show text?",
+      "options": ["Speak to me", "Show me text", "Both", "I am not sure"],
+      "scoring": {
+        "downSyndrome": { "0": 2 },
+        "autism": { "1": 1 }
+      }
+    },
+    {
+      "questionId": "s3q6",
+      "section": 3,
+      "order": 6,
+      "question": "Do you want the app to remind you to take breaks?",
+      "options": ["Yes, please", "Sometimes", "No, thanks", "I am not sure"],
+      "scoring": {
+        "downSyndrome": { "0": 1, "1": 1 }
+      }
+    },
+    {
+      "questionId": "s3q7",
+      "section": 3,
+      "order": 7,
+      "question": "Do you like seeing rewards after completing tasks?",
+      "options": ["Yes, I love rewards", "Sometimes", "Not really", "I am not sure"],
+      "scoring": {
+        "downSyndrome": { "0": 2 }
+      }
+    },
+    {
+      "questionId": "s3q8",
+      "section": 3,
+      "order": 8,
+      "question": "Do you prefer bright colors or soft colors?",
+      "options": ["Bright colors", "Soft colors", "Both", "I am not sure"],
+      "scoring": {
+        "autism": { "1": 1 }
+      }
+    },
+    {
+      "questionId": "s3q9",
+      "section": 3,
+      "order": 9,
+      "question": "Do you want the app to show pictures for every step?",
+      "options": ["Yes, always", "Sometimes", "Not needed", "I am not sure"],
+      "scoring": {
+        "autism": { "0": 2 },
+        "downSyndrome": { "0": 1 }
+      }
+    },
+    {
+      "questionId": "s3q10",
+      "section": 3,
+      "order": 10,
+      "question": "Do you like getting positive messages while learning?",
+      "options": ["Yes, I do", "Sometimes", "Not really", "I am not sure"],
+      "scoring": {
+        "downSyndrome": { "0": 2 }
+      }
+    }
+  ]
+}

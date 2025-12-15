@@ -397,7 +397,7 @@ export default function Login() {
         // Information gathering is complete - navigate to instructor dashboard
         navigate('/instructor-dashboard-2');
       } else {
-        // For students: Store in sessionStorage and navigate to student-dashboard-2
+        // For students: Store in sessionStorage and check diagnostic quiz status
         const storage = window.sessionStorage;
         if (loginResult.token) {
           storage.setItem("token", loginResult.token);
@@ -406,7 +406,32 @@ export default function Login() {
         storage.setItem("userId", loginResult.user?.id || "");
         storage.setItem("userName", loginResult.user?.name || 'Student');
         storage.setItem("userEmail", loginResult.user?.email || "");
-        // Navigate to student dashboard-2
+        
+        // Check if student has completed diagnostic quiz
+        try {
+          const quizStatusResponse = await fetch(`${API_URL}/api/diagnostic-quiz/status`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${loginResult.token}`
+            }
+          });
+          
+          if (quizStatusResponse.ok) {
+            const quizData = await quizStatusResponse.json();
+            if (!quizData.data.completed) {
+              // Redirect to diagnostic quiz if not completed
+              navigate('/diagnostic-quiz', { replace: true });
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error checking quiz status:', error);
+          // On error, redirect to diagnostic quiz to be safe
+          navigate('/diagnostic-quiz', { replace: true });
+          return;
+        }
+        
+        // Quiz completed, navigate to student dashboard-2
         console.log('Routing to student dashboard-2');
         navigate('/student-dashboard-2');
       }

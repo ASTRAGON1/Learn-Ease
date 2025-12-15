@@ -12,6 +12,9 @@ const QuizResult = require('./QuizResult');
 const Post = require('./Post');
 const Feedback = require('./Feedback');
 const Report = require('./Report');
+const Test = require('./Test');
+const DiagnosticQuestion = require('./DiagnosticQuestion');
+const Achievement = require('./Achievement');
 
 module.exports = {
   Admin,
@@ -27,5 +30,8 @@ module.exports = {
   QuizResult,
   Post,
   Feedback,
-  Report
+  Report,
+  Test,
+  DiagnosticQuestion,
+  Achievement
 };

@@ -469,40 +469,132 @@ const api = {
       return { ok: false, error: 'Network error' };
     }
   },
-  toggleAchievementStatus: async (id, isActive) => {
+  // Removed toggleAchievementStatus - achievements no longer have isActive field
+  bulkImportAchievements: async (achievements) => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/achievements/${id}/toggle-status`, {
+      console.log('📥 Bulk importing achievements:', achievements.length, 'items');
+      const response = await fetch(`${API_URL}/api/admin/achievements/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ achievements })
+      });
+      console.log('📊 Response status:', response.status);
+      
+      const result = await response.json();
+      console.log('📊 Response data:', result);
+      
+      if (!response.ok) {
+        return { success: false, error: result.error || 'Failed to import achievements' };
+      }
+      return { success: true, data: result, count: result.count };
+    } catch (error) {
+      console.error('❌ Error bulk importing achievements:', error);
+      return { success: false, error: 'Network error: ' + error.message };
+    }
+  },
+  
+  // Diagnostic Test Questions API
+  getDiagnosticQuestions: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions`);
+      if (!response.ok) {
+        return { ok: false, data: [] };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data || [] };
+    } catch (error) {
+      console.error('Error fetching diagnostic questions:', error);
+      return { ok: false, data: [] };
+    }
+  },
+  createDiagnosticQuestion: async (questionData) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(questionData)
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to create question' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error creating question:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  updateDiagnosticQuestion: async (id, questionData) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(questionData)
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to update question' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error updating question:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  deleteDiagnosticQuestion: async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to delete question' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  toggleDiagnosticQuestionStatus: async (id, isActive) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions/${id}/toggle-status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive })
       });
       if (!response.ok) {
         const error = await response.json();
-        return { ok: false, error: error.error || 'Failed to toggle achievement status' };
+        return { ok: false, error: error.error || 'Failed to toggle question status' };
       }
       const result = await response.json();
       return { ok: true, data: result.data };
     } catch (error) {
-      console.error('Error toggling achievement status:', error);
+      console.error('Error toggling question status:', error);
       return { ok: false, error: 'Network error' };
     }
   },
-  bulkImportAchievements: async (achievements) => {
+  bulkImportDiagnosticQuestions: async (questions) => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/achievements/bulk-import`, {
+      console.log('Bulk importing questions:', questions.length, 'questions');
+      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions/bulk-import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ achievements })
+        body: JSON.stringify({ questions })
       });
-      if (!response.ok) {
-        const error = await response.json();
-        return { ok: false, error: error.error || 'Failed to import achievements' };
-      }
+      console.log('Bulk import response status:', response.status);
       const result = await response.json();
-      return { ok: true, data: result };
+      console.log('Bulk import result:', result);
+      
+      if (!response.ok) {
+        return { success: false, error: result.error || 'Failed to import questions' };
+      }
+      return { success: true, data: result, count: result.count };
     } catch (error) {
-      console.error('Error bulk importing achievements:', error);
-      return { ok: false, error: 'Network error' };
+      console.error('Error bulk importing questions:', error);
+      return { success: false, error: 'Network error: ' + error.message };
     }
   },
 };

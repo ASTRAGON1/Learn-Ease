@@ -77,7 +77,7 @@ exports.createContent = async (req, res) => {
         !mongoose.Types.ObjectId.isValid(lessonId)) {
       return res.status(400).json({ error: 'Invalid ID format: All IDs must be valid ObjectIds' });
     }
-
+    
     // Normalize pathType (category from frontend) - derive from pathId
     let normalizedPathType = null;
     try {

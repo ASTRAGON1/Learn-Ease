@@ -17,6 +17,191 @@
   --ld-border-black: #000000;
 }
 
+/* Success Message Styles */
+.ld-success-message {
+  margin-bottom: 24px;
+  animation: slideDownBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.ld-success-message-content {
+  background: linear-gradient(135deg, #4C0FAD 0%, #6B21A8 50%, #7C3AED 100%);
+  border-radius: 20px;
+  padding: 28px 32px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  box-shadow: 0 10px 40px rgba(76, 15, 173, 0.3),
+              0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+.ld-success-message-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.ld-success-icon-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ld-success-icon-circle {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.ld-success-sparkles {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: flex;
+  gap: 4px;
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+.ld-sparkle {
+  font-size: 18px;
+  animation: sparkleRotate 2s linear infinite;
+  display: inline-block;
+}
+
+.ld-sparkle:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.ld-sparkle:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.ld-sparkle:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.ld-success-text-wrapper {
+  flex: 1;
+  color: white;
+}
+
+.ld-success-title {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.5px;
+}
+
+.ld-success-message-text {
+  margin: 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.6;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.ld-success-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.ld-success-close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ld-success-close-btn:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+/* Success Message Animations */
+@keyframes slideDownBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(5px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes sparkleFloat {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-8px) translateX(4px);
+  }
+  50% {
+    transform: translateY(-4px) translateX(-4px);
+  }
+  75% {
+    transform: translateY(-12px) translateX(2px);
+  }
+}
+
+@keyframes sparkleRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+  }
+}
+
 .ld-page {
   display: flex;
   min-height: 100vh;
@@ -1088,7 +1273,7 @@
 
 .ld-lessons-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--ld-border);
@@ -1101,7 +1286,7 @@
 
 .ld-lesson-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 16px;
   padding: 12px 0;
   border-bottom: 1px solid var(--ld-border);

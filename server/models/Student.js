@@ -40,8 +40,8 @@ const studentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['autism', 'downSyndrome', 'other'],
-    default: 'other'
+    enum: ['autism', 'downSyndrome'],
+    default: null
   },
   avatar: {
     type: String,
@@ -59,10 +59,6 @@ const studentSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  isOnline: {
-    type: Boolean,
-    default: false
-  },
   lastActivity: {
     type: Date,
     default: Date.now
@@ -71,18 +67,100 @@ const studentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  diagnosticQuizCompleted: {
-    type: Boolean,
-    default: false
-  },
-  diagnosticQuizResults: {
-    section1: [Number],
-    section2: [Number],
-    section3: [Number],
-    autismScore: Number,
-    downSyndromeScore: Number,
-    accuracy: Number,
-    completedAt: Date
+  achievements: [{
+    achievement: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Achievement',
+      required: true
+    },
+    grade: {
+      type: Number,
+      min: 0,
+      max: 100
+    },
+    completedAt: {
+      type: Date,
+      default: Date.now
+    },
+    earnedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  // Learning Progress Tracking
+  progress: {
+    hoursStudied: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    currentStreak: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    longestStreak: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    lastActivityDate: {
+      type: Date,
+      default: null
+    },
+    coursesCompleted: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    coursesInProgress: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    quizzesCompleted: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    quizzesPassed: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    totalQuizScore: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    lessonsCompleted: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    // Course-specific progress
+    courseProgress: [{
+      courseId: {
+        type: String,
+        required: true
+      },
+      courseName: String,
+      completedLessons: {
+        type: Number,
+        default: 0
+      },
+      totalLessons: {
+        type: Number,
+        default: 0
+      },
+      status: {
+        type: String,
+        enum: ['not_started', 'in_progress', 'completed'],
+        default: 'not_started'
+      },
+      lastAccessedAt: Date,
+      completedAt: Date
+    }]
   }
 }, {
   timestamps: false,

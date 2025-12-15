@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
 router.get('/users', async (req, res) => {
   try {
     // Fetch all students
-    const students = await Student.find({}).select('name email type status suspended createdAt avatar isOnline lastActivity');
+    const students = await Student.find({}).select('name email type status suspended createdAt avatar lastActivity');
     
     // Fetch all teachers
     const teachers = await Teacher.find({}).select('fullName email userStatus ranking profilePic headline bio createdAt isOnline lastActivity');
@@ -80,24 +80,15 @@ router.get('/users', async (req, res) => {
     
     // Transform students to unified format
     const studentUsers = students.map(student => {
-      const isActive = student.isOnline && student.lastActivity && 
-                       (now - new Date(student.lastActivity)) < INACTIVITY_THRESHOLD;
-      
-      // Auto-update if marked online but inactive
-      if (student.isOnline && !isActive) {
-        Student.findByIdAndUpdate(student._id, { isOnline: false }).catch(err => 
-          console.error('Error auto-updating student online status:', err)
-        );
-      }
-      
+      // Students don't have isOnline field, so set online to false
       return {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
         role: 'student',
-        status: student.suspended ? 'suspended' : student.status || 'active',
-        online: isActive,
-        category: student.type === 'autism' ? 'Autism' : student.type === 'downSyndrome' ? 'Down Syndrome' : 'Other',
+        status: student.userStatus || 'active',
+        online: false, // Students don't have isOnline field
+        category: student.type === 'autism' ? 'Autism' : student.type === 'downSyndrome' ? 'Down Syndrome' : 'Not Assigned',
         avatar: student.avatar,
         createdAt: student.createdAt,
         lastActivity: student.lastActivity
@@ -397,15 +388,6 @@ router.post('/users/cleanup-inactive', async (req, res) => {
   try {
     const INACTIVITY_THRESHOLD = 30 * 60 * 1000; // 30 minutes
     const cutoffTime = new Date(Date.now() - INACTIVITY_THRESHOLD);
-    
-    // Update students
-    const studentsResult = await Student.updateMany(
-      {
-        isOnline: true,
-        lastActivity: { $lt: cutoffTime }
-      },
-      { isOnline: false }
-    );
     
     // Update teachers
     const teachersResult = await Teacher.updateMany(
@@ -1348,18 +1330,57 @@ router.put('/achievements/:id', achievementController.updateAchievement);
 router.delete('/achievements/:id', achievementController.deleteAchievement);
 
 /**
- * @route   PATCH /api/admin/achievements/:id/toggle-status
- * @desc    Toggle achievement active status
- * @access  Admin
- */
-router.patch('/achievements/:id/toggle-status', achievementController.toggleAchievementStatus);
-
-/**
  * @route   POST /api/admin/achievements/bulk-import
  * @desc    Bulk import achievements
  * @access  Admin
  */
 router.post('/achievements/bulk-import', achievementController.bulkImportAchievements);
+
+// ==================== DIAGNOSTIC TEST QUESTIONS API ====================
+
+const diagnosticTestController = require('../controllers/diagnosticTestController');
+
+/**
+ * @route   GET /api/admin/diagnostic-questions
+ * @desc    Get all diagnostic questions (for admin)
+ * @access  Admin
+ */
+router.get('/diagnostic-questions', diagnosticTestController.getAllQuestionsForAdmin);
+
+/**
+ * @route   POST /api/admin/diagnostic-questions
+ * @desc    Create a new diagnostic question
+ * @access  Admin
+ */
+router.post('/diagnostic-questions', diagnosticTestController.createQuestion);
+
+/**
+ * @route   PUT /api/admin/diagnostic-questions/:id
+ * @desc    Update a diagnostic question
+ * @access  Admin
+ */
+router.put('/diagnostic-questions/:id', diagnosticTestController.updateQuestion);
+
+/**
+ * @route   DELETE /api/admin/diagnostic-questions/:id
+ * @desc    Delete a diagnostic question
+ * @access  Admin
+ */
+router.delete('/diagnostic-questions/:id', diagnosticTestController.deleteQuestion);
+
+/**
+ * @route   PATCH /api/admin/diagnostic-questions/:id/toggle-status
+ * @desc    Toggle diagnostic question active status
+ * @access  Admin
+ */
+router.patch('/diagnostic-questions/:id/toggle-status', diagnosticTestController.toggleQuestionStatus);
+
+/**
+ * @route   POST /api/admin/diagnostic-questions/bulk-import
+ * @desc    Bulk import diagnostic questions
+ * @access  Admin
+ */
+router.post('/diagnostic-questions/bulk-import', diagnosticTestController.bulkImportQuestions);
 
 module.exports = router;
 

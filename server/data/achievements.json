@@ -1,0 +1,378 @@
+[
+  {
+    "type": "course",
+    "title": "Listening Skills Master",
+    "course": "Listening Skills",
+    "badge": "platinum",
+    "description": "Completed with exceptional performance",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Communication Excellence",
+    "course": "Communication Skills",
+    "badge": "gold",
+    "description": "Outstanding achievement in communication",
+    "category": "Core Course"
+  },
+  {
+    "type": "extra",
+    "title": "Digital Art Pro",
+    "course": "Digital Illustration with Adobe Illustrator",
+    "badge": "platinum",
+    "description": "Extra course completed with high grade",
+    "category": "Extra Course"
+  },
+  {
+    "type": "course",
+    "title": "Social Interaction Champion",
+    "course": "Social Skills",
+    "badge": "gold",
+    "description": "Great progress in social interactions",
+    "category": "Core Course"
+  },
+  {
+    "type": "extra",
+    "title": "Public Speaking Expert",
+    "course": "Public Speaking and Leadership",
+    "badge": "gold",
+    "description": "Completed extra course successfully",
+    "category": "Extra Course"
+  },
+  {
+    "type": "course",
+    "title": "Emotional Intelligence",
+    "course": "Understanding Emotions",
+    "badge": "gold",
+    "description": "Strong performance in emotional learning",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Reading Comprehension Expert",
+    "course": "Reading Skills",
+    "badge": "platinum",
+    "description": "Mastered reading comprehension techniques",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Writing Wizard",
+    "course": "Writing Skills",
+    "badge": "gold",
+    "description": "Excellent writing abilities demonstrated",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Vocabulary Builder",
+    "course": "Vocabulary Development",
+    "badge": "silver",
+    "description": "Expanded vocabulary significantly",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Grammar Master",
+    "course": "Grammar Fundamentals",
+    "badge": "gold",
+    "description": "Perfect understanding of grammar rules",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Conversation Pro",
+    "course": "Conversation Skills",
+    "badge": "platinum",
+    "description": "Outstanding conversational abilities",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Problem Solving Champion",
+    "course": "Problem Solving",
+    "badge": "gold",
+    "description": "Excellent problem-solving skills",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Memory Master",
+    "course": "Memory Techniques",
+    "badge": "silver",
+    "description": "Improved memory and recall abilities",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Focus Expert",
+    "course": "Attention and Focus",
+    "badge": "gold",
+    "description": "Enhanced focus and concentration",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Time Management Pro",
+    "course": "Time Management",
+    "badge": "silver",
+    "description": "Mastered time management skills",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Self-Advocacy Champion",
+    "course": "Self-Advocacy Skills",
+    "badge": "platinum",
+    "description": "Strong self-advocacy abilities",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Independence Master",
+    "course": "Independent Living Skills",
+    "badge": "gold",
+    "description": "Demonstrated strong independence",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Teamwork Expert",
+    "course": "Teamwork and Collaboration",
+    "badge": "silver",
+    "description": "Excellent teamwork skills",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Confidence Builder",
+    "course": "Building Confidence",
+    "badge": "gold",
+    "description": "Significant confidence improvement",
+    "category": "Core Course"
+  },
+  {
+    "type": "course",
+    "title": "Stress Management Pro",
+    "course": "Stress Management",
+    "badge": "silver",
+    "description": "Effective stress management techniques",
+    "category": "Core Course"
+  },
+  {
+    "type": "extra",
+    "title": "Creative Writing Master",
+    "course": "Creative Writing Fundamentals",
+    "badge": "platinum",
+    "description": "Outstanding creative writing skills",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Psychology Explorer",
+    "course": "Introduction to Psychology",
+    "badge": "gold",
+    "description": "Deep understanding of psychology basics",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Music Appreciation Expert",
+    "course": "Music Appreciation",
+    "badge": "silver",
+    "description": "Appreciated and understood music theory",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Art History Scholar",
+    "course": "Art History",
+    "badge": "gold",
+    "description": "Comprehensive knowledge of art history",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Photography Pro",
+    "course": "Digital Photography",
+    "badge": "platinum",
+    "description": "Mastered digital photography techniques",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Cooking Master",
+    "course": "Culinary Basics",
+    "badge": "gold",
+    "description": "Excellent culinary skills developed",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Fitness Enthusiast",
+    "course": "Physical Fitness",
+    "badge": "silver",
+    "description": "Maintained consistent fitness routine",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Gardening Expert",
+    "course": "Gardening Basics",
+    "badge": "gold",
+    "description": "Green thumb achieved",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Coding Beginner",
+    "course": "Introduction to Coding",
+    "badge": "silver",
+    "description": "Completed coding fundamentals",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Video Editing Pro",
+    "course": "Video Editing Basics",
+    "badge": "gold",
+    "description": "Mastered video editing skills",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Dance Performer",
+    "course": "Dance Fundamentals",
+    "badge": "silver",
+    "description": "Expressed creativity through dance",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Theater Actor",
+    "course": "Acting Basics",
+    "badge": "gold",
+    "description": "Outstanding acting performance",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Chess Master",
+    "course": "Chess Strategy",
+    "badge": "platinum",
+    "description": "Mastered chess strategies",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Language Learner",
+    "course": "Foreign Language Basics",
+    "badge": "silver",
+    "description": "Learned new language fundamentals",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Yoga Practitioner",
+    "course": "Yoga and Mindfulness",
+    "badge": "gold",
+    "description": "Achieved mindfulness through yoga",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Craft Creator",
+    "course": "Arts and Crafts",
+    "badge": "silver",
+    "description": "Created beautiful craft projects",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Science Explorer",
+    "course": "Basic Science Concepts",
+    "badge": "gold",
+    "description": "Explored scientific concepts successfully",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Math Wizard",
+    "course": "Practical Mathematics",
+    "badge": "platinum",
+    "description": "Mastered practical math applications",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "History Buff",
+    "course": "World History Basics",
+    "badge": "silver",
+    "description": "Gained comprehensive historical knowledge",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Nature Lover",
+    "course": "Nature Studies",
+    "badge": "gold",
+    "description": "Deep appreciation for nature developed",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Animal Care Expert",
+    "course": "Animal Care Basics",
+    "badge": "silver",
+    "description": "Learned proper animal care techniques",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Entrepreneur Mindset",
+    "course": "Basic Entrepreneurship",
+    "badge": "gold",
+    "description": "Developed entrepreneurial thinking",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Financial Literacy Pro",
+    "course": "Personal Finance Basics",
+    "badge": "platinum",
+    "description": "Mastered personal finance management",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Health and Wellness Champion",
+    "course": "Health and Wellness",
+    "badge": "gold",
+    "description": "Committed to health and wellness",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Technology Enthusiast",
+    "course": "Technology Basics",
+    "badge": "silver",
+    "description": "Gained technology proficiency",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Cultural Explorer",
+    "course": "Cultural Studies",
+    "badge": "gold",
+    "description": "Explored diverse cultures",
+    "category": "Extra Course"
+  },
+  {
+    "type": "extra",
+    "title": "Environmental Advocate",
+    "course": "Environmental Awareness",
+    "badge": "silver",
+    "description": "Developed environmental consciousness",
+    "category": "Extra Course"
+  }
+]

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import "./CoursePlayer.css";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -12,6 +13,9 @@ export default function CoursePlayer() {
   const [passedQuizzesExpanded, setPassedQuizzesExpanded] = useState(true);
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
+
+  // Check if diagnostic quiz is completed
+  useDiagnosticQuizCheck();
 
   // Fetch student data on component mount
   useEffect(() => {
@@ -49,6 +53,13 @@ export default function CoursePlayer() {
             if (student.email) {
               setStudentEmail(student.email);
             }
+          } else if (response.status === 403) {
+            // Quiz required - redirect to diagnostic quiz
+            const errorData = await response.json().catch(() => ({}));
+            if (errorData.quizRequired) {
+              navigate('/diagnostic-quiz', { replace: true });
+              return;
+            }
           }
         } catch (error) {
           console.error('Error fetching student data:', error);
@@ -58,148 +69,61 @@ export default function CoursePlayer() {
     };
 
     fetchStudentData();
-  }, []);
+  }, [navigate]);
 
-  const courseData = {
-    title: "Public Speaking and Leadership",
-    lessons: 6,
-    duration: "3h 25min",
-    rating: 4.8,
-    reviews: 86,
-    currentLesson: "Lesson 1. Introduction to Public Speaking and Leadership",
-    progress: 25 // percentage of course completed
-  };
+  const [courseData, setCourseData] = useState(null);
+  const [courseAchievements, setCourseAchievements] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [courseLoading, setCourseLoading] = useState(true);
 
-  // Course completion achievements
-  const courseAchievements = [
-    {
-      id: "ach-1",
-      title: "Course Completion",
-      description: "Complete all lessons in this course",
-      icon: "trophy",
-      unlocked: courseData.progress === 100,
-      progress: courseData.progress,
-      badge: "gold"
-    },
-    {
-      id: "ach-2",
-      title: "Quiz Master",
-      description: "Pass all quizzes with 80% or higher",
-      icon: "award",
-      unlocked: false,
-      progress: 0,
-      badge: "platinum"
-    },
-    {
-      id: "ach-3",
-      title: "Perfect Attendance",
-      description: "Complete all lessons without skipping",
-      icon: "star",
-      unlocked: false,
-      progress: courseData.progress,
-      badge: "gold"
-    }
-  ];
+  // Fetch course data from API
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      const token = window.sessionStorage.getItem('token');
+      if (!token || !id) {
+        setCourseLoading(false);
+        return;
+      }
 
-  // Quiz data - passed and upcoming quizzes
-  const quizzes = [
-    {
-      id: "quiz-1",
-      title: "Introduction to Public Speaking Quiz",
-      lesson: "Lesson 1",
-      date: "Dec 15, 2024",
-      status: "passed",
-      score: 85,
-      totalQuestions: 10,
-      correctAnswers: 8,
-      duration: "15 mins"
-    },
-    {
-      id: "quiz-2",
-      title: "Building Confidence Assessment",
-      lesson: "Lesson 3",
-      date: "Dec 20, 2024",
-      status: "passed",
-      score: 92,
-      totalQuestions: 12,
-      correctAnswers: 11,
-      duration: "20 mins"
-    },
-    {
-      id: "quiz-3",
-      title: "Audience Dynamics Quiz",
-      lesson: "Lesson 4",
-      date: "Dec 25, 2024",
-      status: "upcoming",
-      duration: "25 mins",
-      totalQuestions: 15
-    },
-    {
-      id: "quiz-4",
-      title: "Speech Structure Assessment",
-      lesson: "Lesson 5",
-      date: "Dec 30, 2024",
-      status: "upcoming",
-      duration: "30 mins",
-      totalQuestions: 18
-    }
-  ];
+      try {
+        // TODO: Replace with actual API endpoint when available
+        // const response = await fetch(`${API_URL}/api/courses/${id}`, {
+        //   headers: { 'Authorization': `Bearer ${token}` }
+        // });
+        // if (response.ok) {
+        //   const data = await response.json();
+        //   setCourseData(data.course);
+        //   setLessons(data.lessons || []);
+        //   setTopics(data.topics || []);
+        //   setQuizzes(data.quizzes || []);
+        //   setCourseAchievements(data.achievements || []);
+        // }
+        
+        // For now, set empty/null data
+        setCourseData(null);
+        setLessons([]);
+        setTopics([]);
+        setQuizzes([]);
+        setCourseAchievements([]);
+      } catch (error) {
+        console.error('Error fetching course data:', error);
+        setCourseData(null);
+        setLessons([]);
+        setTopics([]);
+        setQuizzes([]);
+        setCourseAchievements([]);
+      } finally {
+        setCourseLoading(false);
+      }
+    };
+
+    fetchCourseData();
+  }, [id]);
 
   const passedQuizzes = quizzes.filter(q => q.status === "passed");
   const upcomingQuizzes = quizzes.filter(q => q.status === "upcoming");
-
-  const topics = [
-    { time: "0:00", title: "Introduction to Public Speaking" },
-    { time: "2:34", title: "The Importance of Public Speaking" },
-    { time: "5:12", title: "Building Confidence" },
-    { time: "8:45", title: "Understanding Your Audience" },
-    { time: "12:20", title: "Structuring Your Speech" }
-  ];
-
-  const lessons = [
-    {
-      id: "lesson-1",
-      title: "01. Introduction to Public Speaking and Leadership",
-      duration: "40 min",
-      expanded: true,
-      subLessons: [
-        { title: "Overview of public speaking", duration: "8 min" },
-        { title: "Effective communication", duration: "15 min" },
-        { title: "Personal leadership assessment", duration: "11 min" },
-        { title: "Understanding audience dynamics", duration: "6 min" }
-      ]
-    },
-    {
-      id: "lesson-2",
-      title: "02. Foundations of Public Speaking",
-      duration: "36 min",
-      expanded: false
-    },
-    {
-      id: "lesson-3",
-      title: "03. Creating clear and engaging messages",
-      duration: "24 min",
-      expanded: false
-    },
-    {
-      id: "lesson-4",
-      title: "04. Mastering Non-Verbal Communication",
-      duration: "55 min",
-      expanded: false
-    },
-    {
-      id: "lesson-5",
-      title: "05. Persuasion Techniques in Public Speaking",
-      duration: "32 min",
-      expanded: false
-    },
-    {
-      id: "lesson-6",
-      title: "06. Advanced Speaking Techniques",
-      duration: "18 min",
-      expanded: false
-    }
-  ];
 
   const toggleLesson = (lessonId) => {
     setExpandedLessons((prev) => {
@@ -225,19 +149,7 @@ export default function CoursePlayer() {
             </h1>
           </div>
           <div className="cp-header-center">
-            <div className="cp-search-container">
-              <input 
-                type="text" 
-                placeholder="Search" 
-                className="cp-search-input"
-              />
-              <button className="cp-search-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="M21 21l-4.35-4.35"></path>
-                </svg>
-              </button>
-            </div>
+            <h2 className="cp-header-course-title">{courseData.title}</h2>
           </div>
           <div className="cp-header-right">
             <button className="cp-notification-btn">
@@ -260,41 +172,50 @@ export default function CoursePlayer() {
 
         {/* Main Content Area */}
         <div className="cp-content-new">
-          {/* Breadcrumbs */}
-          <nav className="cp-breadcrumbs">
-            <Link to="/student-dashboard-2">Dashboard</Link>
-            <span className="cp-breadcrumb-separator">/</span>
-            <Link to="/courses">Courses</Link>
-            <span className="cp-breadcrumb-separator">/</span>
-            <span className="cp-breadcrumb-current">{courseData.title}</span>
-          </nav>
+          {courseLoading ? (
+            <div className="cp-loading">
+              <p>Loading course...</p>
+            </div>
+          ) : courseData ? (
+            <>
+              {/* Course Header with Back Button */}
+              <div className="cp-course-header">
+                <button className="cp-back-btn" onClick={() => navigate("/student-dashboard-2")}>
+                  <span className="cp-back-chev">‹</span> Dashboard
+                </button>
+                <div>
+                  <h2 className="cp-course-title">{courseData.title}</h2>
+                  {courseData.currentLesson && (
+                    <p className="cp-course-subtitle">{courseData.currentLesson}</p>
+                  )}
+                </div>
+              </div>
 
-          {/* Course Header with Back Button */}
-          <div className="cp-course-header">
-            <button className="cp-back-btn" onClick={() => navigate("/student-dashboard-2")}>
-              <span className="cp-back-chev">‹</span> Dashboard
-            </button>
-            <div>
-              <h2 className="cp-course-title">{courseData.title}</h2>
-              <p className="cp-course-subtitle">{courseData.currentLesson}</p>
+              {/* Course Badges */}
+              {(courseData.lessons || courseData.duration) && (
+                <div className="cp-badges">
+                  {courseData.lessons && (
+                    <div className="cp-badge-item">
+                      <span className="cp-badge-value">{courseData.lessons}</span>
+                      <span className="cp-badge-label">lessons</span>
+                    </div>
+                  )}
+                  {courseData.duration && (
+                    <div className="cp-badge-item">
+                      <span className="cp-badge-value">{courseData.duration}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="cp-empty">
+              <p>Course not found</p>
             </div>
-          </div>
+          )}
 
-          {/* Course Badges */}
-          <div className="cp-badges">
-            <div className="cp-badge-item">
-              <span className="cp-badge-value">{courseData.lessons}</span>
-              <span className="cp-badge-label">lessons</span>
-            </div>
-            <div className="cp-badge-item">
-              <span className="cp-badge-value">{courseData.duration}</span>
-            </div>
-            <div className="cp-badge-item">
-              <span className="cp-badge-value">{courseData.rating}</span>
-              <span className="cp-badge-label">({courseData.reviews} reviews)</span>
-            </div>
-          </div>
-
+          {courseData && !courseLoading && (
+            <>
           {/* Main Content Grid */}
           <div className="cp-content-grid">
             {/* Left: Video and Tabs */}
@@ -346,19 +267,23 @@ export default function CoursePlayer() {
               <div className="cp-tab-content">
                 {activeTab === "description" && (
                   <div>
-                    <p className="cp-description-text">
-                      Public speaking is one of the most important and most dreaded forms of communication. 
-                      In this course, you'll learn how to overcome your fear of public speaking and deliver 
-                      powerful presentations that engage and inspire your audience.
-                    </p>
-                    <div className="cp-topics-list">
-                      {topics.map((topic, index) => (
-                        <div key={index} className="cp-topic-item">
-                          <span className="cp-topic-time">{topic.time}</span>
-                          <span className="cp-topic-title">{topic.title}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {courseData?.description ? (
+                      <p className="cp-description-text">{courseData.description}</p>
+                    ) : (
+                      <p className="cp-description-text">No description available for this course.</p>
+                    )}
+                    {topics.length > 0 ? (
+                      <div className="cp-topics-list">
+                        {topics.map((topic, index) => (
+                          <div key={index} className="cp-topic-item">
+                            <span className="cp-topic-time">{topic.time}</span>
+                            <span className="cp-topic-title">{topic.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>No topics available for this course.</p>
+                    )}
                   </div>
                 )}
                 {activeTab === "materials" && (
@@ -391,8 +316,9 @@ export default function CoursePlayer() {
                       </Link>
                     </div>
 
-                    <div className="cp-achievements-list">
-                      {courseAchievements.map((achievement) => (
+                    {courseAchievements.length > 0 ? (
+                      <div className="cp-achievements-list">
+                        {courseAchievements.map((achievement) => (
                         <div 
                           key={achievement.id} 
                           className={`cp-achievement-card ${achievement.unlocked ? "unlocked" : ""}`}
@@ -461,7 +387,10 @@ export default function CoursePlayer() {
                           </div>
                         </div>
                       ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <p>No achievements available for this course yet.</p>
+                    )}
                   </div>
                 )}
                 {activeTab === "quiz" && (
@@ -609,23 +538,13 @@ export default function CoursePlayer() {
                 )}
               </div>
 
-              {/* Share Lesson */}
-              <div className="cp-share-section">
-                <Link to="#" className="cp-share-link">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                    <polyline points="16 6 12 2 8 6"></polyline>
-                    <line x1="12" y1="2" x2="12" y2="15"></line>
-                  </svg>
-                  Share lesson
-                </Link>
-              </div>
             </div>
 
             {/* Right: Lesson List */}
             <aside className="cp-lessons-sidebar">
-              <div className="cp-lessons-list">
-                {lessons.map((lesson) => {
+              {lessons.length > 0 ? (
+                <div className="cp-lessons-list">
+                  {lessons.map((lesson) => {
                   const isExpanded = expandedLessons.has(lesson.id);
                   return (
                     <div key={lesson.id} className={`cp-lesson-item ${isExpanded ? "expanded" : ""}`}>
@@ -664,9 +583,16 @@ export default function CoursePlayer() {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              ) : (
+                <div className="cp-lessons-empty">
+                  <p>No lessons available for this course.</p>
+                </div>
+              )}
             </aside>
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>
