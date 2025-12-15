@@ -20,8 +20,6 @@ export default function AIQuiz2() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  
-  const normalizeKey = (str = "") => str.toLowerCase().replace(/\s+/g, " ").trim();
 
   const [instructorName, setInstructorName] = useState('Instructor');
   const [email, setEmail] = useState('');
@@ -122,14 +120,26 @@ export default function AIQuiz2() {
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        const token = await getMongoDBToken();
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`, {
+          headers
+        });
+        
         if (response.ok) {
           const result = await response.json();
+          
           if (result.success && result.data) {
             // Keep full structure with IDs and names
             const transformed = result.data.map(path => ({
               id: path.id,
-              GeneralPath: path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id,
+              GeneralPath: path.type || (path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id),
               pathTitle: path.name,
               Courses: path.courses.map(course => ({
                 id: course.id,
@@ -144,8 +154,16 @@ export default function AIQuiz2() {
                 }))
               }))
             }));
+            console.log('📚 Fetched curriculum data:', transformed);
+            console.log('📚 Number of paths:', transformed.length);
+            if (transformed.length > 0) {
+              console.log('📚 First path:', transformed[0]);
+              console.log('📚 First path courses:', transformed[0].Courses);
+            }
             setCurriculumData(transformed);
           }
+        } else {
+          console.error('❌ Failed to fetch learning paths:', response.status);
         }
       } catch (error) {
         console.error('Error fetching learning paths:', error);
@@ -156,17 +174,20 @@ export default function AIQuiz2() {
 
   // Get current path based on category
   const currentPath = useMemo(() => {
-    const pathKey = normalizeKey(category);
-    return curriculumData.find((p) => {
-      const normalizedPath = normalizeKey(p.GeneralPath);
-      return normalizedPath === pathKey || 
-             (pathKey === "down syndrome" && normalizedPath === "downsyndrome") ||
-             (pathKey === "autism" && normalizedPath === "autism");
-    });
+    const pathKey = category === "Autism" ? "autism" : "downSyndrome";
+    console.log('🔍 Looking for path with key:', pathKey);
+    console.log('🔍 Available curriculum data:', curriculumData);
+    const found = curriculumData.find(p => p.GeneralPath === pathKey);
+    console.log('🔍 Found path:', found);
+    return found;
   }, [category, curriculumData]);
 
   // Get available courses for current category
-  const availableCourses = useMemo(() => currentPath?.Courses || [], [currentPath]);
+  const availableCourses = useMemo(() => {
+    const courses = currentPath?.Courses || [];
+    console.log('📖 Available courses for', category, ':', courses);
+    return courses;
+  }, [currentPath, category]);
 
   // Get available topics for selected course
   const availableTopics = useMemo(() => {

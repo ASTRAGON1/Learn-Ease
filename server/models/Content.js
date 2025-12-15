@@ -11,53 +11,37 @@ const contentSchema = new mongoose.Schema({
     required: [true, 'Title is required'],
     trim: true
   },
-  category: {
-    type: String,
-    required: [true, 'Category is required'],
-    enum: {
-      values: ['autism', 'downSyndrome'],
-      message: 'Category must be either autism or downSyndrome'
-    }
+  // Path reference (required for proper inheritance)
+  path: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Path',
+    required: [true, 'Path is required']
   },
-  type: {
+  // Course reference (required for proper inheritance)
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: [true, 'Course is required']
+  },
+  // Topic reference (required for proper inheritance)
+  topic: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Topic',
+    required: [true, 'Topic is required']
+  },
+  // Lesson reference (required for proper inheritance)
+  lesson: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lesson',
+    required: [true, 'Lesson is required']
+  },
+  contentType: {
     type: String,
     required: [true, 'Content type is required'],
     enum: {
       values: ['video', 'document', 'image'],
-      message: 'Type must be video, file, or image'
+      message: 'Content type must be video, document, or image'
     }
-  },
-  topic: {
-    type: String,
-    ref: 'Topic',
-    required: [true, 'Topic is required']
-  },
-  lesson: {
-    type: String,
-    ref: 'Lesson',
-    required: [true, 'Lesson is required']
-  },
-  course: {
-    type: String,
-    ref: 'Course',
-    required: [true, 'Course is required']
-  },
-  // IDs for proper linking to curriculum structure
-  pathId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Path'
-  },
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
-  },
-  topicId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Topic'
-  },
-  lessonId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Lesson'
   },
   description: {
     type: String,
@@ -132,15 +116,11 @@ const contentSchema = new mongoose.Schema({
 
 // Indexes
 contentSchema.index({ teacher: 1 });
-contentSchema.index({ category: 1 });
-contentSchema.index({ type: 1 });
+contentSchema.index({ path: 1 });
+contentSchema.index({ contentType: 1 });
 contentSchema.index({ course: 1 });
 contentSchema.index({ topic: 1 });
 contentSchema.index({ lesson: 1 });
-contentSchema.index({ pathId: 1 });
-contentSchema.index({ courseId: 1 });
-contentSchema.index({ topicId: 1 });
-contentSchema.index({ lessonId: 1 });
 contentSchema.index({ status: 1 });
 contentSchema.index({ difficulty: 1 });
 

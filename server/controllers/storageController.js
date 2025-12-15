@@ -1,4 +1,6 @@
 const Content = require('../models/Content');
+const Path = require('../models/Path');
+const mongoose = require('mongoose');
 
 exports.getContent = async (req, res) => {
   try {
@@ -15,10 +17,24 @@ exports.getContent = async (req, res) => {
     }
     
     const content = await Content.find(query)
+      .populate('path', 'type') // Populate path to get the type (autism/downSyndrome)
       .sort({ createdAt: -1 }) // Newest first
-      .select('title category status createdAt previousStatus storagePath deletedAt');
+      .select('title path contentType status createdAt previousStatus storagePath deletedAt');
     
-    return res.status(200).json({ data: content });
+    // Transform the data to include pathType for backward compatibility with frontend
+    const transformedContent = content.map(item => ({
+      _id: item._id,
+      title: item.title,
+      pathType: item.path?.type || null, // Extract type from populated path
+      contentType: item.contentType,
+      status: item.status,
+      createdAt: item.createdAt,
+      previousStatus: item.previousStatus,
+      storagePath: item.storagePath,
+      deletedAt: item.deletedAt
+    }));
+    
+    return res.status(200).json({ data: transformedContent });
   } catch (e) {
     console.error('getContent error', e);
     return res.status(500).json({ error: 'Server error' });
@@ -33,49 +49,104 @@ exports.createContent = async (req, res) => {
     
     const { 
       title, category, type, topic, lesson, course, description, difficulty,
-      url, storagePath, fileType, size, firebaseUid, status 
+      url, storagePath, fileType, size, firebaseUid, status,
+      pathId, courseId, topicId, lessonId
     } = req.body;
+    
+    console.log('Received category value:', category, 'Type:', typeof category);
+    console.log('Received type value:', type, 'Type:', typeof type);
     
     if (!url || !storagePath) {
       console.error('Missing url/storagePath:', { url: !!url, storagePath: !!storagePath });
       return res.status(400).json({ error: 'Missing url/storagePath' });
     }
-    if (!title || !category || !type || !topic || !lesson || !course) {
-      console.error('Missing required fields:', { title: !!title, category: !!category, type: !!type, topic: !!topic, lesson: !!lesson, course: !!course });
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!title || !type) {
+      console.error('Missing required fields:', { title: !!title, type: !!type });
+      return res.status(400).json({ error: 'Missing required fields: title and type are required' });
     }
 
-    // Normalize category
-    const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
-    const normalizedCategory = categoryMap[category] || category.toLowerCase();
+    // Validate that IDs are provided (required for new schema)
+    if (!pathId || !courseId || !topicId || !lessonId) {
+      return res.status(400).json({ error: 'Missing required IDs: pathId, courseId, topicId, and lessonId are required' });
+    }
+
+    // Validate that IDs are valid ObjectIds
+    if (!mongoose.Types.ObjectId.isValid(pathId) || 
+        !mongoose.Types.ObjectId.isValid(courseId) || 
+        !mongoose.Types.ObjectId.isValid(topicId) || 
+        !mongoose.Types.ObjectId.isValid(lessonId)) {
+      return res.status(400).json({ error: 'Invalid ID format: All IDs must be valid ObjectIds' });
+    }
+
+    // Normalize pathType (category from frontend) - derive from pathId
+    let normalizedPathType = null;
+    try {
+      const path = await Path.findById(pathId).select('type');
+      if (path && path.type) {
+        normalizedPathType = path.type; // path.type is 'autism' or 'downSyndrome'
+        console.log('Derived pathType from pathId:', normalizedPathType);
+      } else {
+        return res.status(400).json({ error: 'Invalid pathId: Path not found' });
+      }
+    } catch (pathError) {
+      console.error('Error fetching path:', pathError);
+      return res.status(400).json({ error: 'Error validating path' });
+    }
+
+    // Normalize contentType (type from frontend)
+    let normalizedContentType = type;
+    if (typeof normalizedContentType === 'string') {
+      normalizedContentType = normalizedContentType.toLowerCase().trim();
+    }
+    
+    // Validate contentType
+    if (!['video', 'document', 'image'].includes(normalizedContentType)) {
+      console.error('Invalid contentType value:', type);
+      return res.status(400).json({ 
+        error: 'Invalid content type', 
+        message: `Content type must be 'video', 'document', or 'image', received: '${type}'`
+      });
+    }
+    
+    console.log('Final normalized contentType:', normalizedContentType);
 
     console.log('Creating Content document with:', {
       teacher: teacherId,
       title,
-      category: normalizedCategory,
-      type,
-      topic,
-      lesson,
-      course
+      path: pathId,
+      course: courseId,
+      topic: topicId,
+      lesson: lessonId,
+      contentType: normalizedContentType
     });
 
-    const doc = await Content.create({
+    // Prepare content data
+    const contentData = {
       teacher: teacherId,
-      title,
-      category: normalizedCategory,
-      type,
-      topic,
-      lesson,
-      course,
-      description: description || '',
-      difficulty: difficulty || null,
+      title: title.trim(),
+      path: pathId,
+      course: courseId,
+      topic: topicId,
+      lesson: lessonId,
+      contentType: normalizedContentType,
+      description: description ? description.trim() : '',
       fileURL: url,
       status: status || 'draft',
       firebaseUid: firebaseUid || null,
       storagePath,
-      fileType,
-      size
-    });
+      fileType: fileType || null,
+      size: size || null
+    };
+
+    // Only add difficulty if it's provided and valid
+    if (difficulty && ['Easy', 'Medium', 'Hard'].includes(difficulty)) {
+      contentData.difficulty = difficulty;
+    }
+
+    // Log the final data being sent to MongoDB
+    console.log('Final contentData being saved:', JSON.stringify(contentData, null, 2));
+
+    const doc = await Content.create(contentData);
 
     console.log('Content created successfully:', doc._id);
     return res.status(201).json({ data: doc });
@@ -86,6 +157,22 @@ exports.createContent = async (req, res) => {
       message: e.message,
       stack: e.stack
     });
+    
+    // If it's a validation error, provide more details
+    if (e.name === 'ValidationError') {
+      const validationErrors = Object.values(e.errors || {}).map(err => ({
+        field: err.path,
+        message: err.message,
+        value: err.value
+      }));
+      console.error('Validation errors:', JSON.stringify(validationErrors, null, 2));
+      return res.status(400).json({ 
+        error: 'Validation error', 
+        message: e.message,
+        details: validationErrors
+      });
+    }
+    
     return res.status(500).json({ error: 'Server error', message: e.message });
   }
 };

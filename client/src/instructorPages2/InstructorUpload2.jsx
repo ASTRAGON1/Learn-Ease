@@ -129,7 +129,7 @@ export default function InstructorUpload2() {
         const transformed = content.map(item => ({
           id: item._id,
           title: item.title,
-          category: item.category === 'autism' ? 'Autism' : item.category === 'downSyndrome' ? 'Down Syndrome' : item.category,
+          category: item.pathType === 'autism' ? 'Autism' : item.pathType === 'downSyndrome' ? 'Down Syndrome' : item.pathType,
           status: item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : item.status === 'archived' ? 'Archived' : item.status,
           storagePath: item.storagePath,
           previousStatus: item.previousStatus || null // Track previous status for archived items
@@ -168,7 +168,7 @@ export default function InstructorUpload2() {
         const transformed = quizzes.map(item => ({
           id: item._id,
           title: item.title,
-          category: item.category === 'autism' ? 'Autism' : item.category === 'downSyndrome' ? 'Down Syndrome' : item.category,
+          category: item.pathType === 'autism' ? 'Autism' : item.pathType === 'downSyndrome' ? 'Down Syndrome' : item.pathType,
           status: item.status === 'published' ? 'Published' : item.status === 'draft' ? 'Draft' : item.status === 'archived' ? 'Archived' : item.status,
           difficulty: item.difficulty || '',
           previousStatus: item.previousStatus || null
@@ -214,14 +214,26 @@ export default function InstructorUpload2() {
   useEffect(() => {
     const fetchPaths = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        const token = await getMongoDBToken();
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`${API_URL}/api/admin/learning-paths`, {
+          headers
+        });
+        
         if (response.ok) {
           const result = await response.json();
+          
           if (result.success && result.data) {
             // Keep full structure with IDs and names
             const transformed = result.data.map(path => ({
               id: path.id,
-              GeneralPath: path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id,
+              GeneralPath: path.type || (path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id),
               pathTitle: path.name,
               Courses: path.courses.map(course => ({
                 id: course.id,
@@ -236,8 +248,16 @@ export default function InstructorUpload2() {
                 }))
               }))
             }));
+            console.log('📚 Fetched curriculum data:', transformed);
+            console.log('📚 Number of paths:', transformed.length);
+            if (transformed.length > 0) {
+              console.log('📚 First path:', transformed[0]);
+              console.log('📚 First path courses:', transformed[0].Courses);
+            }
             setCurriculumData(transformed);
           }
+        } else {
+          console.error('❌ Failed to fetch learning paths:', response.status);
         }
       } catch (error) {
         console.error('Error fetching learning paths:', error);
@@ -248,14 +268,20 @@ export default function InstructorUpload2() {
 
   // Get current path based on category
   const currentPath = useMemo(() => {
-    const pathKey = category === "Autism" ? "autism" : "Down Syndrome";
-    return curriculumData.find(p => p.GeneralPath === pathKey || p.GeneralPath === (pathKey === "autism" ? "autism" : "downSyndrome"));
+    const pathKey = category === "Autism" ? "autism" : "downSyndrome";
+    console.log('🔍 Looking for path with key:', pathKey);
+    console.log('🔍 Available curriculum data:', curriculumData);
+    const found = curriculumData.find(p => p.GeneralPath === pathKey);
+    console.log('🔍 Found path:', found);
+    return found;
   }, [category, curriculumData]);
 
   // Get available courses for current category
   const availableCourses = useMemo(() => {
-    return currentPath?.Courses || [];
-  }, [currentPath]);
+    const courses = currentPath?.Courses || [];
+    console.log('📖 Available courses for', category, ':', courses);
+    return courses;
+  }, [currentPath, category]);
 
   // Get available topics for selected course
   const availableTopics = useMemo(() => {
@@ -316,8 +342,8 @@ export default function InstructorUpload2() {
 
   // Get current path for quiz based on quiz category
   const quizCurrentPath = useMemo(() => {
-    const pathKey = quizCategory === "Autism" ? "autism" : "Down Syndrome";
-    return curriculumData.find(p => p.GeneralPath === pathKey || p.GeneralPath === (pathKey === "autism" ? "autism" : "downSyndrome"));
+    const pathKey = quizCategory === "Autism" ? "autism" : "downSyndrome";
+    return curriculumData.find(p => p.GeneralPath === pathKey);
   }, [quizCategory, curriculumData]);
 
   // Get available courses for quiz category
@@ -560,7 +586,11 @@ export default function InstructorUpload2() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save content');
+        // Include validation details if available
+        const errorMessage = errorData.details && Array.isArray(errorData.details)
+          ? `${errorData.error || 'Validation error'}: ${errorData.details.map(d => d.message || d).join(', ')}`
+          : errorData.error || errorData.message || 'Failed to save content';
+        throw new Error(errorMessage);
       }
 
       const savedContent = await response.json();
@@ -1924,37 +1954,6 @@ export default function InstructorUpload2() {
         </div>
       </div>
 
-      {/* AI Assistant Chatbot Icon */}
-      <div 
-        className={`ai-chatbot-icon ${scrollDirection}`}
-        onClick={handleChatbotClick}
-        role="button"
-        tabIndex={0}
-        aria-label="AI Assistant"
-      >
-        <div className="ai-chatbot-icon-inner">
-          <svg 
-            width="32" 
-            height="32" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-            className="ai-chatbot-svg"
-          >
-            <rect x="4" y="6" width="16" height="14" rx="2" fill="currentColor" />
-            <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
-            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            <circle cx="9" cy="11" r="1.5" fill="white"/>
-            <circle cx="15" cy="11" r="1.5" fill="white"/>
-            <circle cx="9" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
-            <circle cx="15" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
-            <rect x="9" y="15" width="6" height="2" rx="1" fill="white"/>
-            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6"/>
-            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6"/>
-          </svg>
-        </div>
-        <div className="ai-chatbot-pulse"></div>
-      </div>
       <ToastComponent />
     </div>
   );

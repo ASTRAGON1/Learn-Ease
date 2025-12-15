@@ -1,4 +1,4 @@
-const express = require('express');
+  const express = require('express');
 const router = express.Router();
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
@@ -454,7 +454,7 @@ router.get('/teacher/:email/content', async (req, res) => {
       teacher: teacher._id,
       status: { $ne: 'deleted' } // Exclude deleted content
     })
-      .select('title category type topic lesson course description difficulty status createdAt')
+      .select('title pathType contentType topic lesson course description difficulty status createdAt')
       .sort({ createdAt: -1 });
     
     res.json({
@@ -493,7 +493,7 @@ router.get('/teacher/:email/quizzes', async (req, res) => {
     const quizzes = await Quiz.find({ 
       teacher: teacher._id
     })
-      .select('title category topic lesson course difficulty status createdAt questionsAndAnswers')
+      .select('title pathType topic lesson course difficulty status createdAt questionsAndAnswers')
       .sort({ createdAt: -1 });
     
     res.json({
@@ -533,7 +533,7 @@ router.get('/teacher/:email/deleted-content', async (req, res) => {
       teacher: teacher._id,
       status: 'deleted'
     })
-      .select('title category type topic lesson course description difficulty status previousStatus deletedAt createdAt')
+      .select('title pathType contentType topic lesson course description difficulty status previousStatus deletedAt createdAt')
       .sort({ deletedAt: -1 });
     
     res.json({
@@ -573,7 +573,7 @@ router.get('/teacher/:email/deleted-quizzes', async (req, res) => {
       teacher: teacher._id,
       status: 'archived'
     })
-      .select('title category topic lesson course difficulty status previousStatus createdAt updatedAt')
+      .select('title pathType topic lesson course difficulty status previousStatus createdAt updatedAt')
       .sort({ updatedAt: -1 });
     
     res.json({
@@ -638,6 +638,7 @@ router.get('/learning-paths', async (req, res) => {
         return {
           id: path._id,
           name: path.title,
+          type: path.type,
           courses: coursesWithData
         };
       })

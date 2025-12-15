@@ -11,45 +11,29 @@ const quizSchema = new mongoose.Schema({
     required: [true, 'Quiz title is required'],
     trim: true
   },
-  category: {
-    type: String,
-    required: [true, 'Category is required'],
-    enum: {
-      values: ['autism', 'downSyndrome'],
-      message: 'Category must be either autism or downSyndrome'
-    }
+  // Path reference (required for proper inheritance)
+  path: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Path',
+    required: [true, 'Path is required']
   },
-  topic: {
-    type: String,
-    ref: 'Topic',
-    required: [true, 'Topic is required']
-  },
+  // Course reference (required for proper inheritance)
   course: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',
     required: [true, 'Course is required']
   },
+  // Topic reference (required for proper inheritance)
+  topic: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Topic',
+    required: [true, 'Topic is required']
+  },
+  // Lesson reference (required for proper inheritance)
   lesson: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Lesson',
     required: [true, 'Lesson is required']
-  },
-  // IDs for proper linking to curriculum structure
-  pathId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Path'
-  },
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
-  },
-  topicId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Topic'
-  },
-  lessonId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Lesson'
   },
   difficulty: {
     type: String,
@@ -103,13 +87,10 @@ const quizSchema = new mongoose.Schema({
 
 // Indexes for faster queries
 quizSchema.index({ teacher: 1 });
-quizSchema.index({ category: 1 });
+quizSchema.index({ path: 1 });
 quizSchema.index({ course: 1 });
+quizSchema.index({ topic: 1 });
 quizSchema.index({ lesson: 1 });
-quizSchema.index({ pathId: 1 });
-quizSchema.index({ courseId: 1 });
-quizSchema.index({ topicId: 1 });
-quizSchema.index({ lessonId: 1 });
 quizSchema.index({ status: 1 });
 
 const Quiz = mongoose.model('Quiz', quizSchema);

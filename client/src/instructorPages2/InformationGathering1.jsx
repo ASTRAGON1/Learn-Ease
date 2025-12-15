@@ -313,17 +313,35 @@ export default function InformationGathering1({ onNext, onLogout }) {
         )}
 
         <div className="ig1-grid">
-          {OPTIONS.map(opt => (
-            <label key={opt} className="ig1-option">
-              <input
-                type="checkbox"
-                checked={selected.includes(opt)}
-                onChange={() => toggle(opt)}
-                disabled={!selected.includes(opt) && selected.length >= 4 && opt !== 'Others'}
-              />
-              <span>{opt}</span>
-            </label>
-          ))}
+          {OPTIONS.map(opt => {
+            const isDisabled = !selected.includes(opt) && selected.length >= 4 && opt !== 'Others';
+            return (
+              <label 
+                key={opt} 
+                className="ig1-option"
+                onClick={(e) => {
+                  // Only handle clicks on the label itself, not the checkbox
+                  // The checkbox onChange will handle clicks on the checkbox
+                  if (e.target.type === 'checkbox') {
+                    return; // Let the checkbox handle it via onChange
+                  }
+                  // For clicks on label text/area, manually trigger toggle
+                  if (!isDisabled) {
+                    e.preventDefault();
+                    toggle(opt);
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.includes(opt)}
+                  onChange={() => toggle(opt)}
+                  disabled={isDisabled}
+                />
+                <span>{opt}</span>
+              </label>
+            );
+          })}
         </div>
 
         <div className="ig1-progress">

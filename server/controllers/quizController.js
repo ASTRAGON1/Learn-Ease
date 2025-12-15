@@ -11,10 +11,22 @@ exports.getQuizzes = async (req, res) => {
     }
     
     const quizzes = await Quiz.find(query)
+      .populate('path', 'type') // Populate path to get the type (autism/downSyndrome)
       .sort({ createdAt: -1 }) // Newest first
-      .select('title category status difficulty createdAt previousStatus');
+      .select('title path status difficulty createdAt previousStatus');
     
-    return res.status(200).json({ data: quizzes });
+    // Transform the data to include pathType for backward compatibility with frontend
+    const transformedQuizzes = quizzes.map(quiz => ({
+      _id: quiz._id,
+      title: quiz.title,
+      pathType: quiz.path?.type || null, // Extract type from populated path
+      status: quiz.status,
+      difficulty: quiz.difficulty,
+      createdAt: quiz.createdAt,
+      previousStatus: quiz.previousStatus
+    }));
+    
+    return res.status(200).json({ data: transformedQuizzes });
   } catch (e) {
     console.error('getQuizzes error', e);
     return res.status(500).json({ error: 'Server error' });
@@ -25,11 +37,17 @@ exports.createQuiz = async (req, res) => {
   try {
     const teacherId = req.user.sub;
     const { 
-      title, category, topic, lesson, course, difficulty, questionsAndAnswers, status 
+      title, difficulty, questionsAndAnswers, status,
+      pathId, courseId, topicId, lessonId
     } = req.body;
     
-    if (!title || !category || !topic || !lesson || !course) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!title) {
+      return res.status(400).json({ error: 'Missing required field: title is required' });
+    }
+
+    // Validate that IDs are provided (required for new schema)
+    if (!pathId || !courseId || !topicId || !lessonId) {
+      return res.status(400).json({ error: 'Missing required IDs: pathId, courseId, topicId, and lessonId are required' });
     }
 
     if (!difficulty || !['Easy', 'Medium', 'Hard'].includes(difficulty)) {
@@ -46,20 +64,6 @@ exports.createQuiz = async (req, res) => {
 
     if (questionsAndAnswers.length > 10) {
       return res.status(400).json({ error: 'Maximum 10 questions allowed' });
-    }
-
-    // Normalize category - handle both original and already-normalized formats
-    const categoryMap = { 
-      'Autism': 'autism', 
-      'Down Syndrome': 'downSyndrome',
-      'autism': 'autism',
-      'downSyndrome': 'downSyndrome'
-    };
-    const normalizedCategory = categoryMap[category] || category.toLowerCase();
-    
-    // Ensure it's one of the valid enum values
-    if (!['autism', 'downSyndrome'].includes(normalizedCategory)) {
-      return res.status(400).json({ error: 'Invalid category. Must be "Autism" or "Down Syndrome"' });
     }
 
     // Transform questions from {q, a} format to Quiz schema format
@@ -79,10 +83,10 @@ exports.createQuiz = async (req, res) => {
     const doc = await Quiz.create({
       teacher: teacherId,
       title,
-      category: normalizedCategory,
-      topic,
-      lesson,
-      course,
+      path: pathId,
+      course: courseId,
+      topic: topicId,
+      lesson: lessonId,
       difficulty: difficulty,
       questionsAndAnswers: transformedQuestions,
       status: status || 'draft'
