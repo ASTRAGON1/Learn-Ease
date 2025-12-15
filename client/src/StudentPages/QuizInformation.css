@@ -53,25 +53,31 @@
 }
 
 .qi-back-btn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--qi-text, #1a1a1a);
+  font-family: inherit;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: transparent;
-  border: 1px solid var(--qi-border);
-  color: var(--qi-text);
+  gap: 6px;
+  transition: transform 0.2s ease, color 0.2s ease;
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  cursor: pointer;
 }
 
 .qi-back-btn:hover {
-  background: var(--qi-primary-light);
-  border-color: var(--qi-primary);
-  color: var(--qi-primary);
+  transform: translateX(-2px);
+  color: var(--qi-primary, #5b22d1);
+}
+
+.qi-back-chev {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .qi-title {

@@ -403,6 +403,108 @@ const api = {
   saveSettings: async (settings) => ({ ok: true, settings }),
   addUser: async (payload) => ({ ok: true, payload }),
   createUser: async (userData) => ({ ok: true, userData }),
+  
+  // Achievements API
+  getAchievements: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/achievements`);
+      if (!response.ok) {
+        return { ok: false, data: [] };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data || [] };
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+      return { ok: false, data: [] };
+    }
+  },
+  createAchievement: async (achievementData) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/achievements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(achievementData)
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to create achievement' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error creating achievement:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  updateAchievement: async (id, achievementData) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/achievements/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(achievementData)
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to update achievement' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error updating achievement:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  deleteAchievement: async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/achievements/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to delete achievement' };
+      }
+      return { ok: true };
+    } catch (error) {
+      console.error('Error deleting achievement:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  toggleAchievementStatus: async (id, isActive) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/achievements/${id}/toggle-status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to toggle achievement status' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data };
+    } catch (error) {
+      console.error('Error toggling achievement status:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
+  bulkImportAchievements: async (achievements) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/achievements/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ achievements })
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        return { ok: false, error: error.error || 'Failed to import achievements' };
+      }
+      const result = await response.json();
+      return { ok: true, data: result };
+    } catch (error) {
+      console.error('Error bulk importing achievements:', error);
+      return { ok: false, error: 'Network error' };
+    }
+  },
 };
 
 export default api;

@@ -37,25 +37,31 @@ button, input, label { font: inherit; color: inherit; }
 }
 
 .quizPurple-back-btn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+  color: #1a1a1a;
+  font-family: 'Poppins', sans-serif;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  gap: 6px;
+  transition: transform 0.2s ease, color 0.2s ease;
   align-self: flex-start;
 }
 
 .quizPurple-back-btn:hover {
-  background: #f9fafb;
-  border-color: var(--purple);
-  color: var(--purple);
+  transform: translateX(-2px);
+  color: var(--purple, #5b22d1);
+}
+
+.quizPurple-back-chev {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .quizPurple-header-content {

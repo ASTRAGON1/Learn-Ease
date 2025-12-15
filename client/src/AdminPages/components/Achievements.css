@@ -1,0 +1,631 @@
+/* Achievements Page Styles */
+.admin-achievements {
+  padding: 32px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Header Actions */
+.admin-achievements-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Filters Section */
+.admin-achievements-filters {
+  background: white;
+  border: 1px solid var(--ld-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.admin-achievements-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-achievements-search svg {
+  position: absolute;
+  left: 16px;
+  color: #9ca3af;
+}
+
+.admin-achievements-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s;
+}
+
+.admin-achievements-search-input:focus {
+  outline: none;
+  border-color: var(--ld-accent-purple);
+  box-shadow: 0 0 0 3px rgba(74, 15, 173, 0.1);
+}
+
+.admin-achievements-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #f9fafb;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-tab:hover {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.admin-tab.active {
+  background: var(--ld-accent-purple);
+  color: white;
+  border-color: var(--ld-accent-purple);
+}
+
+.admin-tab-icon {
+  font-size: 16px;
+}
+
+.admin-tab-label {
+  font-weight: 600;
+}
+
+/* Category Sections */
+.admin-achievements-category {
+  margin-bottom: 40px;
+}
+
+.admin-section-header {
+  margin-bottom: 20px;
+}
+
+.admin-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-section-icon {
+  font-size: 24px;
+}
+
+.admin-section-count {
+  font-size: 18px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Achievements Grid */
+.admin-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+/* Achievement Card */
+.admin-achievement-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-achievement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.admin-achievement-card.inactive {
+  opacity: 0.6;
+  background: #f9fafb;
+}
+
+.admin-achievement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.admin-achievement-icon-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.admin-achievement-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.admin-achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-achievement-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.admin-achievement-rarity {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-achievement-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.admin-achievement-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  background: #f9fafb;
+  border-radius: 10px;
+}
+
+.admin-achievement-requirement {
+  flex: 1;
+}
+
+.admin-achievement-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-achievement-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.admin-achievement-points {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--ld-accent-purple);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-achievement-points svg {
+  fill: currentColor;
+}
+
+/* Achievement Actions */
+.admin-achievement-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-achievement-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-achievement-btn svg {
+  flex-shrink: 0;
+}
+
+.admin-achievement-btn-edit {
+  background: #3b82f6;
+  color: white;
+}
+
+.admin-achievement-btn-edit:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.admin-achievement-btn-enable {
+  background: #10b981;
+  color: white;
+}
+
+.admin-achievement-btn-enable:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.admin-achievement-btn-disable {
+  background: #ef4444;
+  color: white;
+}
+
+.admin-achievement-btn-disable:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.admin-achievement-btn-delete {
+  flex: 0 0 auto;
+  width: 44px;
+  background: #dc2626;
+  color: white;
+}
+
+.admin-achievement-btn-delete:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Empty State */
+.admin-empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+}
+
+.admin-empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+.admin-empty-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.admin-empty-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Badge Styles */
+.admin-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.admin-badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.admin-badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Buttons */
+.admin-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-btn svg {
+  flex-shrink: 0;
+}
+
+.admin-btn-primary {
+  background: var(--ld-accent-purple);
+  color: white;
+}
+
+.admin-btn-primary:hover {
+  background: var(--ld-accent-purple-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 15, 173, 0.3);
+}
+
+.admin-btn-secondary {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.admin-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.admin-btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.admin-btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Modal Styles */
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.admin-modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.admin-modal-header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-modal-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s;
+  border-radius: 6px;
+}
+
+.admin-modal-close:hover {
+  color: #1a1a1a;
+  background: #f3f4f6;
+}
+
+.admin-modal-body {
+  padding: 24px;
+}
+
+/* Form Styles */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.admin-form-input,
+.admin-form-select,
+.admin-form-textarea {
+  padding: 11px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-form-input:focus,
+.admin-form-select:focus,
+.admin-form-textarea:focus {
+  outline: none;
+  border-color: var(--ld-accent-purple);
+  box-shadow: 0 0 0 3px rgba(74, 15, 173, 0.1);
+}
+
+.admin-form-textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.admin-form-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.admin-form-error {
+  font-size: 13px;
+  color: #dc2626;
+  margin: 0;
+  font-weight: 500;
+}
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Delete Confirmation */
+.admin-delete-confirmation {
+  text-align: center;
+}
+
+.admin-warning-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.admin-warning-icon svg {
+  color: #f59e0b;
+}
+
+.admin-delete-message {
+  font-size: 15px;
+  color: #6b7280;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.admin-delete-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.admin-delete-preview-info {
+  flex: 1;
+}
+
+.admin-delete-preview-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.admin-delete-preview-desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.admin-delete-preview-meta {
+  font-size: 13px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-achievements {
+    padding: 20px;
+  }
+
+  .admin-achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-achievements-actions {
+    flex-direction: column;
+  }
+
+  .admin-achievements-tabs {
+    flex-direction: column;
+  }
+
+  .admin-achievement-actions {
+    flex-wrap: wrap;
+  }
+}

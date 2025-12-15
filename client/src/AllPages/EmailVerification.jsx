@@ -129,7 +129,7 @@ export default function EmailVerification() {
         sessionStorage.removeItem("tempUserName");
         sessionStorage.removeItem("tempUserEmail");
         
-        navigate("/student-dashboard");
+        navigate("/student-dashboard-2");
       } else {
         navigate("/all-login");
       }

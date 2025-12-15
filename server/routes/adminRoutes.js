@@ -1,4 +1,4 @@
-  const express = require('express');
+const express = require('express');
 const router = express.Router();
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
@@ -8,6 +8,7 @@ const Course = require('../models/Course');
 const Topic = require('../models/Topic');
 const Lesson = require('../models/Lesson');
 const { deleteFirebaseUser } = require('../config/firebase');
+const achievementController = require('../controllers/achievementController');
 
 /**
  * @route   POST /api/admin/login
@@ -1315,6 +1316,50 @@ router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons
     });
   }
 });
+
+// ==================== ACHIEVEMENTS API ====================
+
+/**
+ * @route   GET /api/admin/achievements
+ * @desc    Get all achievements
+ * @access  Admin
+ */
+router.get('/achievements', achievementController.getAchievements);
+
+/**
+ * @route   POST /api/admin/achievements
+ * @desc    Create a new achievement
+ * @access  Admin
+ */
+router.post('/achievements', achievementController.createAchievement);
+
+/**
+ * @route   PUT /api/admin/achievements/:id
+ * @desc    Update an achievement
+ * @access  Admin
+ */
+router.put('/achievements/:id', achievementController.updateAchievement);
+
+/**
+ * @route   DELETE /api/admin/achievements/:id
+ * @desc    Delete an achievement
+ * @access  Admin
+ */
+router.delete('/achievements/:id', achievementController.deleteAchievement);
+
+/**
+ * @route   PATCH /api/admin/achievements/:id/toggle-status
+ * @desc    Toggle achievement active status
+ * @access  Admin
+ */
+router.patch('/achievements/:id/toggle-status', achievementController.toggleAchievementStatus);
+
+/**
+ * @route   POST /api/admin/achievements/bulk-import
+ * @desc    Bulk import achievements
+ * @access  Admin
+ */
+router.post('/achievements/bulk-import', achievementController.bulkImportAchievements);
 
 module.exports = router;
 

@@ -567,7 +567,7 @@ export default function HelpAndSupport2() {
                   onClick={send}
                   disabled={sending}
                 >
-                  {sending ? "Sending..." : "Send"}
+                  <span>{sending ? "Sending..." : "Send"}</span>
                 </button>
               </div>
             </div>

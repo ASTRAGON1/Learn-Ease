@@ -198,35 +198,31 @@
 }
 
 .cp-back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #fff;
-  border: 1px solid var(--cp-border);
-  border-radius: 10px;
-  color: var(--cp-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
+  background: none;
+  border: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--cp-text-primary, #1a1a1a);
   font-family: 'Poppins', sans-serif;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
 }
 
 .cp-back-btn:hover {
-  background: #f9fafb;
-  border-color: var(--cp-accent-purple);
-  color: var(--cp-accent-purple);
   transform: translateX(-2px);
+  color: var(--cp-accent-purple, #5b22d1);
 }
 
-.cp-back-btn svg {
-  transition: transform 0.2s ease;
-}
-
-.cp-back-btn:hover svg {
-  transform: translateX(-2px);
+.cp-back-chev {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .cp-course-header > div {

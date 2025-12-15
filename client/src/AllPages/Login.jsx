@@ -251,7 +251,7 @@ export default function Login() {
         email: loginResult.user?.email 
       });
 
-      // For instructors: Use Firebase Auth only, no storage
+      // Route based on user type: Teachers → instructor-dashboard-2, Students → student-dashboard-2
       if (loginResult.userType === 'teacher') {
         console.log('Routing to instructor dashboard');
         // Sign in with Firebase - this is REQUIRED for instructors
@@ -397,7 +397,7 @@ export default function Login() {
         // Information gathering is complete - navigate to instructor dashboard
         navigate('/instructor-dashboard-2');
       } else {
-        // For students, store in sessionStorage (as per user request, only fix instructor pages)
+        // For students: Store in sessionStorage and navigate to student-dashboard-2
         const storage = window.sessionStorage;
         if (loginResult.token) {
           storage.setItem("token", loginResult.token);
@@ -406,9 +406,9 @@ export default function Login() {
         storage.setItem("userId", loginResult.user?.id || "");
         storage.setItem("userName", loginResult.user?.name || 'Student');
         storage.setItem("userEmail", loginResult.user?.email || "");
-        // Navigate to student dashboard
-        console.log('Routing to student dashboard');
-        navigate('/student-dashboard');
+        // Navigate to student dashboard-2
+        console.log('Routing to student dashboard-2');
+        navigate('/student-dashboard-2');
       }
     } catch (error) {
       console.error('Login error:', error);

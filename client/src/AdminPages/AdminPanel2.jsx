@@ -14,6 +14,7 @@ import LearningPaths from "./components/LearningPaths";
 import Profiles from "./components/Profiles";
 import InstructorProfile from "./components/InstructorProfile";
 import Settings from "./components/Settings";
+import Achievements from "./components/Achievements";
 
 // Utils
 import api from "./utils/api";
@@ -45,6 +46,7 @@ export default function AdminPanel2() {
   const [feedback, setFeedback] = useState([]);
   const [modLog, setModLog] = useState([]); // {id, userId, type, name, reason, at}
   const [learningPaths, setLearningPaths] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState(null);
 
   const [search, setSearch] = useState(""); // Global search for all components except Users
@@ -86,15 +88,19 @@ export default function AdminPanel2() {
   // Check authentication on mount
   useEffect(() => {
     const token = localStorage.getItem("le_admin_token");
-    if (!token) {
-      setIsAuthed(false);
+    const name = localStorage.getItem("le_admin_name");
+    if (token) {
+      setIsAuthed(true);
+      if (name) {
+        setAdminName(name);
+      }
     }
   }, []);
 
   // Update localStorage when authenticated
   useEffect(() => {
     if (isAuthed) {
-      localStorage.setItem("le_admin_token", "demo");
+      localStorage.setItem("le_admin_token", "admin_authenticated");
       localStorage.setItem("le_admin_name", adminName);
     }
   }, [isAuthed, adminName]);
@@ -284,6 +290,41 @@ export default function AdminPanel2() {
       return () => clearInterval(interval);
     } else {
       setLearningPaths([]);
+    }
+  }, [isAuthed]);
+
+  // Fetch achievements on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchAchievements = async () => {
+        try {
+          console.log('Fetching achievements from API...');
+          const res = await api.getAchievements();
+          console.log('Achievements API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} achievements:`, res.data);
+              setAchievements(res.data);
+            } else {
+              console.log('No achievements data, setting empty array');
+              setAchievements([]);
+            }
+          } else {
+            console.warn('Failed to fetch achievements:', res);
+            setAchievements([]);
+          }
+        } catch (error) {
+          console.error('Error fetching achievements:', error);
+          setAchievements([]);
+        }
+      };
+      fetchAchievements();
+      
+      // Refresh achievements every 30 seconds
+      const interval = setInterval(fetchAchievements, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setAchievements([]);
     }
   }, [isAuthed]);
 
@@ -825,6 +866,97 @@ export default function AdminPanel2() {
     }
   }
   
+  async function handleCreateAchievement(achievementData) {
+    try {
+      const res = await api.createAchievement(achievementData);
+      if (!res.ok) {
+        showToast(res.error || "Failed to create achievement", "error");
+        return;
+      }
+      // Refresh achievements
+      const fetchRes = await api.getAchievements();
+      if (fetchRes.ok) {
+        setAchievements(fetchRes.data || []);
+      }
+      showToast("Achievement created successfully", "success");
+    } catch (error) {
+      console.error("Error creating achievement:", error);
+      showToast("An error occurred while creating the achievement", "error");
+    }
+  }
+
+  async function handleUpdateAchievement(id, achievementData) {
+    try {
+      const res = await api.updateAchievement(id, achievementData);
+      if (!res.ok) {
+        showToast(res.error || "Failed to update achievement", "error");
+        return;
+      }
+      // Refresh achievements
+      const fetchRes = await api.getAchievements();
+      if (fetchRes.ok) {
+        setAchievements(fetchRes.data || []);
+      }
+      showToast("Achievement updated successfully", "success");
+    } catch (error) {
+      console.error("Error updating achievement:", error);
+      showToast("An error occurred while updating the achievement", "error");
+    }
+  }
+
+  async function handleDeleteAchievement(id) {
+    try {
+      const res = await api.deleteAchievement(id);
+      if (!res.ok) {
+        showToast(res.error || "Failed to delete achievement", "error");
+        return;
+      }
+      setAchievements((prev) => prev.filter((a) => (a._id || a.id) !== id));
+      showToast("Achievement deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting achievement:", error);
+      showToast("An error occurred while deleting the achievement", "error");
+    }
+  }
+
+  async function handleToggleAchievementStatus(id, isActive) {
+    try {
+      const res = await api.toggleAchievementStatus(id, isActive);
+      if (!res.ok) {
+        showToast(res.error || "Failed to toggle achievement status", "error");
+        return;
+      }
+      setAchievements((prev) =>
+        prev.map((a) => ((a._id || a.id) === id ? { ...a, isActive } : a))
+      );
+      showToast(`Achievement ${isActive ? 'enabled' : 'disabled'} successfully`, "success");
+    } catch (error) {
+      console.error("Error toggling achievement status:", error);
+      showToast("An error occurred while toggling achievement status", "error");
+    }
+  }
+
+  async function handleBulkImportAchievements(achievementsData) {
+    try {
+      const res = await api.bulkImportAchievements(achievementsData);
+      if (!res.ok) {
+        showToast(res.error || "Failed to import achievements", "error");
+        return { success: false, error: res.error };
+      }
+      // Refresh achievements
+      const fetchRes = await api.getAchievements();
+      if (fetchRes.ok) {
+        setAchievements(fetchRes.data || []);
+      }
+      showToast(`Bulk import completed: ${res.data.count} achievements imported`, "success");
+      return { success: true, data: res.data };
+    } catch (error) {
+      console.error("Error bulk importing achievements:", error);
+      showToast("An error occurred during bulk import", "error");
+      return { success: false, error: error.message };
+    }
+  }
+  
   function openInstructor(id) {
     setSelectedInstructorId(id);
     setSection("instructorProfile");
@@ -922,6 +1054,17 @@ export default function AdminPanel2() {
         </svg>
       ),
       onClick: () => setSection("learning")
+    },
+    { 
+      key: "achievements", 
+      label: "Achievements", 
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="8" r="7"></circle>
+          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+        </svg>
+      ),
+      onClick: () => setSection("achievements")
     },
     { 
       key: "profiles", 
@@ -1027,32 +1170,32 @@ export default function AdminPanel2() {
                  placeholder={
                    section === "users" 
                      ? "Users have their own search below" 
-                     : section === "settings" || section === "learning"
+                     : section === "settings" || section === "learning" || section === "achievements"
                      ? "Search not available in this section"
                      : "Search anything..."
                  } 
-                 value={section === "users" || section === "settings" || section === "learning" ? "" : search} 
-                 onChange={(e) => {
-                   if (section !== "users" && section !== "settings" && section !== "learning") {
-                     setSearch(e.target.value);
-                   }
-                 }}
-                 disabled={section === "users" || section === "settings" || section === "learning"}
-                 style={
-                   section === "users" || section === "settings" || section === "learning"
-                     ? { opacity: 0.5, cursor: "not-allowed" }
-                     : {}
-                 }
+                value={section === "users" || section === "settings" || section === "learning" || section === "achievements" ? "" : search} 
+                onChange={(e) => {
+                  if (section !== "users" && section !== "settings" && section !== "learning" && section !== "achievements") {
+                    setSearch(e.target.value);
+                  }
+                }}
+                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements"}
+                style={
+                  section === "users" || section === "settings" || section === "learning" || section === "achievements"
+                    ? { opacity: 0.5, cursor: "not-allowed" }
+                    : {}
+                }
                />
                <button 
-                 className="ld-search-btn" 
-                 type="button"
-                 disabled={section === "users" || section === "settings" || section === "learning"}
-                 style={
-                   section === "users" || section === "settings" || section === "learning"
-                     ? { opacity: 0.5, cursor: "not-allowed" }
-                     : {}
-                 }
+                className="ld-search-btn" 
+                type="button"
+                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements"}
+                style={
+                  section === "users" || section === "settings" || section === "learning" || section === "achievements"
+                    ? { opacity: 0.5, cursor: "not-allowed" }
+                    : {}
+                }
                >
                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                    <circle cx="11" cy="11" r="8"></circle>
@@ -1139,6 +1282,16 @@ export default function AdminPanel2() {
               onDeleteCourse={handleDeleteCourse}
               onDeleteTopic={handleDeleteTopic}
               onDeleteLesson={handleDeleteLesson}
+            />
+          )}
+          {section === "achievements" && (
+            <Achievements
+              achievements={achievements}
+              onCreateAchievement={handleCreateAchievement}
+              onUpdateAchievement={handleUpdateAchievement}
+              onDeleteAchievement={handleDeleteAchievement}
+              onToggleStatus={handleToggleAchievementStatus}
+              onBulkImport={handleBulkImportAchievements}
             />
           )}
           {section === "profiles" && (

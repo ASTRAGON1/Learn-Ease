@@ -16,26 +16,44 @@ const studentSchema = new mongoose.Schema({
   },
   pass: {
     type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters']
+    required: function() {
+      return !this.firebaseUID;
+    },
+    minlength: [6, 'Password must be at least 6 characters'],
+    validate: {
+      validator: function(value) {
+        // If firebaseUID exists, password is optional
+        if (this.firebaseUID) {
+          return true;
+        }
+        // If no firebaseUID, password is required and must be at least 6 characters
+        return value && value.length >= 6;
+      },
+      message: 'Password is required (minimum 6 characters) when not using Firebase authentication'
+    }
+  },
+  firebaseUID: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values
+    trim: true
   },
   type: {
     type: String,
     enum: ['autism', 'downSyndrome', 'other'],
-    required: [true, 'Student type is required']
+    default: 'other'
   },
   avatar: {
     type: String,
     default: 'default-avatar.png'
   },
-  status: {
+  userStatus: {
     type: String,
-    enum: ['active', 'inactive'],
+    enum: {
+      values: ['active','suspended'],
+      message: 'Status must be either active or suspended'
+    },
     default: 'active'
-  },
-  suspended: {
-    type: Boolean,
-    default: false
   },
   assignedPath: {
     type: String,

@@ -36,7 +36,7 @@ export default function StudentSignUp() {
     localStorage.setItem("role", "student");
     localStorage.setItem("userId", "123");
 
-    navigate("/student-dashboard"); // <-- adjust if your route differs
+    navigate("/student-dashboard-2"); // <-- adjust if your route differs
   };
 
   return (

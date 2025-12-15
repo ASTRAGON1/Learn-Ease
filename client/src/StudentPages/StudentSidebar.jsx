@@ -41,7 +41,7 @@ export default function StudentSidebar({
     >
       <div className="sb2-inner">
         {/* Logo -> Dashboard */}
-        <Link to="/student-dashboard" className="sb2-brand" aria-label="Go to dashboard">
+        <Link to="/student-dashboard-2" className="sb2-brand" aria-label="Go to dashboard">
           <img
             className="sb2-logo"
             src={collapsed ? smallLogo : fullLogo}

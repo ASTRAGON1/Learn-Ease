@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import "./CoursePlayer.css";
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function CoursePlayer() {
   const navigate = useNavigate();
@@ -8,6 +10,55 @@ export default function CoursePlayer() {
   const [activeTab, setActiveTab] = useState("description");
   const [expandedLessons, setExpandedLessons] = useState(new Set(["lesson-1"]));
   const [passedQuizzesExpanded, setPassedQuizzesExpanded] = useState(true);
+  const [studentName, setStudentName] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
+
+  // Fetch student data on component mount
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      // First, try to get from sessionStorage (set during login)
+      const storage = window.sessionStorage;
+      const storedName = storage.getItem("userName");
+      const storedEmail = storage.getItem("userEmail");
+      const token = storage.getItem("token");
+
+      if (storedName) {
+        setStudentName(storedName);
+      }
+      if (storedEmail) {
+        setStudentEmail(storedEmail);
+      }
+
+      // Try to fetch from API if token is available
+      if (token) {
+        try {
+          const response = await fetch(`${API_URL}/api/students/auth/me`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const student = data.data || data;
+            
+            if (student.name || student.fullName) {
+              setStudentName(student.name || student.fullName);
+            }
+            if (student.email) {
+              setStudentEmail(student.email);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching student data:', error);
+          // If API fails, use sessionStorage data (already set above)
+        }
+      }
+    };
+
+    fetchStudentData();
+  }, []);
 
   const courseData = {
     title: "Public Speaking and Leadership",
@@ -196,10 +247,12 @@ export default function CoursePlayer() {
               </svg>
             </button>
             <div className="cp-profile">
-              <div className="cp-profile-avatar">KV</div>
+              <div className="cp-profile-avatar">
+                {studentName ? studentName.slice(0, 2).toUpperCase() : "ST"}
+              </div>
               <div className="cp-profile-info">
-                <div className="cp-profile-name">Kacie Velasquez</div>
-                <div className="cp-profile-username">@k_velasquez</div>
+                <div className="cp-profile-name">{studentName || "Student"}</div>
+                <div className="cp-profile-username">{studentEmail || ""}</div>
               </div>
             </div>
           </div>
@@ -219,10 +272,7 @@ export default function CoursePlayer() {
           {/* Course Header with Back Button */}
           <div className="cp-course-header">
             <button className="cp-back-btn" onClick={() => navigate("/student-dashboard-2")}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              Back to Dashboard
+              <span className="cp-back-chev">‹</span> Dashboard
             </button>
             <div>
               <h2 className="cp-course-title">{courseData.title}</h2>

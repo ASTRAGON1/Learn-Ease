@@ -121,7 +121,7 @@ export default function Signup() {
     let firebaseUser = null;
 
     try {
-      // Check if email exists in both student and teacher databases
+      // Step 1: Check if email exists in MongoDB (both student and teacher databases)
       const emailCheckResponse = await fetch(`${API_URL}/api/students/auth/check-email/${encodeURIComponent(email)}`);
       if (emailCheckResponse.ok) {
         const emailCheckData = await emailCheckResponse.json();
@@ -140,40 +140,59 @@ export default function Signup() {
 
       let firebaseUID;
 
-      // Firebase authentication (mainly for instructors, optional for students)
+      // Step 2: Create Firebase account (required for both students and instructors)
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         firebaseUser = userCredential.user;
         firebaseUID = firebaseUser.uid;
       } catch (createError) {
+        // If email already exists in Firebase, check if it's verified
         if (createError.code === 'auth/email-already-in-use') {
           try {
+            // Try to sign in to check if the account exists and is verified
             const signInCredential = await signInWithEmailAndPassword(auth, email, password);
             firebaseUser = signInCredential.user;
             firebaseUID = firebaseUser.uid;
 
             if (firebaseUser.emailVerified) {
-              setGeneralError("This account is already registered and verified. Would you like to go to the login page?");
+              setGeneralError("This email is already registered and verified in Firebase. Would you like to go to the login page?");
               setShowLoginPrompt(true);
               await signOut(auth);
+              setLoading(false);
+              return;
+            } else {
+              // Email exists in Firebase but not verified - this shouldn't happen if MongoDB check passed
+              // But we'll handle it by cleaning up and showing error
+              await signOut(auth);
+              setGeneralError("This email is already registered in Firebase. Would you like to go to the login page?");
+              setShowLoginPrompt(true);
               setLoading(false);
               return;
             }
           } catch (signInError) {
             if (signInError.code === 'auth/wrong-password') {
-              setGeneralError("An account with this email already exists, but the password is incorrect. Would you like to go to the login page?");
+              setGeneralError("An account with this email already exists in Firebase, but the password is incorrect. Would you like to go to the login page?");
               setShowLoginPrompt(true);
             } else {
-              setGeneralError("An account with this email already exists. Would you like to go to the login page?");
+              setGeneralError("This email is already registered in Firebase. Would you like to go to the login page?");
               setShowLoginPrompt(true);
             }
             setLoading(false);
             return;
           }
         } else {
-          // If Firebase fails but it's not email-already-in-use, continue with MongoDB registration
-          // Firebase is optional for students
-          console.log('Firebase creation skipped:', createError.code);
+          // Other Firebase errors - show error and stop registration
+          if (createError.code === 'auth/weak-password') {
+            setGeneralError("Password is too weak. Please use a stronger password.");
+          } else if (createError.code === 'auth/invalid-email') {
+            setGeneralError("Invalid email address. Please check your email.");
+          } else if (createError.code === 'auth/network-request-failed') {
+            setGeneralError("Network error. Please check your internet connection and try again.");
+          } else {
+            setGeneralError(`Firebase error: ${createError.message || 'Failed to create account'}`);
+          }
+          setLoading(false);
+          return;
         }
       }
 

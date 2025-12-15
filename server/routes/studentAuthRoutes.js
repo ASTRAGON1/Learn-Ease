@@ -51,16 +51,34 @@ router.post('/auth/register', async (req, res) => {
       return res.status(409).json({ error: 'Email already used in teacher database' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // If firebaseUID is provided, check if it's already linked
+    if (firebaseUID) {
+      const firebaseExists = await Student.findOne({ firebaseUID });
+      if (firebaseExists) {
+        return res.status(409).json({ error: 'Firebase account already linked' });
+      }
+    }
+
+    // Hash password (only if password is provided and not a placeholder)
+    let hashedPassword = '';
+    if (password && password !== 'google-signup') {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
 
     // Create student
     const studentData = {
       name: fullName.trim(),
       email: email.toLowerCase().trim(),
-      pass: hashedPassword,
       type: 'other' // Default type, can be updated later
     };
+
+    if (hashedPassword) {
+      studentData.pass = hashedPassword;
+    }
+
+    if (firebaseUID) {
+      studentData.firebaseUID = firebaseUID;
+    }
 
     const doc = await Student.create(studentData);
 
@@ -129,6 +147,35 @@ router.post('/auth/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Student login error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/students/auth/me - Get current student info
+router.get('/auth/me', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const student = await Student.findById(req.user.sub).select('-pass');
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
+    res.json({
+      data: {
+        id: student._id,
+        name: student.name,
+        fullName: student.name,
+        email: student.email,
+        avatar: student.avatar,
+        type: student.type,
+        userStatus: student.userStatus,
+        assignedPath: student.assignedPath,
+        isOnline: student.isOnline,
+        lastActivity: student.lastActivity
+      }
+    });
+  } catch (error) {
+    console.error('Get student info error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

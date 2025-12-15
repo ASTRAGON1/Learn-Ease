@@ -14,12 +14,68 @@ export default function StudentDashboard2() {
   const [scrollDirection, setScrollDirection] = useState("down");
   const [lastScrollY, setLastScrollY] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  
+  // Student info states
+  const [studentName, setStudentName] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [profilePic, setProfilePic] = useState("");
 
   // Get student's path type (this should come from user profile/API)
   // For now, using a default - you'll need to fetch this from backend
   const studentPathType = "autism"; // or "Down Syndrome" - get from user profile
   const [studentPath, setStudentPath] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Fetch student data on component mount
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      // First, try to get from sessionStorage (set during login)
+      const storage = window.sessionStorage;
+      const storedName = storage.getItem("userName");
+      const storedEmail = storage.getItem("userEmail");
+      const token = storage.getItem("token");
+
+      if (storedName) {
+        setStudentName(storedName);
+      }
+      if (storedEmail) {
+        setStudentEmail(storedEmail);
+      }
+
+      // Try to fetch from API if token is available
+      if (token) {
+        try {
+          const response = await fetch(`${API_URL}/api/students/auth/me`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const student = data.data || data;
+            
+            if (student.name || student.fullName) {
+              setStudentName(student.name || student.fullName);
+            }
+            if (student.email) {
+              setStudentEmail(student.email);
+            }
+            if (student.avatar) {
+              setProfilePic(student.avatar);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching student data:', error);
+          // If API fails, use sessionStorage data (already set above)
+        }
+      }
+    };
+
+    fetchStudentData();
+  }, []);
   
   // Student progress data (this should come from backend/API)
   // Structure: { currentCourseIndex, completedCourses: [], courseProgress: { courseIndex: { completedLessons, totalLessons } } }
@@ -66,6 +122,19 @@ export default function StudentDashboard2() {
     };
     fetchPath();
   }, [studentPathType]);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileDropdownOpen && !event.target.closest('.ld-profile-container')) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [profileDropdownOpen]);
 
   // Helper function to assign colors
   const getCourseColor = (index) => {
@@ -338,25 +407,81 @@ export default function StudentDashboard2() {
             </h1>
           </div>
           <div className="ld-header-right">
-            <button className="ld-notification-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </button>
-            <Link to="/StudentProfile">
-              <img 
-                src="https://i.pravatar.cc/160?img=47" 
-                alt="Profile" 
-                className="ld-profile-picture"
-                title="View Profile"
-              />
-            </Link>
-            <div className="ld-profile">
-              <div className="ld-profile-info">
-                <div className="ld-profile-name">Kacie Velasquez</div>
-                <div className="ld-profile-username">@k_velasquez</div>
-              </div>
+            <div className="ld-profile-container">
+              <button 
+                className="ld-profile-trigger"
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              >
+                <div className="ld-profile-avatar-wrapper">
+                  {profilePic ? (
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="ld-profile-avatar-image"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover' 
+                      }}
+                    />
+                  ) : (
+                  <div className="ld-profile-avatar">{studentName.slice(0, 2).toUpperCase()}</div>
+                  )}
+                  <div className="ld-profile-status-indicator"></div>
+                </div>
+                <div className="ld-profile-info">
+                  <div className="ld-profile-name">{studentName}</div>
+                  {studentEmail && <div className="ld-profile-email">{studentEmail}</div>}
+                </div>
+                <svg 
+                  className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              
+              {profileDropdownOpen && (
+                <div className="ld-profile-dropdown">
+                  <div className="ld-profile-dropdown-header">
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="ld-profile-dropdown-avatar-img"
+                      />
+                    ) : (
+                    <div className="ld-profile-dropdown-avatar">{studentName.slice(0, 2).toUpperCase()}</div>
+                    )}
+                    <div className="ld-profile-dropdown-info">
+                      <div className="ld-profile-dropdown-name">{studentName}</div>
+                      <div className="ld-profile-dropdown-email">{studentEmail || 'No email'}</div>
+                    </div>
+                  </div>
+                  <div className="ld-profile-dropdown-divider"></div>
+                  <Link to="/StudentProfile" className="ld-profile-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Profile</span>
+                  </Link>
+                  <button className="ld-profile-dropdown-item" onClick={handleLogout}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
