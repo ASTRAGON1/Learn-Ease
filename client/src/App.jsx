@@ -2,9 +2,8 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "./LandingPage/landPage";
-import Login from "./StudentPages/Login";
-import StudentSignUp from "./StudentPages/StudentSignUp";
-import StudentDashboard from "./StudentPages/StudentDashboard";
+import AllPagesLogin from "./AllPages/Login";
+import AllPagesSignup from "./AllPages/Signup";
 import Courses from "./StudentPages/courses";
 import QuizzApp from "./StudentPages/QuizzApp";
 import PersonalizedPath from "./StudentPages/PersonalizedPath";
@@ -16,6 +15,7 @@ import QuizInformationPage from "./StudentPages/QuizInformation";
 import StudentProfile from "./StudentPages/StudentProfile";
 import StudentShell from "./StudentPages/StudentShell";
 import StudentDashboard2 from "./StudentPages/StudentDashboard2";
+import DiagnosticQuiz from "./StudentPages/DiagnosticQuiz";
 
 import InstructorDashboard2 from "./instructorPages2/InstructorDashboard2";
 import InstructorUpload2 from "./instructorPages2/InstructorUpload2";
@@ -31,8 +31,6 @@ import InformationGathering3_2 from "./instructorPages2/InformationGathering3";
 
 import AdminPanel2 from "./AdminPages/AdminPanel2";
 
-import AllPagesLogin from "./AllPages/Login";
-import AllPagesSignup from "./AllPages/Signup";
 import EmailVerification from "./AllPages/EmailVerification";
 
 import "./App.css";
@@ -57,11 +55,10 @@ export default function App() {
       <Routes>
 
         
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<StudentSignUp />} />
-        
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/login" element={<AllPagesLogin />} />
+        <Route path="/signup" element={<AllPagesSignup />} />
         <Route path="/student-dashboard-2" element={<StudentDashboard2 />} />
+        <Route path="/diagnostic-quiz" element={<DiagnosticQuiz />} />
         <Route path="/quiz" element={<QuizzApp />} />
         <Route path="/course/:id" element={<CoursePlayer />} />
         <Route path="/achievements" element={<AchievementPage />} />

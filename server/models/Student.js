@@ -70,6 +70,19 @@ const studentSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  diagnosticQuizCompleted: {
+    type: Boolean,
+    default: false
+  },
+  diagnosticQuizResults: {
+    section1: [Number],
+    section2: [Number],
+    section3: [Number],
+    autismScore: Number,
+    downSyndromeScore: Number,
+    accuracy: Number,
+    completedAt: Date
   }
 }, {
   timestamps: false,

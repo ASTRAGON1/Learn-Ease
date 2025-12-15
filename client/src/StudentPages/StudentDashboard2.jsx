@@ -26,6 +26,43 @@ export default function StudentDashboard2() {
   const studentPathType = "autism"; // or "Down Syndrome" - get from user profile
   const [studentPath, setStudentPath] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // Check diagnostic quiz status and show success message
+  useEffect(() => {
+    const checkDiagnosticQuiz = async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/diagnostic-quiz/status`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (!data.data.completed) {
+            // Redirect to diagnostic quiz if not completed
+            navigate('/diagnostic-quiz');
+          } else {
+            // Check if we just completed the quiz (from location state)
+            if (location.state?.diagnosticComplete) {
+              setShowSuccessMessage(true);
+              // Hide message after 5 seconds
+              setTimeout(() => setShowSuccessMessage(false), 5000);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking diagnostic quiz status:', error);
+      }
+    };
+
+    checkDiagnosticQuiz();
+  }, [navigate, location.state]);
 
   // Fetch student data on component mount
   useEffect(() => {
@@ -256,7 +293,6 @@ export default function StudentDashboard2() {
 
   const getStatusLabel = (status) => {
     if (status === "upcoming") return "Upcoming";
-    if (status === "missed") return "Missed";
     if (status === "graded") return "Graded";
     return status;
   };
@@ -488,6 +524,30 @@ export default function StudentDashboard2() {
 
         {/* Main Content Area */}
         <div className="ld-content">
+          {/* Success Message */}
+          {showSuccessMessage && location.state?.message && (
+            <div className="ld-success-message" style={{
+              background: '#d1fae5',
+              border: '1px solid #10b981',
+              color: '#065f46',
+              padding: '16px 24px',
+              borderRadius: '8px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <div>
+                <strong>Welcome! 🎉</strong>
+                <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>{location.state.message}</p>
+              </div>
+            </div>
+          )}
+          
           {/* Overall Path Progress Section */}
           {studentPath && (
             <section className="ld-path-progress-section">
@@ -682,12 +742,6 @@ export default function StudentDashboard2() {
                 Upcoming
               </button>
               <button
-                className={`ld-quiz-tab ${activeQuizTab === "missed" ? "active" : ""}`}
-                onClick={() => setActiveQuizTab("missed")}
-              >
-                Missed
-              </button>
-              <button
                 className={`ld-quiz-tab ${activeQuizTab === "graded" ? "active" : ""}`}
                 onClick={() => setActiveQuizTab("graded")}
               >
@@ -703,7 +757,6 @@ export default function StudentDashboard2() {
                     <div className="ld-quiz-header">
                       <span className={`ld-quiz-badge ld-quiz-${quiz.status}`}>
                         {quiz.status === "upcoming" && "⏳ "}
-                        {quiz.status === "missed" && "⚠️ "}
                         {quiz.status === "graded" && "✅ "}
                         {getStatusLabel(quiz.status)}
                       </span>
@@ -766,11 +819,6 @@ export default function StudentDashboard2() {
                         <button className="ld-quiz-btn ld-quiz-btn-primary">
                           Join Quiz
                         </button>
-                      )}
-                      {quiz.status === "missed" && (
-                        <Link to="/quiz" className="ld-quiz-btn ld-quiz-btn-warn">
-                          Retake
-                        </Link>
                       )}
                       {quiz.status === "graded" && (
                         <button className="ld-quiz-btn ld-quiz-btn-primary">

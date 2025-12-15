@@ -29,6 +29,7 @@ const aiRoutes = require('./routes/aiRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const diagnosticQuizRoutes = require('./routes/diagnosticQuizRoutes');
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -49,6 +50,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/diagnostic-quiz', diagnosticQuizRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./QuizInformation.css";
-import { Calendar, User, BookOpen, Award, Clock, CheckCircle2, XCircle, AlertCircle, PlayCircle } from "lucide-react";
+import { Calendar, User, BookOpen, Award, Clock, CheckCircle2, AlertCircle, PlayCircle } from "lucide-react";
 
 /** Demo data (replace with API later) */
 const DEMO = [
@@ -12,7 +12,7 @@ const DEMO = [
     courseTitle: "Landing Page",
     quizTitle: "Meadow Lane Oakland",
     date: "Just now",
-    status: "upcoming", // upcoming | graded | missed
+    status: "upcoming", // upcoming | graded
     score: null,
     duration: "30 min",
     questions: 15,
@@ -43,19 +43,6 @@ const DEMO = [
     questions: 10,
   },
   {
-    id: "QZ-9804",
-    courseId: "#CM9804",
-    instructor: "Orlando Diggs",
-    courseTitle: "Admin Dashboard",
-    quizTitle: "Washburn Baton Rouge",
-    date: "Yesterday",
-    status: "missed",
-    score: 0,
-    maxScore: 10,
-    duration: "35 min",
-    questions: 18,
-  },
-  {
     id: "QZ-9805",
     courseId: "#CM9805",
     instructor: "Andi Lane",
@@ -72,7 +59,7 @@ const DEMO = [
 
 export default function QuizInformation() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("all"); // all | upcoming | graded | missed
+  const [tab, setTab] = useState("all"); // all | upcoming | graded
 
   const rows = useMemo(() => {
     return DEMO.filter((x) => {
@@ -85,8 +72,6 @@ export default function QuizInformation() {
     switch (status) {
       case "graded":
         return <CheckCircle2 size={18} />;
-      case "missed":
-        return <XCircle size={18} />;
       case "upcoming":
         return <Clock size={18} />;
       default:
@@ -98,8 +83,6 @@ export default function QuizInformation() {
     switch (status) {
       case "graded":
         return "Graded";
-      case "missed":
-        return "Missed";
       case "upcoming":
         return "Upcoming";
       default:
@@ -118,7 +101,6 @@ export default function QuizInformation() {
       all: DEMO.length,
       upcoming: DEMO.filter((q) => q.status === "upcoming").length,
       graded: DEMO.filter((q) => q.status === "graded").length,
-      missed: DEMO.filter((q) => q.status === "missed").length,
     };
   }, []);
 
@@ -168,15 +150,6 @@ export default function QuizInformation() {
             <div className="qi-stat-label">Graded</div>
           </div>
         </div>
-        <div className="qi-stat-card" onClick={() => setTab("missed")}>
-          <div className="qi-stat-icon missed">
-            <XCircle size={24} />
-          </div>
-          <div className="qi-stat-content">
-            <div className="qi-stat-value">{stats.missed}</div>
-            <div className="qi-stat-label">Missed</div>
-          </div>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -186,7 +159,6 @@ export default function QuizInformation() {
             ["all", "All", stats.all],
             ["upcoming", "Upcoming", stats.upcoming],
             ["graded", "Graded", stats.graded],
-            ["missed", "Missed", stats.missed],
           ].map(([key, label, count]) => (
             <button
               key={key}
@@ -261,12 +233,6 @@ export default function QuizInformation() {
                     </div>
                   )}
 
-                  {quiz.status === "missed" && (
-                    <div className="qi-missed-banner">
-                      <XCircle size={18} />
-                      <span>You missed this quiz</span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="qi-card-footer">
@@ -286,12 +252,6 @@ export default function QuizInformation() {
                     >
                       <Award size={18} />
                       View Results
-                    </button>
-                  )}
-                  {quiz.status === "missed" && (
-                    <button className="qi-btn qi-btn-disabled" disabled>
-                      <XCircle size={18} />
-                      Missed
                     </button>
                   )}
                 </div>
