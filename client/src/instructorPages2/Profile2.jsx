@@ -18,6 +18,34 @@ const COUNTRIES = [
   "Morocco", "Algeria", "Tunisia", "Spain", "Italy", "Australia", "Brazil", "Japan"
 ];
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function Profile2() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -49,11 +77,11 @@ export default function Profile2() {
 
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  
+
   // Close account confirmation modal
   const [showCloseAccountModal, setShowCloseAccountModal] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false); // type: "success" or "error"
-  
+
   // Helper function to show toast notification
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
@@ -64,20 +92,20 @@ export default function Profile2() {
 
   // Notification preferences - stored in component state only (no storage)
   const [notif, setNotif] = useState({
-      updates: true,
-      admin: true,
-      performance: true,
-      ranking: true,
-      followers: true,
+    updates: true,
+    admin: true,
+    performance: true,
+    ranking: true,
+    followers: true,
   });
-  
+
   useEffect(() => {
     let isMounted = true;
-    
+
     // Fetch profile data from API using Firebase Auth
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         setLoading(false);
         navigate('/all-login');
@@ -111,7 +139,7 @@ export default function Profile2() {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
-            
+
             // Set all profile fields from API
             if (teacher.fullName) {
               setFullName(teacher.fullName);
@@ -119,35 +147,35 @@ export default function Profile2() {
               const firstName = teacher.fullName.split(' ')[0];
               setInstructorName(firstName);
             }
-            
+
             if (teacher.email) {
               setEmail(teacher.email);
             }
-            
+
             if (teacher.headline) {
               setHeadline(teacher.headline);
             } else {
               setHeadline("");
             }
-            
+
             if (teacher.bio) {
               setDescription(teacher.bio);
             } else {
               setDescription("");
             }
-            
+
             if (teacher.country) {
               setCountry(teacher.country);
             } else {
               setCountry("");
             }
-            
+
             if (teacher.website) {
               setWebsite(teacher.website);
             } else {
               setWebsite("");
             }
-            
+
             if (teacher.profilePic) {
               setAvatarURL(teacher.profilePic);
               // Extract storage path from Firebase Storage URL if it's a Firebase URL
@@ -167,7 +195,7 @@ export default function Profile2() {
         navigate('/all-login');
       } finally {
         if (isMounted) {
-        setLoading(false);
+          setLoading(false);
         }
       }
     });
@@ -185,7 +213,7 @@ export default function Profile2() {
     setAvatarURL(url);
     return () => URL.revokeObjectURL(url);
   }, [avatarFile]);
-  
+
   // Remove this useEffect - data is now loaded from API only
 
   const handleAvatarChange = (e) => {
@@ -202,7 +230,7 @@ export default function Profile2() {
   const saveProfile = async () => {
     // Get MongoDB token using Firebase Auth
     const token = await getMongoDBToken();
-    
+
     if (!token) {
       showToast("You must be logged in to save your profile", "error");
       navigate('/all-login');
@@ -219,7 +247,7 @@ export default function Profile2() {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       let profilePicURL = avatarURL;
       let newProfilePicStoragePath = profilePicStoragePath;
-      
+
       // Handle profile picture upload to Firebase Storage if a new file is selected
       if (avatarFile) {
         setUploadingAvatar(true);
@@ -232,7 +260,7 @@ export default function Profile2() {
               console.log('Could not delete old profile picture:', e);
             }
           }
-          
+
           // Upload new profile picture to Firebase Storage
           const uploadResult = await uploadFile(
             avatarFile,
@@ -240,7 +268,7 @@ export default function Profile2() {
             currentUser.uid,
             null
           );
-          
+
           profilePicURL = uploadResult.url;
           newProfilePicStoragePath = uploadResult.path;
           setAvatarURL(profilePicURL);
@@ -254,18 +282,18 @@ export default function Profile2() {
           setUploadingAvatar(false);
         }
       }
-      
+
       // Update profile data - only send the URL, not the storage path
       const response = await fetch(`${API_URL}/api/teachers/me`, {
         method: "PATCH",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          fullName, 
-          headline, 
-          bio: description, 
+        body: JSON.stringify({
+          fullName,
+          headline,
+          bio: description,
           country,
           website,
           profilePic: profilePicURL
@@ -374,11 +402,11 @@ export default function Profile2() {
 
       // Success
       showToast("Password updated successfully in both Firebase and MongoDB.", "success");
-    setHasPassword(true);
-    setShowPwdModal(false);
-    setCurrentPwd("");
-    setNewPwd("");
-    setNewPwd2("");
+      setHasPassword(true);
+      setShowPwdModal(false);
+      setCurrentPwd("");
+      setNewPwd("");
+      setNewPwd2("");
     } catch (error) {
       console.error('Error changing password:', error);
       showToast(`Failed to change password: ${error.message}`, "error");
@@ -419,28 +447,28 @@ export default function Profile2() {
   }, [profileDropdownOpen]);
 
   const sidebarItems = [
-    { 
-      key: "course", 
-      label: "Course", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "course",
+      label: "Course",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "performance", 
-      label: "Performance", 
-      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "performance",
+      label: "Performance",
+      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "curriculum", 
-      label: "Curriculum", 
-      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "curriculum",
+      label: "Curriculum",
+      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "resources", 
-      label: "Resources", 
-      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "resources",
+      label: "Resources",
+      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
@@ -452,7 +480,7 @@ export default function Profile2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -513,57 +541,51 @@ export default function Profile2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {avatarURL ? (
-                    <img 
-                      src={avatarURL} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                    <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={avatarURL}
+                    name={instructorName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
                   {email && <div className="ld-profile-email">{email}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {avatarURL ? (
-                      <img 
-                        src={avatarURL} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                      <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={avatarURL}
+                      name={instructorName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
                       <div className="ld-profile-dropdown-email">{email || 'instructor@learnease.com'}</div>
@@ -621,13 +643,12 @@ export default function Profile2() {
                   onDrop={onDropAvatar}
                   onDragOver={(e) => e.preventDefault()}
                 >
-                  {avatarURL ? (
-                    <img src={avatarURL} alt="Profile" className="pf-avatar-image" />
-                  ) : (
-                    <div className="pf-avatar-placeholder">
-                      {fullName ? fullName.slice(0, 2).toUpperCase() : 'IN'}
-                    </div>
-                  )}
+                  <ProfileAvatar
+                    src={avatarURL}
+                    name={fullName || 'IN'}
+                    className="pf-avatar-image"
+                    fallbackClassName="pf-avatar-placeholder"
+                  />
                   <div className="pf-avatar-overlay">
                     <input
                       type="file"
@@ -753,7 +774,7 @@ export default function Profile2() {
                     ranking: "Instructor ranking notifications",
                     followers: "Profile followers, visitors notifications",
                   };
-                  
+
                   return (
                     <div key={key} className="pf-notification-item">
                       <span className="pf-notification-label">
@@ -804,22 +825,22 @@ export default function Profile2() {
                 <p className="pf-modal-message">
                   Are you sure you want to close your account? This action cannot be undone and you will lose all access to your account and data.
                 </p>
-                
+
                 <div className="pf-modal-actions">
-                  <button 
-                    className="pf-secondary-btn" 
+                  <button
+                    className="pf-secondary-btn"
                     onClick={() => setShowCloseAccountModal(false)}
                   >
                     Cancel
                   </button>
-                  <button 
-                    className="pf-danger-btn" 
+                  <button
+                    className="pf-danger-btn"
                     onClick={async () => {
                       setDeletingAccount(true);
                       try {
                         // Get MongoDB token
                         const token = await getMongoDBToken();
-                        
+
                         if (!token) {
                           throw new Error('No authentication token found');
                         }
@@ -840,7 +861,7 @@ export default function Profile2() {
                         }
 
                         console.log('✅ Account deleted successfully:', data.message);
-                        
+
                         // Sign out from Firebase on the client side
                         try {
                           await signOut(auth);
@@ -888,7 +909,7 @@ export default function Profile2() {
             <div className="pf-modal-overlay" onClick={() => setShowPwdModal(false)}>
               <div className="pf-modal-content" onClick={(e) => e.stopPropagation()}>
                 <h3 className="pf-modal-title">Change Password</h3>
-                
+
                 <div className="pf-form-field">
                   <label className="pf-form-label">Current Password</label>
                   <input
@@ -932,7 +953,7 @@ export default function Profile2() {
           )}
         </div>
       </div>
-      
+
       {/* Toast Notification */}
       {toast.show && (
         <div className={`pf-toast pf-toast-${toast.type}`}>

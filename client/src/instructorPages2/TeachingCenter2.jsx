@@ -17,6 +17,34 @@ import { auth } from "../config/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getMongoDBToken } from "../utils/auth";
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function TeachingCenter2() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -32,10 +60,10 @@ export default function TeachingCenter2() {
   // Get instructor name from Firebase Auth
   useEffect(() => {
     let isMounted = true;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         setLoading(false);
         navigate('/all-login');
@@ -55,13 +83,13 @@ export default function TeachingCenter2() {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.status === 401 || response.status === 403) {
           setLoading(false);
           navigate('/all-login');
           return;
         }
-        
+
         if (response.ok) {
           const data = await response.json();
           const teacher = data.data || data;
@@ -81,7 +109,7 @@ export default function TeachingCenter2() {
         navigate('/all-login');
         return;
       }
-      
+
       setLoading(false);
     });
 
@@ -237,9 +265,9 @@ export default function TeachingCenter2() {
   // pick current dataset
   const current =
     tab === "teaching" ? TEACHING[page] :
-    tab === "publishing" ? PUBLISHING :
-    tab === "community" ? COMMUNITY :
-    NEWS;
+      tab === "publishing" ? PUBLISHING :
+        tab === "community" ? COMMUNITY :
+          NEWS;
 
   // reset teaching subpage when leaving/entering the tab
   const switchTab = (next) => {
@@ -281,28 +309,28 @@ export default function TeachingCenter2() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "course", 
-      label: "Course", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "course",
+      label: "Course",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "performance", 
-      label: "Performance", 
-      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "performance",
+      label: "Performance",
+      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "curriculum", 
-      label: "Curriculum", 
-      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "curriculum",
+      label: "Curriculum",
+      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "resources", 
-      label: "Resources", 
-      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "resources",
+      label: "Resources",
+      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
@@ -320,7 +348,7 @@ export default function TeachingCenter2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -378,57 +406,51 @@ export default function TeachingCenter2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {profilePic ? (
-                    <img 
-                      src={profilePic} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                  <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={profilePic}
+                    name={instructorName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
                   {email && <div className="ld-profile-email">{email}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {profilePic ? (
-                      <img 
-                        src={profilePic} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                    <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={profilePic}
+                      name={instructorName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
                       <div className="ld-profile-dropdown-email">{email || 'No email'}</div>

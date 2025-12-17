@@ -1,5 +1,27 @@
 import React from "react";
 
+const UserAvatar = ({ user }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (user.avatar && !imgError) {
+    return (
+      <img
+        src={user.avatar}
+        alt={user.name}
+        className="admin-users-avatar"
+        style={{ objectFit: 'cover' }}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="admin-users-avatar">
+      {user.name.slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 function Users({ users, search, userFilters, onSearchChange, onFilterChange, onSuspend, onReinstate, onDelete }) {
   const filteredUsers = users.filter(
     (u) =>
@@ -95,8 +117,8 @@ function Users({ users, search, userFilters, onSearchChange, onFilterChange, onS
               </svg>
             </div>
             <p className="admin-users-empty-text">
-              {search || userFilters.role !== "all" || userFilters.status !== "all" 
-                ? "No users found matching your filters" 
+              {search || userFilters.role !== "all" || userFilters.status !== "all"
+                ? "No users found matching your filters"
                 : "No users yet"}
             </p>
             {(search || userFilters.role !== "all" || userFilters.status !== "all") && (
@@ -120,18 +142,7 @@ function Users({ users, search, userFilters, onSearchChange, onFilterChange, onS
                   <tr key={user.id}>
                     <td>
                       <div className="admin-users-name">
-                        {user.avatar ? (
-                          <img 
-                            src={user.avatar} 
-                            alt={user.name}
-                            className="admin-users-avatar"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <div className="admin-users-avatar">
-                            {user.name.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
+                        <UserAvatar user={user} />
                         <span className="admin-users-name-text">{user.name}</span>
                       </div>
                     </td>

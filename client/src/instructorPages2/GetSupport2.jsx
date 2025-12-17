@@ -13,12 +13,40 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getMongoDBToken } from "../utils/auth";
 import { useSimpleToast } from "../utils/toast";
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function GetSupport2() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  
+
   // AI chat state
   const [chat, setChat] = useState([
     { who: "bot", text: "Hi! Ask anything about LearnEase." },
@@ -39,10 +67,10 @@ export default function GetSupport2() {
   // Get instructor name from Firebase Auth
   useEffect(() => {
     let isMounted = true;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         setLoading(false);
         navigate('/all-login');
@@ -62,13 +90,13 @@ export default function GetSupport2() {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.status === 401 || response.status === 403) {
           setLoading(false);
           navigate('/all-login');
           return;
         }
-        
+
         if (response.ok) {
           const data = await response.json();
           const teacher = data.data || data;
@@ -99,7 +127,7 @@ export default function GetSupport2() {
         navigate('/all-login');
         return;
       }
-      
+
       setLoading(false);
     });
 
@@ -111,7 +139,7 @@ export default function GetSupport2() {
 
   const sendAI = async () => {
     if (!q.trim() || isAILoading) return;
-    
+
     const userMessage = q.trim();
     const currentChat = [...chat, { who: "me", text: userMessage }];
     setChat(currentChat);
@@ -123,7 +151,7 @@ export default function GetSupport2() {
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      
+
       // Prepare conversation history (exclude the placeholder we just added)
       const conversationHistory = currentChat.filter(msg => msg.text);
 
@@ -150,7 +178,7 @@ export default function GetSupport2() {
 
         while (true) {
           const { done, value } = await reader.read();
-          
+
           if (done) break;
 
           const chunk = decoder.decode(value);
@@ -160,15 +188,15 @@ export default function GetSupport2() {
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6));
-                
+
                 if (data.error) {
                   throw new Error(data.error);
                 }
-                
+
                 if (data.done) {
                   break;
                 }
-                
+
                 if (data.content) {
                   accumulatedText += data.content;
                   // Update the last message (bot message) with accumulated text
@@ -190,7 +218,7 @@ export default function GetSupport2() {
       } catch (streamError) {
         // Fallback to non-streaming
         console.log('Streaming failed, using non-streaming fallback:', streamError);
-        
+
         const response = await fetch(`${API_URL}/api/ai/chat/non-streaming`, {
           method: 'POST',
           headers: {
@@ -220,9 +248,9 @@ export default function GetSupport2() {
       console.error('Error sending AI message:', error);
       setChat((c) => {
         const newChat = [...c];
-        newChat[newChat.length - 1] = { 
-          who: "bot", 
-          text: "Sorry, I'm having trouble right now. Please try again later or contact support." 
+        newChat[newChat.length - 1] = {
+          who: "bot",
+          text: "Sorry, I'm having trouble right now. Please try again later or contact support."
         };
         return newChat;
       });
@@ -281,28 +309,28 @@ export default function GetSupport2() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "course", 
-      label: "Course", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "course",
+      label: "Course",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "performance", 
-      label: "Performance", 
-      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "performance",
+      label: "Performance",
+      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "curriculum", 
-      label: "Curriculum", 
-      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "curriculum",
+      label: "Curriculum",
+      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "resources", 
-      label: "Resources", 
-      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "resources",
+      label: "Resources",
+      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
@@ -320,7 +348,7 @@ export default function GetSupport2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -381,57 +409,51 @@ export default function GetSupport2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {profilePic ? (
-                    <img 
-                      src={profilePic} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                  <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={profilePic}
+                    name={instructorName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
                   {email && <div className="ld-profile-email">{email}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {profilePic ? (
-                      <img 
-                        src={profilePic} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                    <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={profilePic}
+                      name={instructorName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
                       <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
@@ -465,7 +487,7 @@ export default function GetSupport2() {
             {/* Left: AI Chat */}
             <section className="gs-card">
               <h3 className="gs-card-title">Ask our AI</h3>
-              
+
               <div className="gs-chat-container">
                 <div className="gs-chat">
                   {chat.map((m, i) => (
@@ -487,8 +509,8 @@ export default function GetSupport2() {
                   onKeyDown={(e) => e.key === "Enter" && !isAILoading && sendAI()}
                   disabled={isAILoading}
                 />
-                <button 
-                  className="gs-send-btn" 
+                <button
+                  className="gs-send-btn"
                   onClick={sendAI}
                   disabled={isAILoading || !q.trim()}
                 >
@@ -576,7 +598,7 @@ export default function GetSupport2() {
                   </svg>
                   Still Need Help?
                 </h4>
-                <button 
+                <button
                   className="gs-report-btn"
                   onClick={() => navigate("/HelpAndSupport-2")}
                 >

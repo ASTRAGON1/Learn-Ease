@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
-import { 
-  User, Mail, Phone, Calendar, GraduationCap, Award, 
-  Settings, Lock, Bell, Eye, EyeOff, 
+import {
+  User, Mail, Phone, Calendar, GraduationCap, Award,
+  Settings, Lock, Bell, Eye, EyeOff,
   Edit2, Save, X, Camera, TrendingUp, BookOpen,
   Clock, Star, Target, CheckCircle, ArrowLeft, Shield, Bell as BellIcon
 } from "lucide-react";
@@ -45,6 +45,34 @@ const initialProfileState = {
   }
 };
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function StudentProfile() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
@@ -80,7 +108,7 @@ export default function StudentProfile() {
     const fetchStudentData = async () => {
       const storage = window.sessionStorage;
       const token = storage.getItem("token");
-      
+
       if (token) {
         try {
           const response = await fetch(`${API_URL}/api/students/auth/me`, {
@@ -93,7 +121,7 @@ export default function StudentProfile() {
           if (response.ok) {
             const data = await response.json();
             const student = data.data || data;
-            
+
             if (student.name || student.fullName) {
               const updatedProfile = {
                 ...initialProfileState,
@@ -209,11 +237,11 @@ export default function StudentProfile() {
       // Convert to base64 and upload to MongoDB
       // This works for all users regardless of Firebase authentication
       console.log('📤 Converting image to base64 for upload...');
-      
+
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Image = reader.result;
-        
+
         // Update MongoDB via API with base64 image
         const token = window.sessionStorage.getItem('token');
         const response = await fetch(`${API_URL}/api/students/profile-picture`, {
@@ -263,8 +291,8 @@ export default function StudentProfile() {
           <div className="sp-header-content">
             <h1 className="sp-main-title">My Profile</h1>
             <p className="sp-subtitle">Manage your account settings and preferences</p>
-            </div>
           </div>
+        </div>
 
         {/* Profile Hero Card - New Design */}
         <div className="sp-hero-card-new">
@@ -272,38 +300,37 @@ export default function StudentProfile() {
             <div className="sp-hero-left">
               <div className="sp-avatar-container-new">
                 <div className="sp-avatar-wrapper-new">
-              {profile.profilePic ? (
-                    <img src={profile.profilePic} alt={profile.name} className="sp-avatar-image-new" />
-              ) : (
-                    <div className="sp-avatar-placeholder-new">
-                  {profile.name.slice(0, 2).toUpperCase()}
-                </div>
-              )}
+                  <ProfileAvatar
+                    src={profile.profilePic}
+                    name={profile.name}
+                    className="sp-avatar-image-new"
+                    fallbackClassName="sp-avatar-placeholder-new"
+                  />
                   <label className="sp-avatar-upload-btn-new">
-                <input type="file" accept="image/*" onChange={handleUploadAvatar} />
+                    <input type="file" accept="image/*" onChange={handleUploadAvatar} />
                     <Camera size={16} />
-              </label>
+                  </label>
                 </div>
               </div>
               <div className="sp-hero-info-new">
                 <h2 className="sp-hero-name-new">{profile.name}</h2>
                 <p className="sp-hero-email-new">{profile.email}</p>
                 <div className="sp-badges-container-new">
-                {profile.diagnosis && profile.diagnosis.length > 0 ? (
-                  profile.diagnosis.map((d, idx) => (
-                    <span key={idx} className="sp-badge-new">
+                  {profile.diagnosis && profile.diagnosis.length > 0 ? (
+                    profile.diagnosis.map((d, idx) => (
+                      <span key={idx} className="sp-badge-new">
+                        <CheckCircle size={14} />
+                        {d}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="sp-badge-new">
                       <CheckCircle size={14} />
-                      {d}
+                      Student
                     </span>
-                  ))
-                ) : (
-                  <span className="sp-badge-new">
-                    <CheckCircle size={14} />
-                    Student
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
             </div>
             {!isEditing && (
               <button className="sp-edit-profile-btn-new" onClick={() => setIsEditing(true)}>
@@ -356,35 +383,35 @@ export default function StudentProfile() {
 
         {/* Tabs Navigation */}
         <div className="sp-tabs-container">
-          <button 
+          <button
             className={`sp-tab ${activeTab === "overview" ? "active" : ""}`}
             onClick={() => setActiveTab("overview")}
           >
             <User size={18} />
             <span>Overview</span>
           </button>
-          <button 
+          <button
             className={`sp-tab ${activeTab === "personal" ? "active" : ""}`}
             onClick={() => setActiveTab("personal")}
           >
             <User size={18} />
             <span>Personal Info</span>
           </button>
-          <button 
+          <button
             className={`sp-tab ${activeTab === "account" ? "active" : ""}`}
             onClick={() => setActiveTab("account")}
           >
             <Settings size={18} />
             <span>Account</span>
           </button>
-          <button 
+          <button
             className={`sp-tab ${activeTab === "security" ? "active" : ""}`}
             onClick={() => setActiveTab("security")}
           >
             <Shield size={18} />
             <span>Security</span>
           </button>
-          <button 
+          <button
             className={`sp-tab ${activeTab === "preferences" ? "active" : ""}`}
             onClick={() => setActiveTab("preferences")}
           >
@@ -401,29 +428,29 @@ export default function StudentProfile() {
               <div className="sp-content-card">
                 <div className="sp-card-header">
                   <GraduationCap className="sp-card-icon" />
-                    <h3>Academic Progress</h3>
-                  </div>
+                  <h3>Academic Progress</h3>
+                </div>
                 <div className="sp-card-body">
                   <div className="sp-info-row">
                     <span className="sp-info-label">Courses Completed</span>
                     <span className="sp-info-value">{profile.coursesCompleted}</span>
-                    </div>
+                  </div>
                   <div className="sp-info-row">
                     <span className="sp-info-label">In Progress</span>
                     <span className="sp-info-value">{profile.coursesInProgress}</span>
-                    </div>
+                  </div>
                   <div className="sp-info-row">
                     <span className="sp-info-label">Total Hours</span>
                     <span className="sp-info-value">{profile.totalHours}h</span>
-                    </div>
                   </div>
                 </div>
+              </div>
 
               <div className="sp-content-card">
                 <div className="sp-card-header">
                   <Award className="sp-card-icon" />
-                    <h3>Recent Achievements</h3>
-                  </div>
+                  <h3>Recent Achievements</h3>
+                </div>
                 <div className="sp-card-body">
                   <div className="sp-achievements-list">
                     {recentAchievements.map((ach) => (
@@ -437,14 +464,14 @@ export default function StudentProfile() {
                       </div>
                     ))}
                   </div>
-                  </div>
                 </div>
+              </div>
 
               <div className="sp-content-card">
                 <div className="sp-card-header">
                   <Clock className="sp-card-icon" />
-                    <h3>Recent Activity</h3>
-                  </div>
+                  <h3>Recent Activity</h3>
+                </div>
                 <div className="sp-card-body">
                   <div className="sp-activity-list">
                     {recentActivity.map((act) => (
@@ -462,14 +489,14 @@ export default function StudentProfile() {
                       </div>
                     ))}
                   </div>
-                  </div>
                 </div>
+              </div>
 
               <div className="sp-content-card">
                 <div className="sp-card-header">
                   <Mail className="sp-card-icon" />
-                    <h3>Contact Information</h3>
-                  </div>
+                  <h3>Contact Information</h3>
+                </div>
                 <div className="sp-card-body">
                   <div className="sp-contact-list">
                     <div className="sp-contact-item">
@@ -506,32 +533,32 @@ export default function StudentProfile() {
                     />
                   </div>
                   <div className="sp-form-group">
-                      <label>Email</label>
-                      <input
-                        type="email"
-                        value={profile.email}
-                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                        disabled={!isEditing}
-                      />
-                    </div>
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                      disabled={!isEditing}
+                    />
+                  </div>
                   <div className="sp-form-group">
-                      <label>Phone</label>
-                      <input
-                        type="tel"
-                        value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                        disabled={!isEditing}
-                      />
-                    </div>
+                    <label>Phone</label>
+                    <input
+                      type="tel"
+                      value={profile.phone}
+                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                      disabled={!isEditing}
+                    />
+                  </div>
                   <div className="sp-form-group">
-                      <label>Age</label>
-                      <input
-                        type="number"
-                        value={profile.age}
-                        onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || 0 })}
-                        disabled={!isEditing}
-                      />
-                    </div>
+                    <label>Age</label>
+                    <input
+                      type="number"
+                      value={profile.age}
+                      onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || 0 })}
+                      disabled={!isEditing}
+                    />
+                  </div>
                   <div className="sp-form-group full-width">
                     <label>Date of Birth</label>
                     <input
@@ -541,19 +568,19 @@ export default function StudentProfile() {
                       disabled={!isEditing}
                     />
                   </div>
-                  </div>
-                  {isEditing && (
+                </div>
+                {isEditing && (
                   <div className="sp-form-actions">
                     <button className="sp-btn-secondary" onClick={() => { setIsEditing(false); setProfile(initialProfile); }}>
-                        <X size={18} />
-                        Cancel
-                      </button>
+                      <X size={18} />
+                      Cancel
+                    </button>
                     <button className="sp-btn-primary" onClick={handleSaveProfile}>
-                        <Save size={18} />
-                        Save Changes
-                      </button>
-                    </div>
-                  )}
+                      <Save size={18} />
+                      Save Changes
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="sp-form-card">
@@ -569,22 +596,22 @@ export default function StudentProfile() {
                     />
                   </div>
                   <div className="sp-form-group">
-                      <label>Guardian Email</label>
-                      <input
-                        type="email"
-                        value={profile.guardian.email}
-                        onChange={(e) => setProfile({ ...profile, guardian: { ...profile.guardian, email: e.target.value } })}
-                        disabled={!isEditing}
-                      />
-                    </div>
+                    <label>Guardian Email</label>
+                    <input
+                      type="email"
+                      value={profile.guardian.email}
+                      onChange={(e) => setProfile({ ...profile, guardian: { ...profile.guardian, email: e.target.value } })}
+                      disabled={!isEditing}
+                    />
+                  </div>
                   <div className="sp-form-group">
-                      <label>Guardian Phone</label>
-                      <input
-                        type="tel"
-                        value={profile.guardian.phone}
-                        onChange={(e) => setProfile({ ...profile, guardian: { ...profile.guardian, phone: e.target.value } })}
-                        disabled={!isEditing}
-                      />
+                    <label>Guardian Phone</label>
+                    <input
+                      type="tel"
+                      value={profile.guardian.phone}
+                      onChange={(e) => setProfile({ ...profile, guardian: { ...profile.guardian, phone: e.target.value } })}
+                      disabled={!isEditing}
+                    />
                   </div>
                 </div>
               </div>
@@ -630,7 +657,7 @@ export default function StudentProfile() {
                         onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
                         placeholder="Enter current password"
                       />
-                      <button 
+                      <button
                         type="button"
                         className="sp-password-toggle"
                         onClick={() => setShowPassword(!showPassword)}
@@ -663,9 +690,9 @@ export default function StudentProfile() {
                   </div>
                 </div>
                 <button className="sp-btn-primary" onClick={handleChangePassword}>
-                    <Lock size={18} />
-                    Update Password
-                  </button>
+                  <Lock size={18} />
+                  Update Password
+                </button>
               </div>
             </div>
           )}

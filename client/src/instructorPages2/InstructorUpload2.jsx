@@ -16,6 +16,34 @@ import { uploadFile } from "../utils/uploadFile";
 
 const FILE_TYPES = ["document", "video", "image"];
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function InstructorUpload2() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -34,10 +62,10 @@ export default function InstructorUpload2() {
   // Get instructor name from Firebase Auth
   useEffect(() => {
     let isMounted = true;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         setLoading(false);
         navigate('/all-login');
@@ -58,13 +86,13 @@ export default function InstructorUpload2() {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.status === 401 || response.status === 403) {
           setLoading(false);
           navigate('/all-login');
           return;
         }
-        
+
         if (response.ok) {
           const data = await response.json();
           const teacher = data.data || data;
@@ -98,7 +126,7 @@ export default function InstructorUpload2() {
         navigate('/all-login');
         return;
       }
-      
+
       setLoading(false);
     });
 
@@ -111,7 +139,7 @@ export default function InstructorUpload2() {
   // Fetch content from database
   const fetchContent = useCallback(async () => {
     if (!mongoToken) return;
-    
+
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${API_URL}/api/content`, {
@@ -124,7 +152,7 @@ export default function InstructorUpload2() {
       if (response.ok) {
         const data = await response.json();
         const content = data.data || [];
-        
+
         // Transform content to match the display format
         const transformed = content.map(item => ({
           id: item._id,
@@ -134,11 +162,11 @@ export default function InstructorUpload2() {
           storagePath: item.storagePath,
           previousStatus: item.previousStatus || null // Track previous status for archived items
         }));
-        
+
         // Separate archived and non-archived content
         const activeContent = transformed.filter(item => item.status !== 'Archived');
         const archivedContent = transformed.filter(item => item.status === 'Archived');
-        
+
         setContentRows(activeContent);
         setArchivedRows(archivedContent);
       }
@@ -150,7 +178,7 @@ export default function InstructorUpload2() {
   // Fetch quizzes
   const fetchQuizzes = useCallback(async () => {
     if (!mongoToken) return;
-    
+
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${API_URL}/api/quizzes`, {
@@ -163,7 +191,7 @@ export default function InstructorUpload2() {
       if (response.ok) {
         const data = await response.json();
         const quizzes = data.data || [];
-        
+
         // Transform quizzes to match the display format
         const transformed = quizzes.map(item => ({
           id: item._id,
@@ -173,11 +201,11 @@ export default function InstructorUpload2() {
           difficulty: item.difficulty || '',
           previousStatus: item.previousStatus || null
         }));
-        
+
         // Separate archived and active quizzes
         const activeQuizzes = transformed.filter(item => item.status !== 'Archived');
         const archivedQuizzes = transformed.filter(item => item.status === 'Archived');
-        
+
         setQuizRows(activeQuizzes);
         setArchivedQuizRows(archivedQuizzes);
       }
@@ -221,14 +249,14 @@ export default function InstructorUpload2() {
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
-        
+
         const response = await fetch(`${API_URL}/api/admin/learning-paths`, {
           headers
         });
-        
+
         if (response.ok) {
           const result = await response.json();
-          
+
           if (result.success && result.data) {
             // Keep full structure with IDs and names
             const transformed = result.data.map(path => ({
@@ -300,7 +328,7 @@ export default function InstructorUpload2() {
   // Get IDs for selected items
   const getSelectedIds = useMemo(() => {
     if (!currentPath) return { pathId: null, courseId: null, topicId: null, lessonId: null };
-    
+
     const pathId = currentPath.id;
     const selectedCourse = currentPath.Courses.find(c => c.CoursesTitle === course);
     const courseId = selectedCourse?.id || null;
@@ -308,7 +336,7 @@ export default function InstructorUpload2() {
     const topicId = selectedTopic?.id || null;
     const selectedLesson = selectedTopic?.lessons.find(l => l.name === lesson);
     const lessonId = selectedLesson?.id || null;
-    
+
     return { pathId, courseId, topicId, lessonId };
   }, [currentPath, course, topic, lesson]);
 
@@ -368,7 +396,7 @@ export default function InstructorUpload2() {
   // Get IDs for selected quiz items
   const getSelectedQuizIds = useMemo(() => {
     if (!quizCurrentPath) return { pathId: null, courseId: null, topicId: null, lessonId: null };
-    
+
     const pathId = quizCurrentPath.id;
     const selectedCourse = quizCurrentPath.Courses.find(c => c.CoursesTitle === quizCourse);
     const courseId = selectedCourse?.id || null;
@@ -376,7 +404,7 @@ export default function InstructorUpload2() {
     const topicId = selectedTopic?.id || null;
     const selectedLesson = selectedTopic?.lessons.find(l => l.name === quizLesson);
     const lessonId = selectedLesson?.id || null;
-    
+
     return { pathId, courseId, topicId, lessonId };
   }, [quizCurrentPath, quizCourse, quizTopic, quizLesson]);
 
@@ -436,7 +464,7 @@ export default function InstructorUpload2() {
 
   const saveContent = async (status) => {
     if (!validate()) return;
-    
+
     if (!mongoToken) {
       showToast("Please log in to save content", "error");
       return;
@@ -490,13 +518,13 @@ export default function InstructorUpload2() {
 
     setIsUploading(true);
     setUploadProgress(0);
-    
+
     try {
       // Step 1: Determine the correct storage folder based on actual file type
       // Check the file's MIME type to ensure it matches the selected type
       const fileMimeType = file.type || '';
       let actualFileType = fileType;
-      
+
       // Auto-detect file type from MIME type if it doesn't match selection
       if (fileMimeType.startsWith('video/')) {
         actualFileType = 'video';
@@ -506,13 +534,13 @@ export default function InstructorUpload2() {
         // PDFs, Word docs, text files, or files without MIME type go to documents
         actualFileType = 'document';
       }
-      
+
       // Warn if selected type doesn't match actual file type
       if (actualFileType !== fileType) {
         console.warn(`File type mismatch: Selected "${fileType}" but file is "${actualFileType}". Using "${actualFileType}".`);
         showToast(`File type auto-corrected from "${fileType}" to "${actualFileType}" based on file content.`, "error");
       }
-      
+
       // Map fileType to Firebase Storage folder names (plural)
       const folderMap = {
         'document': 'documents',
@@ -520,11 +548,11 @@ export default function InstructorUpload2() {
         'image': 'images'
       };
       const storageFolder = folderMap[actualFileType] || 'documents'; // Default to documents
-      
+
       if (!storageFolder) {
         throw new Error('Invalid file type selected');
       }
-      
+
       console.log('File upload details:', {
         selectedType: fileType,
         actualType: actualFileType,
@@ -532,7 +560,7 @@ export default function InstructorUpload2() {
         folder: storageFolder,
         fileName: file.name
       });
-      
+
       const uploadResult = await uploadFile(
         file,
         storageFolder,
@@ -543,7 +571,7 @@ export default function InstructorUpload2() {
       // Step 2: Save content to MongoDB
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const contentStatus = status === "Published" ? "published" : "draft";
-      
+
       // Normalize category
       const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
       const normalizedCategory = categoryMap[category] || category.toLowerCase();
@@ -594,7 +622,7 @@ export default function InstructorUpload2() {
       }
 
       const savedContent = await response.json();
-      
+
       showToast(
         status === "Published" ? "Content published successfully!" : "Content saved as draft",
         "success"
@@ -602,22 +630,22 @@ export default function InstructorUpload2() {
 
       // Refresh content list
       await fetchContent();
-          
+
       // Clear form if published
-          if (status === "Published") {
-            setTitle("");
-            setDesc("");
-            setFile(null);
-            setFileType("");
-            setCourse("");
-            setTopic("");
-            setLesson("");
-            setDifficulty("");
-            setUploadProgress(0);
+      if (status === "Published") {
+        setTitle("");
+        setDesc("");
+        setFile(null);
+        setFileType("");
+        setCourse("");
+        setTopic("");
+        setLesson("");
+        setDifficulty("");
+        setUploadProgress(0);
       } else {
         // For drafts, just reset progress
-            setUploadProgress(0);
-          }
+        setUploadProgress(0);
+      }
     } catch (error) {
       console.error('Error saving content:', error);
       showToast(`Failed to save content: ${error.message}`, "error");
@@ -645,7 +673,7 @@ export default function InstructorUpload2() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${mongoToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: 'published'
         })
       });
@@ -691,7 +719,7 @@ export default function InstructorUpload2() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${mongoToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: 'archived',
           previousStatus: 'published' // Store previous status as published
         })
@@ -728,7 +756,7 @@ export default function InstructorUpload2() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${mongoToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: restoreStatus,
           previousStatus: null // Clear previous status since it's no longer archived
         })
@@ -774,7 +802,7 @@ export default function InstructorUpload2() {
       }
 
       const result = await response.json();
-      
+
       // Delete file from Firebase Storage if storagePath is provided
       if (result.storagePath && storagePath) {
         try {
@@ -801,7 +829,7 @@ export default function InstructorUpload2() {
     }
     setPairs([...pairs, { q: "", a: "" }]);
   };
-  
+
   const removePair = (idx) => {
     if (pairs.length <= 3) {
       showToast("Minimum 3 questions required", "error");
@@ -809,7 +837,7 @@ export default function InstructorUpload2() {
     }
     setPairs(pairs.filter((_, i) => i !== idx));
   };
-  
+
   const saveQuiz = async (status) => {
     if (!quizTitle.trim()) {
       showToast("Quiz title is required", "error");
@@ -840,9 +868,9 @@ export default function InstructorUpload2() {
 
     try {
       showToast("Generating wrong answers with AI...", "success");
-      
+
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      
+
       // Step 1: Generate wrong answers using AI
       const questionsForAI = pairs.map(p => ({
         question: p.q.trim(),
@@ -912,10 +940,10 @@ export default function InstructorUpload2() {
       }
 
       showToast(status === "Published" ? "Quiz published successfully!" : "Quiz saved as draft.", "success");
-      
+
       // Refresh quizzes list
       await fetchQuizzes();
-      
+
       // Clear all fields after saving (both draft and published)
       setQuizTitle("");
       setQuizCategory("Autism");
@@ -948,7 +976,7 @@ export default function InstructorUpload2() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${mongoToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: 'published'
         })
       });
@@ -994,7 +1022,7 @@ export default function InstructorUpload2() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${mongoToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: 'archived',
           previousStatus: 'published' // Store previous status as published
         })
@@ -1031,7 +1059,7 @@ export default function InstructorUpload2() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${mongoToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: restoreStatus,
           previousStatus: null // Clear previous status since it's no longer archived
         })
@@ -1143,28 +1171,28 @@ export default function InstructorUpload2() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "course", 
-      label: "Course", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "course",
+      label: "Course",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "performance", 
-      label: "Performance", 
-      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "performance",
+      label: "Performance",
+      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "curriculum", 
-      label: "Curriculum", 
-      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "curriculum",
+      label: "Curriculum",
+      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "resources", 
-      label: "Resources", 
-      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "resources",
+      label: "Resources",
+      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
@@ -1196,7 +1224,7 @@ export default function InstructorUpload2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -1257,57 +1285,51 @@ export default function InstructorUpload2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {profilePic ? (
-                    <img 
-                      src={profilePic} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                  <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={profilePic}
+                    name={instructorName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
                   {email && <div className="ld-profile-email">{email}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {profilePic ? (
-                      <img 
-                        src={profilePic} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                    <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={profilePic}
+                      name={instructorName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
                       <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
@@ -1418,10 +1440,10 @@ export default function InstructorUpload2() {
                   <>
                     <div className="ld-upload-icon">
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M12 18V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M9 15H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 18V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M9 15H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                     <div className="ld-upload-content-text">
@@ -1435,8 +1457,8 @@ export default function InstructorUpload2() {
                   <div className="ld-upload-file-selected">
                     <div className="ld-upload-file-icon">
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                     <div className="ld-upload-file-info">
@@ -1450,7 +1472,7 @@ export default function InstructorUpload2() {
                 {isUploading && (
                   <div className="ld-upload-progress">
                     <div className="ld-upload-progress-bar">
-                      <div 
+                      <div
                         className="ld-upload-progress-fill"
                         style={{ width: `${uploadProgress}%` }}
                       >
@@ -1482,9 +1504,9 @@ export default function InstructorUpload2() {
               <div className="ld-upload-selects-grid">
                 <div className="ld-upload-field">
                   <label>Select Course:</label>
-                  <select 
+                  <select
                     className={`ld-upload-input ${errors.course ? "ld-upload-error" : ""}`}
-                    value={course} 
+                    value={course}
                     onChange={(e) => handleCourseChange(e.target.value)}
                     disabled={!availableCourses.length}
                   >
@@ -1498,9 +1520,9 @@ export default function InstructorUpload2() {
 
                 <div className="ld-upload-field">
                   <label>Select Topic:</label>
-                  <select 
+                  <select
                     className={`ld-upload-input ${errors.topic ? "ld-upload-error" : ""}`}
-                    value={topic} 
+                    value={topic}
                     onChange={(e) => handleTopicChange(e.target.value)}
                     disabled={!course || !availableTopics.length}
                   >
@@ -1514,9 +1536,9 @@ export default function InstructorUpload2() {
 
                 <div className="ld-upload-field">
                   <label>Select Lesson:</label>
-                  <select 
+                  <select
                     className={`ld-upload-input ${errors.lesson ? "ld-upload-error" : ""}`}
-                    value={lesson} 
+                    value={lesson}
                     onChange={(e) => setLesson(e.target.value)}
                     disabled={!topic || !availableLessons.length}
                   >
@@ -1530,9 +1552,9 @@ export default function InstructorUpload2() {
 
                 <div className="ld-upload-field">
                   <label>Select Difficulty*:</label>
-                  <select 
+                  <select
                     className={`ld-upload-input ${errors.difficulty ? "ld-upload-error" : ""}`}
-                    value={difficulty} 
+                    value={difficulty}
                     onChange={(e) => setDifficulty(e.target.value)}
                   >
                     <option value="" disabled>Choose difficulty</option>
@@ -1556,15 +1578,15 @@ export default function InstructorUpload2() {
               </div>
 
               <div className="ld-upload-actions">
-                <button 
-                  className="ld-upload-secondary" 
+                <button
+                  className="ld-upload-secondary"
                   onClick={onSaveDraft}
                   disabled={isUploading}
                 >
                   {isUploading ? "Uploading..." : "Save as Draft"}
                 </button>
-                <button 
-                  className="ld-upload-primary" 
+                <button
+                  className="ld-upload-primary"
                   onClick={onPublish}
                   disabled={isUploading}
                 >
@@ -1610,11 +1632,11 @@ export default function InstructorUpload2() {
               </div>
 
               <div className="ld-upload-quiz-note">Choose the course, topic, and lesson this quiz will be associated.</div>
-              
+
               <div className="ld-upload-quiz-selects">
-                <select 
-                  className="ld-upload-input ld-upload-quiz-select" 
-                  value={quizCourse} 
+                <select
+                  className="ld-upload-input ld-upload-quiz-select"
+                  value={quizCourse}
                   onChange={(e) => handleQuizCourseChange(e.target.value)}
                   disabled={!quizAvailableCourses.length}
                 >
@@ -1623,9 +1645,9 @@ export default function InstructorUpload2() {
                     <option key={c.CoursesTitle} value={c.CoursesTitle}>{c.CoursesTitle}</option>
                   ))}
                 </select>
-                <select 
-                  className="ld-upload-input ld-upload-quiz-select" 
-                  value={quizTopic} 
+                <select
+                  className="ld-upload-input ld-upload-quiz-select"
+                  value={quizTopic}
                   onChange={(e) => handleQuizTopicChange(e.target.value)}
                   disabled={!quizCourse || !quizAvailableTopics.length}
                 >
@@ -1634,9 +1656,9 @@ export default function InstructorUpload2() {
                     <option key={t.TopicsTitle} value={t.TopicsTitle}>{t.TopicsTitle}</option>
                   ))}
                 </select>
-                <select 
-                  className="ld-upload-input ld-upload-quiz-select" 
-                  value={quizLesson} 
+                <select
+                  className="ld-upload-input ld-upload-quiz-select"
+                  value={quizLesson}
                   onChange={(e) => setQuizLesson(e.target.value)}
                   disabled={!quizTopic || !quizAvailableLessons.length}
                 >
@@ -1662,7 +1684,7 @@ export default function InstructorUpload2() {
                   ))}
                 </div>
               </div>
-              
+
               <div className="ld-upload-quiz-count">
                 Questions: {pairs.length} / 10 (Minimum: 3)
               </div>
@@ -1742,32 +1764,31 @@ export default function InstructorUpload2() {
                     <div key={row.id} className="ld-upload-content-row">
                       <div className="ld-upload-content-title">{row.title}</div>
                       <div className="ld-upload-pill">{row.category}</div>
-                      <div className={`ld-upload-status-pill ${
-                        row.status === "Published" ? "ld-upload-status-green" :
-                        row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
-                      }`}>
+                      <div className={`ld-upload-status-pill ${row.status === "Published" ? "ld-upload-status-green" :
+                          row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
+                        }`}>
                         {row.status}
                       </div>
                       <div className="ld-upload-content-actions">
                         {row.status === "Draft" ? (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-publish"
                             onClick={() => publishDraftContent(row.id)}
                           >
                             Publish
                           </button>
                         ) : (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-arch"
                             onClick={() => archiveContent(row.id)}
                           >
                             Archive
                           </button>
                         )}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="ld-upload-btn-del"
                           onClick={() => deleteContent(row.id, row.storagePath)}
                         >
@@ -1803,7 +1824,7 @@ export default function InstructorUpload2() {
                     // Determine previous status - check if it's stored, otherwise default to 'published'
                     const previousStatus = row.previousStatus || 'published';
                     const restoreStatusText = previousStatus === 'published' ? 'Published' : 'Draft';
-                    
+
                     return (
                       <div key={row.id} className="ld-upload-content-row">
                         <div className="ld-upload-content-title">{row.title}</div>
@@ -1812,16 +1833,16 @@ export default function InstructorUpload2() {
                           {row.status}
                         </div>
                         <div className="ld-upload-content-actions">
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-arch"
                             onClick={() => restoreContent(row.id, previousStatus)}
                             title={`Restore to ${restoreStatusText}`}
                           >
                             Restore
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-del"
                             onClick={() => deleteContent(row.id, row.storagePath)}
                           >
@@ -1858,32 +1879,31 @@ export default function InstructorUpload2() {
                     <div key={row.id} className="ld-upload-content-row">
                       <div className="ld-upload-content-title">{row.title}</div>
                       <div className="ld-upload-pill">{row.category}</div>
-                      <div className={`ld-upload-status-pill ${
-                        row.status === "Published" ? "ld-upload-status-green" :
-                        row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
-                      }`}>
+                      <div className={`ld-upload-status-pill ${row.status === "Published" ? "ld-upload-status-green" :
+                          row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
+                        }`}>
                         {row.status}
                       </div>
                       <div className="ld-upload-content-actions">
                         {row.status === "Draft" ? (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-publish"
                             onClick={() => publishDraftQuiz(row.id)}
                           >
                             Publish
                           </button>
                         ) : (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-arch"
                             onClick={() => archiveQuiz(row.id)}
                           >
                             Archive
                           </button>
                         )}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="ld-upload-btn-del"
                           onClick={() => deleteQuiz(row.id)}
                         >
@@ -1919,7 +1939,7 @@ export default function InstructorUpload2() {
                     // Determine previous status - check if it's stored, otherwise default to 'published'
                     const previousStatus = row.previousStatus || 'published';
                     const restoreStatusText = previousStatus === 'published' ? 'Published' : 'Draft';
-                    
+
                     return (
                       <div key={row.id} className="ld-upload-content-row">
                         <div className="ld-upload-content-title">{row.title}</div>
@@ -1928,16 +1948,16 @@ export default function InstructorUpload2() {
                           {row.status}
                         </div>
                         <div className="ld-upload-content-actions">
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-arch"
                             onClick={() => restoreQuiz(row.id, previousStatus)}
                             title={`Restore to ${restoreStatusText}`}
                           >
                             Restore
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="ld-upload-btn-del"
                             onClick={() => deleteQuiz(row.id)}
                           >

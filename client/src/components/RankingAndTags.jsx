@@ -1,5 +1,33 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./RankingAndTags.css";
+
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName, fallbackStyle }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName} style={fallbackStyle}>
+      {(name || "?").charAt(0).toUpperCase()}
+    </div>
+  );
+};
 
 export default function RankingTagsPanel({ instructors, categories, currentUserId }) {
   return (
@@ -27,19 +55,16 @@ export default function RankingTagsPanel({ instructors, categories, currentUserI
               <div key={inst.id || i} className="rtp-item">
                 <div className="rtp-student">
                   <div className="rtp-avatar">
-                    {inst.profilePic ? (
-                      <img 
-                        src={inst.profilePic} 
-                        alt={inst.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          borderRadius: '50%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    ) : (
-                      <div style={{
+                    <ProfileAvatar
+                      src={inst.profilePic}
+                      name={inst.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        objectFit: 'cover'
+                      }}
+                      fallbackStyle={{
                         width: '100%',
                         height: '100%',
                         borderRadius: '50%',
@@ -50,10 +75,8 @@ export default function RankingTagsPanel({ instructors, categories, currentUserI
                         color: '#6b7280',
                         fontSize: '12px',
                         fontWeight: '600'
-                      }}>
-                        {inst.name ? inst.name.charAt(0).toUpperCase() : '?'}
-                      </div>
-                    )}
+                      }}
+                    />
                   </div>
                   {inst.name} {isCurrentUser && <span style={{ color: '#1a1a1a', fontWeight: '600', marginLeft: '4px' }}>(You)</span>}
                 </div>

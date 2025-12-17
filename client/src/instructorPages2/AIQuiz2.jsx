@@ -16,6 +16,34 @@ import { useSimpleToast } from "../utils/toast";
 
 const CATS = ["Down Syndrome", "Autism"];
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function AIQuiz2() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -31,10 +59,10 @@ export default function AIQuiz2() {
   // Get instructor name from Firebase Auth
   useEffect(() => {
     let isMounted = true;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         setLoading(false);
         navigate('/all-login');
@@ -54,13 +82,13 @@ export default function AIQuiz2() {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.status === 401 || response.status === 403) {
           setLoading(false);
           navigate('/all-login');
           return;
         }
-        
+
         if (response.ok) {
           const data = await response.json();
           const teacher = data.data || data;
@@ -94,7 +122,7 @@ export default function AIQuiz2() {
         navigate('/all-login');
         return;
       }
-      
+
       setLoading(false);
     });
 
@@ -127,14 +155,14 @@ export default function AIQuiz2() {
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
-        
+
         const response = await fetch(`${API_URL}/api/admin/learning-paths`, {
           headers
         });
-        
+
         if (response.ok) {
           const result = await response.json();
-          
+
           if (result.success && result.data) {
             // Keep full structure with IDs and names
             const transformed = result.data.map(path => ({
@@ -206,7 +234,7 @@ export default function AIQuiz2() {
   // Get IDs for selected items
   const getSelectedIds = useMemo(() => {
     if (!currentPath) return { pathId: null, courseId: null, topicId: null, lessonId: null };
-    
+
     const pathId = currentPath.id;
     const selectedCourse = currentPath.Courses.find(c => c.CoursesTitle === course);
     const courseId = selectedCourse?.id || null;
@@ -214,7 +242,7 @@ export default function AIQuiz2() {
     const topicId = selectedTopic?.id || null;
     const selectedLesson = selectedTopic?.lessons.find(l => l.name === lesson);
     const lessonId = selectedLesson?.id || null;
-    
+
     return { pathId, courseId, topicId, lessonId };
   }, [currentPath, course, topic, lesson]);
 
@@ -260,7 +288,7 @@ export default function AIQuiz2() {
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      
+
       const response = await fetch(`${API_URL}/api/ai/quiz/generate`, {
         method: 'POST',
         headers: {
@@ -292,7 +320,7 @@ export default function AIQuiz2() {
           answers: q.answers,
           correctIdx: q.correctIndex
         }));
-        
+
         setItems(qs);
         // Store the context when quiz was generated
         setQuizContext({
@@ -323,13 +351,13 @@ export default function AIQuiz2() {
   // Clear quiz if critical fields change (course, topic, lesson, difficulty, category)
   useEffect(() => {
     if (hasQuiz && quizContext) {
-      const contextChanged = 
+      const contextChanged =
         quizContext.course !== course ||
         quizContext.topic !== topic ||
         quizContext.lesson !== lesson ||
         quizContext.difficulty !== difficulty ||
         quizContext.category !== category;
-      
+
       if (contextChanged) {
         setItems([]);
         setQuizContext(null);
@@ -344,16 +372,16 @@ export default function AIQuiz2() {
       if (!item.q || !item.answers || !Array.isArray(item.answers) || item.answers.length === 0) {
         throw new Error('Invalid question format');
       }
-      
+
       if (typeof item.correctIdx !== 'number' || item.correctIdx < 0 || item.correctIdx >= item.answers.length) {
         throw new Error('Invalid correct answer index');
       }
-      
+
       // Get wrong answers (all answers except the correct one)
       const wrongAnswers = item.answers
         .map((ans, idx) => idx !== item.correctIdx ? ans : null)
         .filter(Boolean);
-      
+
       return {
         q: item.q.trim(),
         a: item.answers[item.correctIdx].trim(),
@@ -364,7 +392,7 @@ export default function AIQuiz2() {
 
   const saveQuiz = async (status) => {
     if (!hasQuiz) return;
-    
+
     if (!title.trim()) {
       showToast("Quiz title is required", "error");
       return;
@@ -381,7 +409,7 @@ export default function AIQuiz2() {
       showToast("Quiz must have between 3 and 10 questions", "error");
       return;
     }
-    
+
     const token = await getMongoDBToken();
     if (!token) {
       showToast("Please log in to save quiz", "error");
@@ -391,11 +419,11 @@ export default function AIQuiz2() {
 
     try {
       const questionsAndAnswers = transformQuizForAPI();
-      
+
       // Normalize category for backend
       const categoryMap = { 'Autism': 'autism', 'Down Syndrome': 'downSyndrome' };
       const normalizedCategory = categoryMap[category] || category.toLowerCase();
-      
+
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${API_URL}/api/quizzes`, {
         method: 'POST',
@@ -436,7 +464,7 @@ export default function AIQuiz2() {
       }
 
       showToast(status === "Published" ? "Quiz published!" : "Quiz saved as draft.", "success");
-      
+
       // Clear form only if published
       if (status === "Published") {
         setTitle("");
@@ -491,28 +519,28 @@ export default function AIQuiz2() {
   }, [profileDropdownOpen]);
 
   const sidebarItems = [
-    { 
-      key: "course", 
-      label: "Course", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "course",
+      label: "Course",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "performance", 
-      label: "Performance", 
-      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "performance",
+      label: "Performance",
+      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "curriculum", 
-      label: "Curriculum", 
-      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "curriculum",
+      label: "Curriculum",
+      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
-    { 
-      key: "resources", 
-      label: "Resources", 
-      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "resources",
+      label: "Resources",
+      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => navigate("/instructor-dashboard-2")
     },
   ];
@@ -530,7 +558,7 @@ export default function AIQuiz2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -591,57 +619,51 @@ export default function AIQuiz2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {profilePic ? (
-                    <img 
-                      src={profilePic} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                  <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={profilePic}
+                    name={instructorName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
                   {email && <div className="ld-profile-email">{email}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {profilePic ? (
-                      <img 
-                        src={profilePic} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                    <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={profilePic}
+                      name={instructorName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
                       <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
@@ -688,7 +710,7 @@ export default function AIQuiz2() {
                 </div>
 
                 <div className="aq-form-hint">Choose the course, topic and the lesson this quiz will be associated</div>
-                
+
                 <div className="aq-selects-row">
                   <select
                     className="aq-form-select"
@@ -703,7 +725,7 @@ export default function AIQuiz2() {
                       </option>
                     ))}
                   </select>
-                  
+
                   <select
                     className="aq-form-select"
                     value={topic}
@@ -717,7 +739,7 @@ export default function AIQuiz2() {
                       </option>
                     ))}
                   </select>
-                  
+
                   <select
                     className="aq-form-select"
                     value={lesson}
@@ -758,7 +780,7 @@ export default function AIQuiz2() {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div className="aq-form-field">
                     <label className="aq-form-label">Number of Answers per question</label>
                     <select className="aq-form-select" value={answersPerQ} onChange={(e) => setAnswersPerQ(e.target.value)}>
@@ -855,12 +877,12 @@ export default function AIQuiz2() {
                         }}
                         title="Edit question"
                       >
-                        <svg 
-                          width="18" 
-                          height="18" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
                           strokeWidth="2"
                         >
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -907,12 +929,12 @@ export default function AIQuiz2() {
                             }}
                             title="Edit answer"
                           >
-                            <svg 
-                              width="18" 
-                              height="18" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
                               strokeWidth="2"
                             >
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>

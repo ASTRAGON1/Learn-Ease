@@ -21,6 +21,34 @@ import { auth } from "../config/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getMongoDBToken } from "../utils/auth";
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function InstructorDashboard2() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,10 +76,10 @@ export default function InstructorDashboard2() {
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
     let isMounted = true;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         // Not authenticated - redirect to login
         setLoading(false);
@@ -91,23 +119,23 @@ export default function InstructorDashboard2() {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
-            
+
             // Store current user ID
             if (teacher._id) {
               setCurrentUserId(teacher._id.toString());
             }
-            
+
             // Update instructor name from API
             if (teacher.fullName) {
               const firstName = teacher.fullName.split(' ')[0];
               setInstructorName(firstName);
             }
-            
+
             // Update user status
             if (teacher.userStatus) {
               setUserStatus(teacher.userStatus);
             }
-            
+
             // Set email and profile picture
             if (teacher.email) {
               setEmail(teacher.email);
@@ -115,14 +143,14 @@ export default function InstructorDashboard2() {
             if (teacher.profilePic) {
               setProfilePic(teacher.profilePic);
             }
-            
+
             // Check if information gathering is complete
             const isInfoGatheringComplete = teacher.informationGatheringComplete === true;
-            
+
             if (!isInfoGatheringComplete) {
               const areasOfExpertise = teacher.areasOfExpertise || [];
               const cv = teacher.cv || '';
-              
+
               // Determine which step to redirect to based on what data is missing
               if (areasOfExpertise.length === 0) {
                 setLoading(false);
@@ -140,7 +168,7 @@ export default function InstructorDashboard2() {
             }
           }
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error checking information gathering status:', error);
@@ -168,7 +196,7 @@ export default function InstructorDashboard2() {
         setTipLoading(true);
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const response = await fetch(`${API_URL}/api/ai/daily-tip`);
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data?.tip) {
@@ -229,13 +257,13 @@ export default function InstructorDashboard2() {
 
   // Notifications - stored in component state only (no storage)
   const [notifications, setNotifications] = useState([
-      { id: Date.now() - 86400000, type: "likes", text: "You reached 1,032 likes", time: "2 hours ago", read: false, timestamp: Date.now() - 7200000 },
-      { id: Date.now() - 86400000 + 1, type: "approved", text: "You got accepted by the admin", time: "5 hours ago", read: false, timestamp: Date.now() - 18000000 },
-      { id: Date.now() - 86400000 + 2, type: "views", text: "You reached 2,315 views", time: "1 day ago", read: false, timestamp: Date.now() - 86400000 },
-      { id: Date.now() - 86400000 + 3, type: "likes", text: "You reached 1,000 likes milestone", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
-      { id: Date.now() - 86400000 + 4, type: "uploaded", text: "Your content got uploaded successfully", time: "2 days ago", read: false, timestamp: Date.now() - 172800000 },
-      { id: Date.now() - 86400000 + 5, type: "report", text: "You uploaded a new report", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
-      { id: Date.now() - 86400000 + 6, type: "feedback", text: "You submitted new feedback", time: "4 days ago", read: false, timestamp: Date.now() - 345600000 },
+    { id: Date.now() - 86400000, type: "likes", text: "You reached 1,032 likes", time: "2 hours ago", read: false, timestamp: Date.now() - 7200000 },
+    { id: Date.now() - 86400000 + 1, type: "approved", text: "You got accepted by the admin", time: "5 hours ago", read: false, timestamp: Date.now() - 18000000 },
+    { id: Date.now() - 86400000 + 2, type: "views", text: "You reached 2,315 views", time: "1 day ago", read: false, timestamp: Date.now() - 86400000 },
+    { id: Date.now() - 86400000 + 3, type: "likes", text: "You reached 1,000 likes milestone", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
+    { id: Date.now() - 86400000 + 4, type: "uploaded", text: "Your content got uploaded successfully", time: "2 days ago", read: false, timestamp: Date.now() - 172800000 },
+    { id: Date.now() - 86400000 + 5, type: "report", text: "You uploaded a new report", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
+    { id: Date.now() - 86400000 + 6, type: "feedback", text: "You submitted new feedback", time: "4 days ago", read: false, timestamp: Date.now() - 345600000 },
   ]);
 
   // Function to add a new notification
@@ -253,7 +281,7 @@ export default function InstructorDashboard2() {
 
   // Function to mark notification as read
   const markAsRead = (id) => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(notif => notif.id === id ? { ...notif, read: true } : notif)
     );
   };
@@ -366,16 +394,16 @@ export default function InstructorDashboard2() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "course", 
-      label: "Course", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "course",
+      label: "Course",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => setActiveSection("course")
     },
-    { 
-      key: "performance", 
-      label: "Performance", 
-      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "performance",
+      label: "Performance",
+      icon: <img src={icPerformance} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => {
         if (userStatus !== 'active') {
           const title = userStatus === 'suspended' ? 'Account Suspended' : 'Account Pending Approval';
@@ -388,16 +416,16 @@ export default function InstructorDashboard2() {
         setActiveSection("performance");
       }
     },
-    { 
-      key: "curriculum", 
-      label: "Curriculum", 
-      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "curriculum",
+      label: "Curriculum",
+      icon: <img src={icCurriculum} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => setActiveSection("curriculum")
     },
-    { 
-      key: "resources", 
-      label: "Resources", 
-      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />, 
+    {
+      key: "resources",
+      label: "Resources",
+      icon: <img src={icResources} alt="" style={{ width: "24px", height: "24px" }} />,
       onClick: () => setActiveSection("resources")
     },
   ];
@@ -426,21 +454,21 @@ export default function InstructorDashboard2() {
             <h3 className="ld-upload-title">Upload your content here</h3>
             <p className="ld-upload-desc">Share your knowledge with students</p>
             {userStatus !== 'active' && (
-              <p className="ld-approval-message" style={{ 
-                marginTop: '12px', 
-                color: '#ef4444', 
+              <p className="ld-approval-message" style={{
+                marginTop: '12px',
+                color: '#ef4444',
                 fontSize: '14px',
                 fontWeight: '500'
               }}>
-                {userStatus === 'suspended' 
+                {userStatus === 'suspended'
                   ? '🚫 Your account has been suspended. Please contact support for more information.'
                   : '⚠️ You need to be accepted by the admin to upload content'
                 }
               </p>
             )}
           </div>
-          <button 
-            className="ld-upload-btn" 
+          <button
+            className="ld-upload-btn"
             onClick={() => {
               if (userStatus === 'active') {
                 navigate("/instructor-upload-2");
@@ -453,8 +481,8 @@ export default function InstructorDashboard2() {
               }
             }}
             disabled={userStatus !== 'active'}
-            style={userStatus !== 'active' ? { 
-              opacity: 0.5, 
+            style={userStatus !== 'active' ? {
+              opacity: 0.5,
               cursor: 'not-allowed',
               background: '#9ca3af'
             } : {}}
@@ -468,24 +496,24 @@ export default function InstructorDashboard2() {
         <div className={`ld-ai-card ${userStatus !== 'active' ? 'ld-disabled' : ''}`}>
           <h3 className="ld-ai-title">Generate quizzes using AI</h3>
           <p className="ld-ai-desc">
-            Our AI-powered quiz tool helps you generate personalized quizzes based on the curriculum 
+            Our AI-powered quiz tool helps you generate personalized quizzes based on the curriculum
             you follow on our platform — perfect for assessing student progress quickly and effectively.
           </p>
           {userStatus !== 'active' && (
-            <p className="ld-approval-message" style={{ 
-              marginTop: '12px', 
-              color: '#ef4444', 
+            <p className="ld-approval-message" style={{
+              marginTop: '12px',
+              color: '#ef4444',
               fontSize: '14px',
               fontWeight: '500'
             }}>
-              {userStatus === 'suspended' 
+              {userStatus === 'suspended'
                 ? '🚫 Your account has been suspended. Please contact support for more information.'
                 : '⚠️ You need to be accepted by the admin to generate quizzes'
               }
             </p>
           )}
-          <button 
-            className="ld-ai-btn" 
+          <button
+            className="ld-ai-btn"
             onClick={() => {
               if (userStatus === 'active') {
                 navigate("/ai-quiz-2");
@@ -498,8 +526,8 @@ export default function InstructorDashboard2() {
               }
             }}
             disabled={userStatus !== 'active'}
-            style={userStatus !== 'active' ? { 
-              opacity: 0.5, 
+            style={userStatus !== 'active' ? {
+              opacity: 0.5,
               cursor: 'not-allowed',
               background: '#9ca3af'
             } : {}}
@@ -520,21 +548,21 @@ export default function InstructorDashboard2() {
           <h4 className="ld-tip-title">Community & Support</h4>
           <p className="ld-tip-text">Ask questions, share tips, and connect with other instructors.</p>
           {userStatus !== 'active' && (
-            <p className="ld-approval-message" style={{ 
+            <p className="ld-approval-message" style={{
               marginTop: '12px',
-              marginBottom: '12px', 
-              color: '#ef4444', 
+              marginBottom: '12px',
+              color: '#ef4444',
               fontSize: '14px',
               fontWeight: '500'
             }}>
-              {userStatus === 'suspended' 
+              {userStatus === 'suspended'
                 ? '🚫 Your account has been suspended. Community access is restricted.'
                 : '⚠️ You need admin approval to access the community'
               }
             </p>
           )}
-          <button 
-            className="ld-community-btn" 
+          <button
+            className="ld-community-btn"
             onClick={() => {
               if (userStatus !== 'active') {
                 const title = userStatus === 'suspended' ? 'Access Restricted' : 'Account Pending Approval';
@@ -547,8 +575,8 @@ export default function InstructorDashboard2() {
               }
             }}
             disabled={userStatus !== 'active'}
-            style={userStatus !== 'active' ? { 
-              opacity: 0.5, 
+            style={userStatus !== 'active' ? {
+              opacity: 0.5,
               cursor: 'not-allowed',
               background: '#9ca3af'
             } : {}}
@@ -596,7 +624,7 @@ export default function InstructorDashboard2() {
               Learn how to use our platform to get the best results and satisfy the students.
             </p>
           </Link>
-          <div 
+          <div
             className={`ld-resource-card ${userStatus !== 'active' ? 'ld-resource-card-disabled' : ''}`}
             onClick={() => {
               if (userStatus !== 'active') {
@@ -704,14 +732,14 @@ export default function InstructorDashboard2() {
                 boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
                 transition: "all 0.3s ease"
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 16px rgba(74, 15, 173, 0.1)";
-                e.currentTarget.style.borderColor = "#F3EFFF";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.04)";
-                e.currentTarget.style.borderColor = "#e5e7eb";
-              }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(74, 15, 173, 0.1)";
+                  e.currentTarget.style.borderColor = "#F3EFFF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.04)";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
               >
                 <InstructorDailyChart />
               </div>
@@ -722,14 +750,14 @@ export default function InstructorDashboard2() {
           <div className="ld-notifications-wrapper">
             <div className="ld-notifications-card">
               <h3 className="ld-notifications-title">Recent Notifications</h3>
-        <div className="ld-notifications-list">
+              <div className="ld-notifications-list">
                 {notifications.length === 0 ? (
                   <div className="ld-notification-empty">No notifications</div>
                 ) : (
                   notifications.map((notif) => (
-                    <div 
-                      key={notif.id} 
-                      className={`ld-notification-item ${notif.read ? 'read' : ''}`} 
+                    <div
+                      key={notif.id}
+                      className={`ld-notification-item ${notif.read ? 'read' : ''}`}
                       data-type={notif.type}
                       onClick={() => markAsRead(notif.id)}
                     >
@@ -769,12 +797,12 @@ export default function InstructorDashboard2() {
                           </svg>
                         ) : "📢"}
                       </div>
-              <div className="ld-notification-content">
-                <p className="ld-notification-text">{notif.text}</p>
-                <span className="ld-notification-time">{notif.time}</span>
-              </div>
+                      <div className="ld-notification-content">
+                        <p className="ld-notification-text">{notif.text}</p>
+                        <span className="ld-notification-time">{notif.time}</span>
+                      </div>
                       {!notif.read && <div className="ld-notification-unread-indicator"></div>}
-                      <button 
+                      <button
                         className="ld-notification-delete-btn"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -805,7 +833,7 @@ export default function InstructorDashboard2() {
             ) : (
               <RankingTagsPanel instructors={instructorsRanking} categories={[]} currentUserId={currentUserId} />
             )}
-            </div>
+          </div>
         </div>
       </section>
     </>
@@ -842,11 +870,11 @@ export default function InstructorDashboard2() {
     }
 
     const totalCourses = curriculumData.reduce((sum, path) => sum + (path.Courses?.length || 0), 0);
-    const totalTopics = curriculumData.reduce((sum, path) => 
+    const totalTopics = curriculumData.reduce((sum, path) =>
       sum + (path.Courses?.reduce((cSum, course) => cSum + (course.Topics?.length || 0), 0) || 0), 0
     );
-    const totalLessons = curriculumData.reduce((sum, path) => 
-      sum + (path.Courses?.reduce((cSum, course) => 
+    const totalLessons = curriculumData.reduce((sum, path) =>
+      sum + (path.Courses?.reduce((cSum, course) =>
         cSum + (course.Topics?.reduce((tSum, topic) => tSum + (topic.lessons?.length || 0), 0) || 0), 0
       ) || 0), 0
     );
@@ -970,7 +998,7 @@ export default function InstructorDashboard2() {
           {curriculumData.map((path) => {
             const courseCount = path.Courses.length;
             const topicCount = path.Courses.reduce((sum, c) => sum + (c.Topics?.length || 0), 0);
-            const lessonCount = path.Courses.reduce((sum, c) => 
+            const lessonCount = path.Courses.reduce((sum, c) =>
               sum + (c.Topics?.reduce((tSum, t) => tSum + (t.lessons?.length || 0), 0) || 0), 0
             );
 
@@ -1335,7 +1363,7 @@ export default function InstructorDashboard2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar with Hover Animation */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -1375,7 +1403,7 @@ export default function InstructorDashboard2() {
 
           {/* Logout Button */}
           <div className="ld-sidebar-footer">
-            <button 
+            <button
               className="ld-sidebar-link ld-sidebar-logout"
               onClick={handleLogout}
             >
@@ -1403,20 +1431,20 @@ export default function InstructorDashboard2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-notification-wrapper">
-            <button className="ld-notification-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-              {unreadCount > 0 && (
-                <span className="ld-notification-badge">{unreadCount}</span>
-              )}
-            </button>
+              <button className="ld-notification-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="ld-notification-badge">{unreadCount}</span>
+                )}
+              </button>
               <div className="ld-notification-popover">
                 <div className="ld-notification-popover-header">
                   <h4>Notifications {unreadCount > 0 && `(${unreadCount})`}</h4>
                   {notifications.length > 0 && (
-                    <button 
+                    <button
                       className="ld-notification-clear-btn"
                       onClick={() => setNotifications([])}
                       title="Clear all"
@@ -1430,9 +1458,9 @@ export default function InstructorDashboard2() {
                     <div className="ld-notification-empty">No notifications</div>
                   ) : (
                     notifications.map((notif) => (
-                      <div 
-                        key={notif.id} 
-                        className={`ld-notification-popover-item ${notif.read ? 'read' : ''}`} 
+                      <div
+                        key={notif.id}
+                        className={`ld-notification-popover-item ${notif.read ? 'read' : ''}`}
                         data-type={notif.type}
                         onClick={() => markAsRead(notif.id)}
                       >
@@ -1477,7 +1505,7 @@ export default function InstructorDashboard2() {
                           <div className="ld-notification-popover-time">{notif.time}</div>
                         </div>
                         {!notif.read && <div className="ld-notification-unread-dot"></div>}
-                        <button 
+                        <button
                           className="ld-notification-delete-btn"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1494,57 +1522,51 @@ export default function InstructorDashboard2() {
               </div>
             </div>
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {profilePic ? (
-                    <img 
-                      src={profilePic} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                  <div className="ld-profile-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={profilePic}
+                    name={instructorName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{instructorName}</div>
                   {email && <div className="ld-profile-email">{email}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {profilePic ? (
-                      <img 
-                        src={profilePic} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                    <div className="ld-profile-dropdown-avatar">{instructorName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={profilePic}
+                      name={instructorName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{instructorName}</div>
                       <div className="ld-profile-dropdown-email">{email || 'No email'}</div>
@@ -1582,7 +1604,7 @@ export default function InstructorDashboard2() {
       </div>
 
       {/* AI Assistant Chatbot Icon */}
-      <div 
+      <div
         className={`ai-chatbot-icon ${scrollDirection}`}
         onClick={handleChatbotClick}
         role="button"
@@ -1590,24 +1612,24 @@ export default function InstructorDashboard2() {
         aria-label="AI Assistant"
       >
         <div className="ai-chatbot-icon-inner">
-          <svg 
-            width="32" 
-            height="32" 
-            viewBox="0 0 24 24" 
-            fill="none" 
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
             xmlns="http://www.w3.org/2000/svg"
             className="ai-chatbot-svg"
           >
             <rect x="4" y="6" width="16" height="14" rx="2" fill="currentColor" />
-            <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
-            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            <circle cx="9" cy="11" r="1.5" fill="white"/>
-            <circle cx="15" cy="11" r="1.5" fill="white"/>
-            <circle cx="9" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
-            <circle cx="15" cy="11" r="0.8" fill="#7d4cff" opacity="0.8"/>
-            <rect x="9" y="15" width="6" height="2" rx="1" fill="white"/>
-            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6"/>
-            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6"/>
+            <circle cx="12" cy="4" r="1.5" fill="currentColor" />
+            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="9" cy="11" r="1.5" fill="white" />
+            <circle cx="15" cy="11" r="1.5" fill="white" />
+            <circle cx="9" cy="11" r="0.8" fill="#7d4cff" opacity="0.8" />
+            <circle cx="15" cy="11" r="0.8" fill="#7d4cff" opacity="0.8" />
+            <rect x="9" y="15" width="6" height="2" rx="1" fill="white" />
+            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6" />
+            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6" />
           </svg>
         </div>
         <div className="ai-chatbot-pulse"></div>
@@ -1615,17 +1637,17 @@ export default function InstructorDashboard2() {
 
       {/* Suspension/Restriction Modal */}
       {suspensionModal.show && (
-        <div 
+        <div
           className="ld-modal-overlay"
           onClick={() => setSuspensionModal({ show: false, message: '', title: '' })}
         >
-          <div 
+          <div
             className="ld-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="ld-modal-header">
               <h3 className="ld-modal-title">{suspensionModal.title}</h3>
-              <button 
+              <button
                 className="ld-modal-close"
                 onClick={() => setSuspensionModal({ show: false, message: '', title: '' })}
               >
@@ -1636,7 +1658,7 @@ export default function InstructorDashboard2() {
               <p>{suspensionModal.message}</p>
             </div>
             <div className="ld-modal-footer">
-              <button 
+              <button
                 className="ld-modal-btn"
                 onClick={() => setSuspensionModal({ show: false, message: '', title: '' })}
               >

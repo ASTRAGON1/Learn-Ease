@@ -1,11 +1,39 @@
 import React, { useMemo, useState, useEffect } from "react";
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
   const u = users.find((x) => x.id === id);
   const inf = u?.instructor || {};
   const uploads = inf.uploads || { videos: [], files: [], quizzes: [] };
   const myLog = useMemo(() => modLog.filter(e => e.userId === id), [modLog, id]);
-  
+
   // State for content from database
   const [contentFromDB, setContentFromDB] = useState([]);
   const [quizzesFromDB, setQuizzesFromDB] = useState([]);
@@ -13,16 +41,16 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
   const [deletedQuizzesFromDB, setDeletedQuizzesFromDB] = useState([]);
   const [loadingContent, setLoadingContent] = useState(true);
   const [loadingDeleted, setLoadingDeleted] = useState(true);
-  
+
   // Format joined date nicely
   const formatJoinedDate = (dateStr) => {
     if (!dateStr) return "—";
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
     } catch {
       return dateStr;
@@ -39,14 +67,14 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
 
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        
+
         // Fetch content using admin endpoint
         const contentResponse = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(u.email)}/content`);
         if (contentResponse.ok) {
           const contentData = await contentResponse.json();
           setContentFromDB(contentData.data || []);
         }
-        
+
         // Fetch quizzes using admin endpoint
         const quizzesResponse = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(u.email)}/quizzes`);
         if (quizzesResponse.ok) {
@@ -73,14 +101,14 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
 
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        
+
         // Fetch deleted content using admin endpoint
         const deletedContentResponse = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(u.email)}/deleted-content`);
         if (deletedContentResponse.ok) {
           const deletedContentData = await deletedContentResponse.json();
           setDeletedContentFromDB(deletedContentData.data || []);
         }
-        
+
         // Fetch deleted quizzes using admin endpoint
         const deletedQuizzesResponse = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(u.email)}/deleted-quizzes`);
         if (deletedQuizzesResponse.ok) {
@@ -117,21 +145,21 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
   const videos = uploads.videos || [];
   const files = uploads.files || [];
   const quizzes = uploads.quizzes || [];
-  
+
   // Combine content and quizzes from database
   const allContent = useMemo(() => {
     const combined = [
-      ...contentFromDB.map((c) => ({ 
-        name: c.title, 
-        type: c.type || "file", 
+      ...contentFromDB.map((c) => ({
+        name: c.title,
+        type: c.type || "file",
         status: c.status,
         id: c._id,
         category: c.category,
         difficulty: c.difficulty
       })),
-      ...quizzesFromDB.map((q) => ({ 
-        name: q.title, 
-        type: "quiz", 
+      ...quizzesFromDB.map((q) => ({
+        name: q.title,
+        type: "quiz",
         status: q.status,
         id: q._id,
         category: q.category,
@@ -144,9 +172,9 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
   // Combine deleted content and quizzes from database
   const allDeletedContent = useMemo(() => {
     const combined = [
-      ...deletedContentFromDB.map((c) => ({ 
-        name: c.title, 
-        type: c.type || "file", 
+      ...deletedContentFromDB.map((c) => ({
+        name: c.title,
+        type: c.type || "file",
         status: c.status,
         previousStatus: c.previousStatus,
         id: c._id,
@@ -155,9 +183,9 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
         deletedAt: c.deletedAt,
         createdAt: c.createdAt
       })),
-      ...deletedQuizzesFromDB.map((q) => ({ 
-        name: q.title, 
-        type: "quiz", 
+      ...deletedQuizzesFromDB.map((q) => ({
+        name: q.title,
+        type: "quiz",
         status: q.status,
         previousStatus: q.previousStatus,
         id: q._id,
@@ -187,17 +215,12 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
       <div className="admin-instructor-hero">
         <div className="admin-instructor-hero-content">
           <div className="admin-instructor-hero-main">
-            {u.profilePic ? (
-              <img 
-                src={u.profilePic} 
-                alt={u.name}
-                className="admin-instructor-avatar-img"
-              />
-            ) : (
-              <div className="admin-instructor-avatar">
-                {u.name.slice(0, 2).toUpperCase()}
-              </div>
-            )}
+            <ProfileAvatar
+              src={u.profilePic}
+              name={u.name}
+              className="admin-instructor-avatar-img"
+              fallbackClassName="admin-instructor-avatar"
+            />
             <div className="admin-instructor-info">
               <h2 className="admin-instructor-name">{u.name}</h2>
               {u.headline && (
@@ -217,10 +240,10 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
                 </div>
               )}
               {inf.cvUrl && (
-                <a 
-                  className="admin-instructor-cv-btn" 
-                  href={inf.cvUrl} 
-                  target="_blank" 
+                <a
+                  className="admin-instructor-cv-btn"
+                  href={inf.cvUrl}
+                  target="_blank"
                   rel="noreferrer"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -306,7 +329,7 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
               </div>
             )}
           </div>
-          
+
           {/* Skills Section */}
           {inf.skills && inf.skills.length > 0 && (
             <>
@@ -403,9 +426,9 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
                         <div className="admin-instructor-upload-item">
                           <span>{item.name}</span>
                           {item.difficulty && (
-                            <span style={{ 
-                              marginLeft: '8px', 
-                              fontSize: '12px', 
+                            <span style={{
+                              marginLeft: '8px',
+                              fontSize: '12px',
                               color: '#6b7280',
                               background: '#f3f4f6',
                               padding: '2px 8px',
@@ -518,9 +541,9 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
                           <div className="admin-instructor-upload-item">
                             <span style={{ textDecoration: 'line-through', color: '#9ca3af' }}>{item.name}</span>
                             {item.difficulty && (
-                              <span style={{ 
-                                marginLeft: '8px', 
-                                fontSize: '12px', 
+                              <span style={{
+                                marginLeft: '8px',
+                                fontSize: '12px',
                                 color: '#9ca3af',
                                 background: '#f9fafb',
                                 padding: '2px 8px',
@@ -544,9 +567,9 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
                         </td>
                         <td>
                           <span style={{ fontSize: '13px', color: '#9ca3af' }}>
-                            {item.deletedAt ? new Date(item.deletedAt).toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'short', 
+                            {item.deletedAt ? new Date(item.deletedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
                               day: 'numeric',
                               hour: '2-digit',
                               minute: '2-digit'

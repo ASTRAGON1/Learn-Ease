@@ -7,6 +7,34 @@ import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
 import icPersonalizedPath from "../assets/Path.svg";
 
+
+const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
+  const [error, setError] = useState(false);
+
+  // Reset error when src changes
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt="Profile"
+        className={className}
+        style={style}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={fallbackClassName}>
+      {(name || "User").slice(0, 2).toUpperCase()}
+    </div>
+  );
+};
+
 export default function StudentDashboard2() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,7 +43,7 @@ export default function StudentDashboard2() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  
+
   // Student info states
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
@@ -102,7 +130,7 @@ export default function StudentDashboard2() {
           if (response.ok) {
             const data = await response.json();
             const student = data.data || data;
-            
+
             if (student.name || student.fullName) {
               setStudentName(student.name || student.fullName);
             }
@@ -134,7 +162,7 @@ export default function StudentDashboard2() {
 
     fetchStudentData();
   }, []);
-  
+
   // Student progress data (this should come from backend/API)
   // Structure: { currentCourseIndex, completedCourses: [], courseProgress: { courseIndex: { completedLessons, totalLessons } } }
   const [studentProgress] = useState({
@@ -201,18 +229,18 @@ export default function StudentDashboard2() {
   // Transform curriculum courses to dashboard format
   const courses = useMemo(() => {
     if (!studentPath) return [];
-    
+
     return studentPath.Courses.map((course, index) => {
       // Calculate total lessons in this course
       const totalLessons = course.Topics.reduce(
-        (sum, topic) => sum + topic.lessons.length, 
+        (sum, topic) => sum + topic.lessons.length,
         0
       );
-      
+
       // Determine course status
       let status = "locked";
       let progress = 0;
-      
+
       if (studentProgress.completedCourses.includes(index)) {
         status = "completed";
         progress = 100;
@@ -224,9 +252,9 @@ export default function StudentDashboard2() {
         status = "completed";
         progress = 100;
       }
-      
+
       const courseProg = studentProgress.courseProgress[index] || { completedLessons: 0, totalLessons };
-      
+
       return {
         id: index + 1,
         title: course.CoursesTitle,
@@ -255,10 +283,10 @@ export default function StudentDashboard2() {
   // Next lessons data (filtered to current course)
   const nextLessons = useMemo(() => {
     if (!studentPath || courses.length === 0) return [];
-    
+
     const currentCourse = studentPath.Courses[studentProgress.currentCourseIndex];
     if (!currentCourse) return [];
-    
+
     const lessons = [];
     currentCourse.Topics.forEach((topic, topicIndex) => {
       topic.lessons.forEach((lesson, lessonIndex) => {
@@ -273,7 +301,7 @@ export default function StudentDashboard2() {
         });
       });
     });
-    
+
     return lessons.slice(0, 5); // Return first 5 lessons
   }, [studentPath, studentProgress.currentCourseIndex]);
 
@@ -305,26 +333,26 @@ export default function StudentDashboard2() {
   }, []);
 
   // Filter quizzes by status
-  const filteredQuizzes = activeQuizTab === "all" 
-    ? quizzes 
+  const filteredQuizzes = activeQuizTab === "all"
+    ? quizzes
     : quizzes.filter(q => q.status === activeQuizTab);
 
   const handleLogout = () => {
     // Check if diagnostic quiz is in progress
     const quizInProgress = sessionStorage.getItem('diagnosticQuizInProgress');
-    
+
     if (quizInProgress === 'true') {
       // Prevent logout and show warning
       alert('⚠️ You cannot logout while the diagnostic quiz is in progress.\n\nPlease complete the quiz first to access your personalized learning path.');
       return;
     }
-    
+
     // Clear all auth data
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userId");
     sessionStorage.removeItem("token");
-    
+
     navigate("/login");
   };
 
@@ -369,9 +397,9 @@ export default function StudentDashboard2() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "dashboard", 
-      label: "Dashboard", 
+    {
+      key: "dashboard",
+      label: "Dashboard",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="7" height="7"></rect>
@@ -379,18 +407,18 @@ export default function StudentDashboard2() {
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-      ), 
-      to: "/student-dashboard-2" 
+      ),
+      to: "/student-dashboard-2"
     },
-    { 
-      key: "personalized", 
-      label: "Personalized Path", 
-      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/personalized" 
+    {
+      key: "personalized",
+      label: "Personalized Path",
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/personalized"
     },
-    { 
-      key: "achievements", 
-      label: "Achievements", 
+    {
+      key: "achievements",
+      label: "Achievements",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
@@ -400,14 +428,14 @@ export default function StudentDashboard2() {
           <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
         </svg>
-      ), 
-      to: "/achievements" 
+      ),
+      to: "/achievements"
     },
-    { 
-      key: "courses", 
-      label: "Courses", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/courses" 
+    {
+      key: "courses",
+      label: "Courses",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/courses"
     },
   ];
 
@@ -422,7 +450,7 @@ export default function StudentDashboard2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar with Hover Animation */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -453,7 +481,7 @@ export default function StudentDashboard2() {
 
           {/* Logout Button */}
           <div className="ld-sidebar-footer">
-            <button 
+            <button
               className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
               onClick={handleLogout}
             >
@@ -481,57 +509,51 @@ export default function StudentDashboard2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
-              <button 
+              <button
                 className="ld-profile-trigger"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               >
                 <div className="ld-profile-avatar-wrapper">
-                  {profilePic ? (
-                    <img 
-                      src={profilePic} 
-                      alt="Profile" 
-                      className="ld-profile-avatar-image"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        borderRadius: '50%', 
-                        objectFit: 'cover' 
-                      }}
-                    />
-                  ) : (
-                  <div className="ld-profile-avatar">{studentName.slice(0, 2).toUpperCase()}</div>
-                  )}
+                  <ProfileAvatar
+                    src={profilePic}
+                    name={studentName}
+                    className="ld-profile-avatar-image"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                    fallbackClassName="ld-profile-avatar"
+                  />
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
                   <div className="ld-profile-name">{studentName}</div>
                   {studentEmail && <div className="ld-profile-email">{studentEmail}</div>}
                 </div>
-                <svg 
+                <svg
                   className={`ld-profile-chevron ${profileDropdownOpen ? 'open' : ''}`}
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
-              
+
               {profileDropdownOpen && (
                 <div className="ld-profile-dropdown">
                   <div className="ld-profile-dropdown-header">
-                    {profilePic ? (
-                      <img 
-                        src={profilePic} 
-                        alt="Profile" 
-                        className="ld-profile-dropdown-avatar-img"
-                      />
-                    ) : (
-                    <div className="ld-profile-dropdown-avatar">{studentName.slice(0, 2).toUpperCase()}</div>
-                    )}
+                    <ProfileAvatar
+                      src={profilePic}
+                      name={studentName}
+                      className="ld-profile-dropdown-avatar-img"
+                      fallbackClassName="ld-profile-dropdown-avatar"
+                    />
                     <div className="ld-profile-dropdown-info">
                       <div className="ld-profile-dropdown-name">{studentName}</div>
                       <div className="ld-profile-dropdown-email">{studentEmail || 'No email'}</div>
@@ -598,7 +620,7 @@ export default function StudentDashboard2() {
               </div>
             </div>
           )}
-          
+
           {/* Overall Path Progress Section */}
           {studentPath && (
             <section className="ld-path-progress-section">
@@ -611,7 +633,7 @@ export default function StudentDashboard2() {
                   <span className="ld-path-progress-percent">{overallProgress}%</span>
                 </div>
                 <div className="ld-path-progress-bar">
-                  <div 
+                  <div
                     className="ld-path-progress-fill"
                     style={{ width: `${overallProgress}%` }}
                   ></div>
@@ -625,7 +647,7 @@ export default function StudentDashboard2() {
             <div className="ld-courses-header">
               <h2 className="ld-section-title">My Learning Path</h2>
             </div>
-            
+
             {/* Two Box Layout */}
             <div className="ld-courses-two-box">
               {/* Box 1 - Current Active Course */}
@@ -647,7 +669,7 @@ export default function StudentDashboard2() {
                       Progress {activeCourse.progress}/{activeCourse.totalLessons} lessons
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="ld-course-box-btn"
                     onClick={() => navigate(`/course/${activeCourse.id}`)}
                   >
@@ -666,13 +688,13 @@ export default function StudentDashboard2() {
               {nextLockedCourse ? (
                 <div className="ld-course-box ld-course-box-locked">
                   <div className="ld-course-box-lock-content">
-                    <svg 
-                      className="ld-course-box-lock-icon" 
-                      width="64" 
-                      height="64" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="ld-course-box-lock-icon"
+                      width="64"
+                      height="64"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
                       strokeWidth="2"
                     >
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -772,7 +794,7 @@ export default function StudentDashboard2() {
               <h2 className="ld-section-title">Quizzes</h2>
               <Link to="/quiz-information" className="ld-view-all">View all quizzes</Link>
             </div>
-            
+
             {/* Quiz Tabs */}
             <div className="ld-quiz-tabs">
               <button
@@ -808,7 +830,7 @@ export default function StudentDashboard2() {
                       </span>
                       {quiz.status === "graded" && quiz.scorePct != null && (
                         <div className="ld-quiz-score">
-                          <div 
+                          <div
                             className="ld-quiz-score-ring"
                             style={{
                               background: `conic-gradient(#3ac77a ${Math.round((quiz.scorePct / 100) * 360)}deg, #e9e5ff 0deg)`
@@ -819,7 +841,7 @@ export default function StudentDashboard2() {
                         </div>
                       )}
                     </div>
-                    
+
                     <h3 className="ld-quiz-title">{quiz.title}</h3>
                     <div className="ld-quiz-meta">
                       <div className="ld-quiz-meta-item">
@@ -837,7 +859,7 @@ export default function StudentDashboard2() {
                         <span>{quiz.instructor}</span>
                       </div>
                     </div>
-                    
+
                     <div className="ld-quiz-details">
                       <div className="ld-quiz-detail-item">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -885,7 +907,7 @@ export default function StudentDashboard2() {
       </div>
 
       {/* AI Assistant Chatbot Icon */}
-      <div 
+      <div
         className={`ai-chatbot-icon ${scrollDirection}`}
         onClick={handleChatbotClick}
         role="button"
@@ -893,37 +915,37 @@ export default function StudentDashboard2() {
         aria-label="AI Assistant"
       >
         <div className="ai-chatbot-icon-inner">
-          <svg 
-            width="32" 
-            height="32" 
-            viewBox="0 0 24 24" 
-            fill="none" 
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
             xmlns="http://www.w3.org/2000/svg"
             className="ai-chatbot-svg"
           >
             {/* Robot Head */}
-            <rect 
-              x="4" 
-              y="6" 
-              width="16" 
-              height="14" 
-              rx="2" 
+            <rect
+              x="4"
+              y="6"
+              width="16"
+              height="14"
+              rx="2"
               fill="currentColor"
             />
             {/* Antenna */}
-            <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
-            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="12" cy="4" r="1.5" fill="currentColor" />
+            <line x1="12" y1="4" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             {/* Eyes */}
-            <circle cx="9" cy="11" r="1.5" fill="white"/>
-            <circle cx="15" cy="11" r="1.5" fill="white"/>
+            <circle cx="9" cy="11" r="1.5" fill="white" />
+            <circle cx="15" cy="11" r="1.5" fill="white" />
             {/* Eye glow effect */}
-            <circle cx="9" cy="11" r="0.8" fill="#4C0FAD" opacity="0.8"/>
-            <circle cx="15" cy="11" r="0.8" fill="#4C0FAD" opacity="0.8"/>
+            <circle cx="9" cy="11" r="0.8" fill="#4C0FAD" opacity="0.8" />
+            <circle cx="15" cy="11" r="0.8" fill="#4C0FAD" opacity="0.8" />
             {/* Mouth */}
-            <rect x="9" y="15" width="6" height="2" rx="1" fill="white"/>
+            <rect x="9" y="15" width="6" height="2" rx="1" fill="white" />
             {/* Decorative elements */}
-            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6"/>
-            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6"/>
+            <circle cx="7" cy="9" r="0.5" fill="white" opacity="0.6" />
+            <circle cx="17" cy="9" r="0.5" fill="white" opacity="0.6" />
           </svg>
         </div>
         <div className="ai-chatbot-pulse"></div>
