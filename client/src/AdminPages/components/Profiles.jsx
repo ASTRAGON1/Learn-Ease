@@ -1,4 +1,36 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+
+const ProfileAvatar = ({ user, className }) => {
+  const [imgError, setImgError] = useState(false);
+
+  // Helper to get initials
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(" ").filter(p => p.length > 0);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  if (user.avatar && !imgError) {
+    return (
+      <img
+        src={user.avatar}
+        alt={user.name}
+        className={className}
+        style={{ objectFit: 'cover' }}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <div className={`${className} fallback`}>
+      {getInitials(user.name)}
+    </div>
+  );
+};
 
 function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }) {
   // Filter profiles by search
@@ -112,23 +144,15 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                     const hours = sp.hours || 0;
                     const avgScore = sp.performance?.avgScore || 0;
                     const completion = Math.round((sp.performance?.completionRate || 0) * 100);
-                    
+
                     return (
                       <tr key={sp.userId}>
                         <td>
                           <div className="admin-profiles-name">
-                            {u.avatar ? (
-                              <img 
-                                src={u.avatar} 
-                                alt={u.name}
-                                className="admin-profiles-avatar admin-profiles-avatar-student"
-                                style={{ objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div className="admin-profiles-avatar admin-profiles-avatar-student">
-                                {u.name.slice(0, 2).toUpperCase()}
-                              </div>
-                            )}
+                            <ProfileAvatar
+                              user={u}
+                              className="admin-profiles-avatar admin-profiles-avatar-student"
+                            />
                             <span className="admin-profiles-name-text">{u.name}</span>
                           </div>
                         </td>
@@ -144,7 +168,7 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                         <td>
                           <div className="admin-profiles-score">
                             <div className="admin-profiles-score-bar">
-                              <div 
+                              <div
                                 className="admin-profiles-score-fill"
                                 style={{ width: `${Math.min(avgScore, 100)}%` }}
                               ></div>
@@ -155,7 +179,7 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                         <td>
                           <div className="admin-profiles-completion">
                             <div className="admin-profiles-completion-bar">
-                              <div 
+                              <div
                                 className="admin-profiles-completion-fill"
                                 style={{ width: `${Math.min(completion, 100)}%` }}
                               ></div>
@@ -210,7 +234,7 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                   {filteredInstructorProfiles.map((ip) => {
                     const u = users.find((x) => x.id === ip.userId) || { name: ip.userId || "Unknown", category: "—" };
                     const latestUpload = latestUploadFor(ip.userId);
-                    
+
                     return (
                       <tr
                         key={ip.userId}
@@ -220,18 +244,10 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                       >
                         <td>
                           <div className="admin-profiles-name">
-                            {u.avatar ? (
-                              <img 
-                                src={u.avatar} 
-                                alt={u.name}
-                                className="admin-profiles-avatar admin-profiles-avatar-instructor"
-                                style={{ objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div className="admin-profiles-avatar admin-profiles-avatar-instructor">
-                                {u.name.slice(0, 2).toUpperCase()}
-                              </div>
-                            )}
+                            <ProfileAvatar
+                              user={u}
+                              className="admin-profiles-avatar admin-profiles-avatar-instructor"
+                            />
                             <span className="admin-profiles-name-text">{u.name}</span>
                           </div>
                         </td>

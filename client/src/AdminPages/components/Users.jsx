@@ -3,6 +3,16 @@ import React from "react";
 const UserAvatar = ({ user }) => {
   const [imgError, setImgError] = React.useState(false);
 
+  // Helper to get initials
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(" ").filter(p => p.length > 0);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
   if (user.avatar && !imgError) {
     return (
       <img
@@ -16,8 +26,8 @@ const UserAvatar = ({ user }) => {
   }
 
   return (
-    <div className="admin-users-avatar">
-      {user.name.slice(0, 2).toUpperCase()}
+    <div className="admin-users-avatar fallback">
+      {getInitials(user.name)}
     </div>
   );
 };

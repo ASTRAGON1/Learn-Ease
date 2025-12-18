@@ -3323,6 +3323,7 @@
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -3441,6 +3442,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -3666,3 +3668,71 @@
   }
 }
 
+
+/* Users Component Styles - Appended */
+.admin-users-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-users-avatar.fallback {
+  background-color: #f3f4f6;
+  /* Light grey */
+  color: #1f2937;
+  /* Darker grey for text visibility */
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--ld-border);
+}
+
+.admin-users-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-users-name-text {
+  font-weight: 600;
+  color: var(--ld-text-primary);
+  font-size: 14px;
+}
+
+/* Profiles Component Styles - Appended */
+.admin-profiles-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-profiles-avatar.fallback {
+  background-color: #f3f4f6;
+  /* Light grey */
+  color: #1f2937;
+  /* Darker grey for text visibility */
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--ld-border);
+}
+
+.admin-profiles-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-profiles-name-text {
+  font-weight: 600;
+  color: var(--ld-text-primary);
+  font-size: 14px;
+}
