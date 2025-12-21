@@ -4,17 +4,17 @@ exports.getQuizzes = async (req, res) => {
   try {
     const teacherId = req.user.sub;
     const { status } = req.query; // Optional filter by status
-    
+
     const query = { teacher: teacherId };
     if (status) {
       query.status = status;
     }
-    
+
     const quizzes = await Quiz.find(query)
       .populate('path', 'type') // Populate path to get the type (autism/downSyndrome)
       .sort({ createdAt: -1 }) // Newest first
       .select('title path status difficulty createdAt previousStatus');
-    
+
     // Transform the data to include pathType for backward compatibility with frontend
     const transformedQuizzes = quizzes.map(quiz => ({
       _id: quiz._id,
@@ -25,7 +25,7 @@ exports.getQuizzes = async (req, res) => {
       createdAt: quiz.createdAt,
       previousStatus: quiz.previousStatus
     }));
-    
+
     return res.status(200).json({ data: transformedQuizzes });
   } catch (e) {
     console.error('getQuizzes error', e);
@@ -36,11 +36,11 @@ exports.getQuizzes = async (req, res) => {
 exports.createQuiz = async (req, res) => {
   try {
     const teacherId = req.user.sub;
-    const { 
+    const {
       title, difficulty, questionsAndAnswers, status,
       pathId, courseId, topicId, lessonId
     } = req.body;
-    
+
     if (!title) {
       return res.status(400).json({ error: 'Missing required field: title is required' });
     }
@@ -105,3 +105,47 @@ exports.createQuiz = async (req, res) => {
   }
 };
 
+
+
+exports.submitQuiz = async (req, res) => {
+  try {
+    const studentId = req.user.sub;
+    const { id: quizId } = req.params;
+    const { answers, score } = req.body; // score: { correct: number, total: number }
+
+    // Find the quiz
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Save result (using QuizResult model if available, or just log for now if you prefer but user asked for persistent notifications so we assume persistent results too)
+    // Assuming QuizResult is imported locally or we use require
+    const { QuizResult, Notification } = require('../models');
+    // Using internal createNotification helper if available, else direct model create
+    const { createNotification } = require('./notificationController');
+
+    // Create result record
+    if (QuizResult) {
+      await QuizResult.create({
+        student: studentId,
+        quiz: quizId,
+        score: (score.correct / score.total) * 100,
+        answers: answers
+      });
+    }
+
+    // Create notification for student
+    await createNotification({
+      recipient: studentId,
+      recipientModel: 'Student',
+      message: `You completed the quiz "${quiz.title}" with a score of ${score.correct}/${score.total}.`,
+      type: 'quiz_completed'
+    });
+
+    return res.status(200).json({ success: true, message: 'Quiz submitted and notification sent' });
+  } catch (e) {
+    console.error('submitQuiz error', e);
+    return res.status(500).json({ error: 'Server error', message: e.message });
+  }
+};

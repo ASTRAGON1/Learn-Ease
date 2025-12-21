@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 //  Debug: Check if .env is loaded
-console.log('🔍 MONGO_URI:', process.env.MONGO_URI ?  '✅ Found' : '❌ Not found');
+console.log('🔍 MONGO_URI:', process.env.MONGO_URI ? '✅ Found' : '❌ Not found');
 console.log('🔍 First 50 chars:', process.env.MONGO_URI?.substring(0, 50));
 const app = express();
 
@@ -49,6 +49,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', adminRoutes);
 app.use('/api/diagnostic-quiz', diagnosticQuizRoutes);
 

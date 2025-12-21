@@ -3,6 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
+const Track = require('../models/Track'); // New tracking model
+const Achievement = require('../models/Achievement');
+const Course = require('../models/Course');
 const requireDiagnosticQuiz = require('../middleware/requireDiagnosticQuiz');
 const router = express.Router();
 
@@ -10,10 +13,10 @@ const router = express.Router();
 router.get('/auth/check-email/:email', async (req, res) => {
   try {
     const email = req.params.email.toLowerCase().trim();
-    
+
     const studentExists = await Student.findOne({ email });
     const teacherExists = await Teacher.findOne({ email });
-    
+
     res.json({
       exists: !!(studentExists || teacherExists),
       inStudent: !!studentExists,
@@ -29,7 +32,7 @@ router.get('/auth/check-email/:email', async (req, res) => {
 router.post('/auth/register', async (req, res) => {
   try {
     const { fullName, email, password, username, firebaseUID } = req.body;
-    
+
     if (!fullName || !fullName.trim()) {
       return res.status(400).json({ error: 'fullName is required' });
     }
@@ -110,13 +113,26 @@ router.post('/auth/register', async (req, res) => {
 router.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find student by email
-    const student = await Student.findOne({ email: email.toLowerCase().trim() });
+    // Determine valid search criteria
+    const identifier = email.trim();
+    const isEmail = identifier.includes('@');
+
+    let student;
+    if (isEmail) {
+      // Find by email
+      student = await Student.findOne({ email: identifier.toLowerCase() });
+    } else {
+      // Find by full name (case-insensitive exact match)
+      student = await Student.findOne({
+        name: { $regex: new RegExp(`^${identifier}$`, 'i') }
+      });
+    }
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
@@ -155,11 +171,11 @@ router.post('/auth/login', async (req, res) => {
 router.get('/auth/me', require('../middleware/auth')(['student']), requireDiagnosticQuiz, async (req, res) => {
   try {
     const student = await Student.findById(req.user.sub).select('-pass');
-    
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
-    
+
     res.json({
       data: {
         id: student._id,
@@ -185,7 +201,7 @@ router.post('/auth/logout', require('../middleware/auth')(['student']), async (r
     await Student.findByIdAndUpdate(req.user.sub, {
       lastActivity: new Date()
     });
-    
+
     res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.error('Student logout error:', error);
@@ -199,7 +215,7 @@ router.post('/auth/activity', require('../middleware/auth')(['student']), async 
     await Student.findByIdAndUpdate(req.user.sub, {
       lastActivity: new Date()
     });
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Student activity update error:', error);
@@ -210,15 +226,18 @@ router.post('/auth/activity', require('../middleware/auth')(['student']), async 
 // GET /api/students/progress - Get student learning progress
 router.get('/progress', require('../middleware/auth')(['student']), requireDiagnosticQuiz, async (req, res) => {
   try {
-    const student = await Student.findById(req.user.sub).select('progress type achievements');
-    
+    const student = await Student.findById(req.user.sub).select('type achievements');
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Initialize progress if it doesn't exist
-    if (!student.progress) {
-      student.progress = {
+    // Fetch or create Track record
+    let track = await Track.findOne({ student: req.user.sub });
+
+    if (!track) {
+      track = await Track.create({
+        student: req.user.sub,
         hoursStudied: 0,
         currentStreak: 0,
         longestStreak: 0,
@@ -226,20 +245,20 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
         coursesInProgress: 0,
         quizzesCompleted: 0,
         quizzesPassed: 0,
+        totalQuizScore: 0,
         lessonsCompleted: 0,
-        courseProgress: []
-      };
-      await student.save();
+        courses: []
+      });
     }
 
     // Calculate total courses from learning path
     const Path = require('../models/Path');
     const studentType = student.type || 'autism';
     const normalizedType = studentType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentType.toLowerCase();
-    
+
     let totalCourses = 7; // Default
-    let totalQuizzes = 70; // Default estimate (10 per course)
-    
+    let totalQuizzes = 70; // Default estimate
+
     try {
       const path = await Path.findOne({
         $or: [
@@ -247,11 +266,11 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
           { name: new RegExp(normalizedType, 'i') }
         ]
       });
-      
+
       if (path && path.courses) {
         totalCourses = path.courses.length;
         totalQuizzes = path.courses.reduce((sum, course) => {
-          return sum + (course.topics?.length || 0) * 2; // Estimate 2 quizzes per topic
+          return sum + (course.topics?.length || 0) * 2;
         }, 0);
       }
     } catch (err) {
@@ -261,23 +280,125 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
     res.json({
       success: true,
       data: {
-        hoursStudied: student.progress.hoursStudied || 0,
-        currentStreak: student.progress.currentStreak || 0,
-        longestStreak: student.progress.longestStreak || 0,
-        coursesCompleted: student.progress.coursesCompleted || 0,
-        coursesInProgress: student.progress.coursesInProgress || 0,
+        hoursStudied: track.hoursStudied,
+        currentStreak: track.currentStreak,
+        longestStreak: track.longestStreak,
+        coursesCompleted: track.coursesCompleted,
+        coursesInProgress: track.coursesInProgress,
         totalCourses: totalCourses,
-        quizzesCompleted: student.progress.quizzesCompleted || 0,
-        quizzesPassed: student.progress.quizzesPassed || 0,
+        quizzesCompleted: track.quizzesCompleted,
+        quizzesPassed: track.quizzesPassed,
         totalQuizzes: totalQuizzes,
-        lessonsCompleted: student.progress.lessonsCompleted || 0,
-        courseProgress: student.progress.courseProgress || [],
+        lessonsCompleted: track.lessonsCompleted,
+        courseProgress: track.courses,
         achievements: student.achievements || [],
-        lastActivityDate: student.progress.lastActivityDate
+        lastActivityDate: track.lastActivityDate
       }
     });
   } catch (error) {
     console.error('Get student progress error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/students/complete-course - Mark a course as completed and award achievements
+router.post('/complete-course', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    const studentId = req.user.sub;
+
+    if (!courseId) {
+      return res.status(400).json({ error: 'Course ID is required' });
+    }
+
+    // 1. Get Course details
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // 2. Update Track
+    let track = await Track.findOne({ student: studentId });
+    if (!track) {
+      // Create if doesn't exist (safety fallback)
+      track = await Track.create({ student: studentId });
+    }
+
+    // Check if course is already tracked
+    const existingCourseIndex = track.courses.findIndex(c => c.course.toString() === courseId);
+
+    if (existingCourseIndex > -1) {
+      // Update existing
+      if (track.courses[existingCourseIndex].status !== 'completed') {
+        track.courses[existingCourseIndex].status = 'completed';
+        track.courses[existingCourseIndex].completedAt = new Date();
+        track.courses[existingCourseIndex].progressPercent = 100;
+        track.coursesCompleted += 1;
+        track.coursesInProgress = Math.max(0, track.coursesInProgress - 1);
+      }
+    } else {
+      // Add new completed course
+      track.courses.push({
+        course: courseId,
+        status: 'completed',
+        progressPercent: 100,
+        startedAt: new Date(), // Asumed started now?
+        completedAt: new Date(),
+        lastAccessedAt: new Date()
+      });
+      track.coursesCompleted += 1;
+    }
+
+    await track.save();
+
+    // 3. Award Achievement
+    // Find achievement linked to this course
+    const achievement = await Achievement.findOne({ courseId: courseId });
+
+    let achievementEarned = false;
+    let newAchievement = null;
+
+    if (achievement) {
+      const student = await Student.findById(studentId);
+
+      // Check if already earned
+      const alreadyEarned = student.achievements.some(a => a.achievement.toString() === achievement._id.toString());
+
+      if (!alreadyEarned) {
+        student.achievements.push({
+          achievement: achievement._id,
+          earnedAt: new Date()
+        });
+        await student.save();
+        achievementEarned = true;
+        newAchievement = achievement;
+
+        // Send Notification
+        const { createNotification } = require('../controllers/notificationController'); // Helper function?
+        // Actually best to use the model or a utility. 
+        // For now, let's create it directly
+        const Notification = require('../models/Notification');
+        await Notification.create({
+          recipient: studentId,
+          recipientModel: 'Student',
+          type: 'system', // or 'achievement' if we add that type
+          message: `Congratulations! You've earned the "${achievement.title}" badge!`
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        courseId,
+        status: 'completed',
+        achievementEarned,
+        achievement: newAchievement
+      }
+    });
+
+  } catch (error) {
+    console.error('Complete course error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -291,7 +412,7 @@ router.get('/achievements', require('../middleware/auth')(['student']), requireD
         path: 'achievements.achievement',
         model: 'Achievement'
       });
-    
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
@@ -394,9 +515,9 @@ router.put('/change-password', require('../middleware/auth')(['student']), async
       // Student is Firebase-only, set new password
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       await Student.findByIdAndUpdate(studentId, { pass: hashedNewPassword });
-      return res.json({ 
-        success: true, 
-        message: 'Password set successfully. You can now use both Firebase and email/password login.' 
+      return res.json({
+        success: true,
+        message: 'Password set successfully. You can now use both Firebase and email/password login.'
       });
     }
 
@@ -410,9 +531,9 @@ router.put('/change-password', require('../middleware/auth')(['student']), async
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     await Student.findByIdAndUpdate(studentId, { pass: hashedNewPassword });
 
-    res.json({ 
-      success: true, 
-      message: 'Password updated successfully' 
+    res.json({
+      success: true,
+      message: 'Password updated successfully'
     });
   } catch (error) {
     console.error('Change password error:', error);

@@ -200,10 +200,12 @@ export default function HelpAndSupport2() {
         requestBody.rating = rating;
       }
 
+      const token = await getMongoDBToken();
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(requestBody)
       });

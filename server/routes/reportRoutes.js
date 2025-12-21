@@ -2,16 +2,21 @@ const express = require('express');
 const router = express.Router();
 const { Report } = require('../models');
 
+const auth = require('../middleware/auth');
+const { createNotification } = require('../controllers/notificationController');
+
 // POST /api/reports - Create a new report
-router.post('/', async (req, res) => {
+router.post('/', auth(), async (req, res) => {
   try {
     const { userName, topic, description } = req.body;
+    const userId = req.user.sub;
+    const userRole = req.user.role; // 'student' or 'teacher'
 
     // Validate required fields
     if (!userName || !topic || !description) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'userName, topic, and description are required' 
+      return res.status(400).json({
+        success: false,
+        error: 'userName, topic, and description are required'
       });
     }
 
@@ -21,7 +26,10 @@ router.post('/', async (req, res) => {
       topic: topic.trim(),
       description: description.trim()
     });
-    
+
+    // Determine user type for model name if we want to store it (Report model might not have user link)
+    // But we want to notify the user "Report Received"
+
     const report = await Report.create({
       userName: userName.trim(),
       topic: topic.trim(),
@@ -29,8 +37,21 @@ router.post('/', async (req, res) => {
     });
 
     console.log('Report created successfully:', report);
-    console.log('Report ID:', report._id);
-    console.log('Report saved to collection:', report.collection.name);
+
+    // Notify the user who submitted the report
+    // We need to know if it's a Student or Teacher. 
+    // Assuming the auth token role is 'student' or 'teacher' (lowercase).
+    // The Notification model expects 'Student' or 'Teacher' (Capitalized).
+    const recipientModel = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+
+    if (['Student', 'Teacher'].includes(recipientModel)) {
+      await createNotification({
+        recipient: userId,
+        recipientModel: recipientModel,
+        message: 'We have received your report and will review it shortly.',
+        type: 'report'
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -38,9 +59,9 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating report:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -58,9 +79,9 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching reports:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -71,9 +92,9 @@ router.get('/:id', async (req, res) => {
     const report = await Report.findById(req.params.id);
 
     if (!report) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Report not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'Report not found'
       });
     }
 
@@ -83,9 +104,9 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching report:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

@@ -16,12 +16,12 @@ const studentSchema = new mongoose.Schema({
   },
   pass: {
     type: String,
-    required: function() {
+    required: function () {
       return !this.firebaseUID;
     },
     minlength: [6, 'Password must be at least 6 characters'],
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         // If firebaseUID exists, password is optional
         if (this.firebaseUID) {
           return true;
@@ -50,7 +50,7 @@ const studentSchema = new mongoose.Schema({
   userStatus: {
     type: String,
     enum: {
-      values: ['active','suspended'],
+      values: ['active', 'suspended'],
       message: 'Status must be either active or suspended'
     },
     default: 'active'
@@ -87,81 +87,6 @@ const studentSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  // Learning Progress Tracking
-  progress: {
-    hoursStudied: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    currentStreak: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    longestStreak: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    lastActivityDate: {
-      type: Date,
-      default: null
-    },
-    coursesCompleted: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    coursesInProgress: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    quizzesCompleted: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    quizzesPassed: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    totalQuizScore: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    lessonsCompleted: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    // Course-specific progress
-    courseProgress: [{
-      courseId: {
-        type: String,
-        required: true
-      },
-      courseName: String,
-      completedLessons: {
-        type: Number,
-        default: 0
-      },
-      totalLessons: {
-        type: Number,
-        default: 0
-      },
-      status: {
-        type: String,
-        enum: ['not_started', 'in_progress', 'completed'],
-        default: 'not_started'
-      },
-      lastAccessedAt: Date,
-      completedAt: Date
-    }]
-  }
 }, {
   timestamps: false,
   collection: 'Student'

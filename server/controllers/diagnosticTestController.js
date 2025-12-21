@@ -1,6 +1,9 @@
 const DiagnosticQuestion = require('../models/DiagnosticQuestion');
 const Student = require('../models/Student');
 const Test = require('../models/Test');
+const PathModel = require('../models/Path');
+const Content = require('../models/Content');
+const StudentPath = require('../models/StudentPath');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,8 +33,8 @@ exports.getQuestions = async (req, res) => {
     let questions = [];
     try {
       questions = await DiagnosticQuestion.find({ isActive: true })
-      .sort({ section: 1, order: 1 })
-      .lean();
+        .sort({ section: 1, order: 1 })
+        .lean();
     } catch (dbError) {
       console.log('Database query failed, using JSON file');
     }
@@ -193,30 +196,45 @@ exports.bulkImportQuestions = async (req, res) => {
     let errorCount = 0;
     const errors = [];
 
+    // Drop legacy unique index on questionId if it exists
+    // This fixes the "E11000 duplicate key error collection: ... index: questionId_1 dup key: { questionId: null }"
+    try {
+      await DiagnosticQuestion.collection.dropIndex('questionId_1');
+      console.log('✅ Dropped legacy index: questionId_1');
+    } catch (e) {
+      // Ignore error if index doesn't exist
+    }
+
     console.log('🔄 Starting import process...');
 
     // Import questions one by one to handle duplicates
     for (const questionData of questions) {
       try {
-        // Check if question already exists
-        const existing = await DiagnosticQuestion.findOne({ questionId: questionData.questionId });
-        
+        // Check if question already exists based on Section + Order
+        const existing = await DiagnosticQuestion.findOne({
+          section: questionData.section,
+          order: questionData.order
+        });
+
         if (existing) {
           // Update existing question
           await DiagnosticQuestion.findByIdAndUpdate(existing._id, questionData);
-          console.log(`✅ Updated question: ${questionData.questionId}`);
+          console.log(`✅ Updated question: S${questionData.section}-Q${questionData.order}`);
           successCount++;
         } else {
           // Create new question
-          const created = await DiagnosticQuestion.create(questionData);
-          console.log(`✅ Created question: ${questionData.questionId} (ID: ${created._id})`);
+          // Explicitly remove any questionId if present in JSON to avoid schema conflicts (though mongoose handles this)
+          const { questionId, ...cleanData } = questionData;
+          const created = await DiagnosticQuestion.create(cleanData);
+          console.log(`✅ Created question: S${questionData.section}-Q${questionData.order} (ID: ${created._id})`);
           successCount++;
         }
       } catch (error) {
-        console.error(`❌ Failed to import question ${questionData.questionId}:`, error.message);
+        const qId = `S${questionData.section}-Q${questionData.order}`;
+        console.error(`❌ Failed to import question ${qId}:`, error.message);
         errorCount++;
         errors.push({
-          questionId: questionData.questionId,
+          identifier: qId,
           error: error.message
         });
       }
@@ -226,8 +244,8 @@ exports.bulkImportQuestions = async (req, res) => {
     console.log('✅ Bulk import completed:', message);
     console.log('📊 Total questions in DB:', await DiagnosticQuestion.countDocuments());
 
-    res.json({ 
-      ok: true, 
+    res.json({
+      ok: true,
       count: successCount,
       message,
       errors: errorCount > 0 ? errors : undefined
@@ -251,9 +269,9 @@ exports.submitQuiz = async (req, res) => {
     // Check if student has already completed the quiz (prevent retaking)
     const existingTest = await Test.findOne({ student: studentId });
     if (existingTest) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'You have already completed the diagnostic quiz. It can only be taken once.',
-        success: false 
+        success: false
       });
     }
 
@@ -261,8 +279,8 @@ exports.submitQuiz = async (req, res) => {
     let questions = [];
     try {
       questions = await DiagnosticQuestion.find({ isActive: true })
-      .sort({ section: 1, order: 1 })
-      .lean();
+        .sort({ section: 1, order: 1 })
+        .lean();
     } catch (dbError) {
       console.log('Database query failed, using JSON file');
     }
@@ -273,10 +291,10 @@ exports.submitQuiz = async (req, res) => {
       quizData = getQuestionsData();
     } else {
       quizData = {
-      section1: questions.filter(q => q.section === 1),
-      section2: questions.filter(q => q.section === 2),
-      section3: questions.filter(q => q.section === 3)
-    };
+        section1: questions.filter(q => q.section === 1),
+        section2: questions.filter(q => q.section === 2),
+        section3: questions.filter(q => q.section === 3)
+      };
     }
 
     // Calculate scores
@@ -299,7 +317,7 @@ exports.submitQuiz = async (req, res) => {
     // Section 2 Analysis (Accuracy)
     let correctAnswers = 0;
     const totalQuestions = section2.length;
-    
+
     section2.forEach((answer, index) => {
       const question = quizData.section2[index];
       if (question && answer !== undefined && answer !== null) {
@@ -310,7 +328,7 @@ exports.submitQuiz = async (req, res) => {
     });
 
     const accuracy = totalQuestions > 0 ? correctAnswers / totalQuestions : 0;
-    
+
     if (accuracy < 0.5) {
       downSyndromeScore += 1;
     }
@@ -374,6 +392,56 @@ exports.submitQuiz = async (req, res) => {
 
     console.log(`✅ Student ${studentId} type set to: ${studentType} (autismScore: ${autismScore}, downSyndromeScore: ${downSyndromeScore})`);
 
+    // --- Generate Personalized Path ---
+    try {
+      // 1. Find the curriculum Path (e.g., "Autism Learning Path")
+      // We assume there is a Path created in the system with type matching 'autism' or 'downSyndrome'
+      const curriculumPath = await PathModel.findOne({ type: studentType });
+
+      if (curriculumPath) {
+        console.log(`found path: ${curriculumPath.title}`);
+
+        // 2. Find all relevant content for this path
+        // We get all PUBLISHED content linked to this path
+        const contents = await Content.find({
+          path: curriculumPath._id,
+          status: 'published'
+        });
+
+        // 3. Create the StudentPath record
+        // This links the student to the path and assigns the specific content items
+        const assignedContent = contents.map(c => ({
+          content: c._id,
+          status: 'pending',
+          addedDate: new Date()
+        }));
+
+        // Check if a path already exists for this student to avoid duplicates
+        const existingPath = await StudentPath.findOne({ student: studentId });
+
+        if (existingPath) {
+          // Optional: Update existing path or skip
+          console.log(`ℹ️ Student already has a path, skipping creation.`);
+        } else {
+          await StudentPath.create({
+            student: studentId,
+            StudentId: studentId, // Schema requires this field
+            path: curriculumPath._id,
+            assignedContent: assignedContent,
+            status: 'in-progress'
+          });
+          console.log(`✅ Created personalized StudentPath with ${assignedContent.length} items.`);
+        }
+
+      } else {
+        console.warn(`⚠️ No default Path found for type: ${studentType}. Please create a Path in the Admin Panel.`);
+      }
+    } catch (pathError) {
+      console.error("❌ Error generating StudentPath:", pathError);
+      // We don't block the response, but log the error
+    }
+    // ----------------------------------
+
     res.json({
       success: true,
       data: {
@@ -396,7 +464,7 @@ exports.checkQuizStatus = async (req, res) => {
     const studentId = req.user.sub;
     const student = await Student.findById(studentId).select('type');
     const test = await Test.findOne({ student: studentId });
-    
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }

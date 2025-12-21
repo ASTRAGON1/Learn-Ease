@@ -32,7 +32,7 @@ export default function QuizzApp() {
     const fetchQuiz = async () => {
       const token = window.sessionStorage.getItem('token');
       const quizId = location.state?.quizId;
-      
+
       if (!token) {
         navigate('/login');
         return;
@@ -49,7 +49,7 @@ export default function QuizzApp() {
         //     setQuiz(data.quiz);
         //   }
         // }
-        
+
         // For now, show empty state
         setQuiz(null);
       } catch (error) {
@@ -86,7 +86,7 @@ export default function QuizzApp() {
   function handleSubmit(e) {
     e?.preventDefault?.();
     if (!quiz || !quiz.questions) return;
-    
+
     // ensure all answered
     const firstUnansweredIdx = quiz.questions.findIndex((q) => answers[q.id] == null);
     if (firstUnansweredIdx !== -1) {
@@ -102,16 +102,18 @@ export default function QuizzApp() {
   // Quiz is automatically marked as passed upon submission
   useEffect(() => {
     if (submitted && quiz) {
-      // TODO: Send quiz results to backend
-      // const token = window.sessionStorage.getItem('token');
-      // await fetch(`${API_URL}/api/quizzes/${quiz.id}/submit`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({ answers, score })
-      // });
+      // Send quiz results to backend
+      const token = window.sessionStorage.getItem('token');
+      fetch(`${API_URL}/api/quizzes/${quiz.id}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ answers, score })
+      }).then(res => res.json())
+        .then(data => console.log('Quiz submission response:', data))
+        .catch(err => console.error('Quiz submission error:', err));
       const finalScore = computeScore(quiz, answers);
       console.log('Quiz submitted', { quizId: quiz.id, score: finalScore });
     }
@@ -177,8 +179,8 @@ export default function QuizzApp() {
           {!submitted && (
             <div className="quizPurple-progress">
               <div className="quizPurple-progress-bar">
-                <div 
-                  className="quizPurple-progress-fill" 
+                <div
+                  className="quizPurple-progress-fill"
                   style={{ width: `${((currentQuestion + 1) / quiz.questions.length) * 100}%` }}
                 ></div>
               </div>
@@ -200,9 +202,9 @@ export default function QuizzApp() {
                 <span className="quizPurple-question-number">Question {currentQuestion + 1}</span>
                 <span className="quizPurple-question-category">{quiz.questions[currentQuestion].category}</span>
               </div>
-              
-              <fieldset 
-                key={quiz.questions[currentQuestion].id} 
+
+              <fieldset
+                key={quiz.questions[currentQuestion].id}
                 className="quizPurple-question"
                 data-qidx={currentQuestion}
               >
@@ -211,8 +213,8 @@ export default function QuizzApp() {
                   {quiz.questions[currentQuestion].options.map((opt, i) => {
                     const selected = answers[quiz.questions[currentQuestion].id] === i;
                     return (
-                      <label 
-                        key={i} 
+                      <label
+                        key={i}
                         className={`quizPurple-radio ${selected ? "selected" : ""}`}
                       >
                         <input
@@ -243,7 +245,7 @@ export default function QuizzApp() {
                   </svg>
                   Previous
                 </button>
-                
+
                 <div className="quizPurple-question-dots">
                   {quiz.questions.map((q, idx) => (
                     <button
@@ -288,8 +290,8 @@ export default function QuizzApp() {
               const isCorrect = selected === q.answerIndex;
               const isWrong = selected != null && selected !== q.answerIndex;
               return (
-                <fieldset 
-                  key={q.id} 
+                <fieldset
+                  key={q.id}
                   className={`quizPurple-question ${isCorrect ? "correct" : ""} ${isWrong ? "wrong" : ""}`}
                 >
                   <div className="quizPurple-question-header">
@@ -322,8 +324,8 @@ export default function QuizzApp() {
                       const postCorrect = i === q.answerIndex;
                       const postWrong = checked && i !== q.answerIndex;
                       return (
-                        <label 
-                          key={i} 
+                        <label
+                          key={i}
                           className={`quizPurple-radio ${checked ? "selected" : ""} ${postCorrect ? "post-correct" : ""} ${postWrong ? "post-wrong" : ""}`}
                         >
                           <input
@@ -356,7 +358,7 @@ export default function QuizzApp() {
             <div className="quizPurple-results">
               <div className="quizPurple-score">
                 <div className="quizPurple-score-ring">
-                  <div className="quizPurple-score-num">{Math.round((score.correct/score.total)*100)}%</div>
+                  <div className="quizPurple-score-num">{Math.round((score.correct / score.total) * 100)}%</div>
                 </div>
                 <div className="quizPurple-score-text">{score.correct} / {score.total} correct</div>
               </div>
@@ -365,7 +367,7 @@ export default function QuizzApp() {
                   <div className="quizPurple-stat" key={cat}>
                     <div className="quizPurple-stat-name">{cat}</div>
                     <div className="quizPurple-stat-bar">
-                      <div className="quizPurple-stat-fill" style={{width: `${Math.round((v.ok/v.total)*100)}%`}}/>
+                      <div className="quizPurple-stat-fill" style={{ width: `${Math.round((v.ok / v.total) * 100)}%` }} />
                     </div>
                     <div className="quizPurple-stat-val">{v.ok}/{v.total}</div>
                   </div>

@@ -12,5 +12,8 @@ router.post('/submit', auth(['student']), diagnosticTestController.submitQuiz);
 // GET /api/diagnostic-quiz/status - Check if student has completed diagnostic quiz
 router.get('/status', auth(['student']), diagnosticTestController.checkQuizStatus);
 
+// POST /api/diagnostic-quiz/import - Bulk import questions (Admin only)
+router.post('/import', diagnosticTestController.bulkImportQuestions);
+
 module.exports = router;
 

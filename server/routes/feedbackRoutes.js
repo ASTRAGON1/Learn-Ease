@@ -2,24 +2,29 @@ const express = require('express');
 const router = express.Router();
 const { Feedback } = require('../models');
 
+const auth = require('../middleware/auth');
+const { createNotification } = require('../controllers/notificationController');
+
 // POST /api/feedback - Create a new feedback
-router.post('/', async (req, res) => {
+router.post('/', auth(), async (req, res) => {
   try {
     const { userName, topic, description, rating } = req.body;
+    const userId = req.user.sub;
+    const userRole = req.user.role; // 'student' or 'teacher'
 
     // Validate required fields
     if (!userName || !topic || !description) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'userName, topic, and description are required' 
+      return res.status(400).json({
+        success: false,
+        error: 'userName, topic, and description are required'
       });
     }
 
     // Validate rating if provided
     if (rating !== undefined && (rating < 1 || rating > 5)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Rating must be between 1 and 5' 
+      return res.status(400).json({
+        success: false,
+        error: 'Rating must be between 1 and 5'
       });
     }
 
@@ -30,7 +35,7 @@ router.post('/', async (req, res) => {
       description: description.trim(),
       rating: rating || 5
     });
-    
+
     const feedback = await Feedback.create({
       userName: userName.trim(),
       topic: topic.trim(),
@@ -39,8 +44,18 @@ router.post('/', async (req, res) => {
     });
 
     console.log('Feedback created successfully:', feedback);
-    console.log('Feedback ID:', feedback._id);
-    console.log('Feedback saved to collection:', feedback.collection.name);
+
+    // Notify the user who submitted the feedback
+    const recipientModel = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+
+    if (['Student', 'Teacher'].includes(recipientModel)) {
+      await createNotification({
+        recipient: userId,
+        recipientModel: recipientModel,
+        message: 'Thank you for your feedback! We verify every feedback to improve our platform.',
+        type: 'feedback'
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -48,9 +63,9 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating feedback:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -68,9 +83,9 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching feedback:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -88,9 +103,9 @@ router.get('/visible', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching visible feedback:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -101,9 +116,9 @@ router.get('/:id', async (req, res) => {
     const feedback = await Feedback.findById(req.params.id);
 
     if (!feedback) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Feedback not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'Feedback not found'
       });
     }
 
@@ -113,9 +128,9 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching feedback:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -126,9 +141,9 @@ router.patch('/:id/show', async (req, res) => {
     const { show } = req.body;
 
     if (typeof show !== 'boolean') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'show must be a boolean value' 
+      return res.status(400).json({
+        success: false,
+        error: 'show must be a boolean value'
       });
     }
 
@@ -139,9 +154,9 @@ router.patch('/:id/show', async (req, res) => {
     );
 
     if (!feedback) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Feedback not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'Feedback not found'
       });
     }
 
@@ -151,9 +166,9 @@ router.patch('/:id/show', async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating feedback show status:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

@@ -18,6 +18,10 @@ const achievementSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
   badge: {
     type: String,
     required: true,
@@ -36,7 +40,8 @@ const achievementSchema = new mongoose.Schema({
     trim: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'Achievements'
 });
 
 // Index for faster queries

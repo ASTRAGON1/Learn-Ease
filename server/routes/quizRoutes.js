@@ -6,6 +6,7 @@ const Quiz = require('../models/Quiz');
 
 router.get('/', auth(['teacher']), ctrl.getQuizzes);
 router.post('/', auth(['teacher']), ctrl.createQuiz);
+router.post('/:id/submit', auth(['student']), ctrl.submitQuiz);
 
 // PATCH /api/quizzes/:id - Update quiz (for archiving)
 router.patch('/:id', auth(['teacher']), async (req, res) => {
@@ -34,14 +35,14 @@ router.patch('/:id', auth(['teacher']), async (req, res) => {
 router.delete('/:id', auth(['teacher']), async (req, res) => {
   try {
     const quiz = await Quiz.findOne({ _id: req.params.id, teacher: req.user.sub });
-    
+
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found or not yours' });
     }
 
     // Delete from MongoDB
     await Quiz.deleteOne({ _id: req.params.id, teacher: req.user.sub });
-    
+
     res.json({ message: 'Quiz deleted successfully' });
   } catch (e) {
     console.error('Error deleting quiz:', e);

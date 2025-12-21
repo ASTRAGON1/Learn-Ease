@@ -1983,3 +1983,233 @@
     transform: translateY(-10px);
   }
 }
+
+/* Notification Dropdown Styles */
+.ld-notification-wrapper {
+  position: relative;
+  z-index: 1001;
+}
+
+.ld-notification-btn {
+  background: transparent;
+  border: 1px solid var(--ld-border);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ld-text-secondary);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.ld-notification-btn:hover {
+  background: var(--ld-bg-secondary);
+  color: var(--ld-accent-orange);
+  border-color: var(--ld-accent-orange);
+}
+
+.ld-notification-badge-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--ld-accent-red);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.ld-notification-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: -100px;
+  width: 380px;
+  background: white;
+  border: 1px solid var(--ld-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: dropdownSlideIn 0.2s ease;
+  z-index: 1002;
+}
+
+@media (max-width: 768px) {
+  .ld-notification-dropdown {
+    right: -60px;
+    width: 320px;
+  }
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ld-notification-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ld-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.ld-notification-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ld-text-primary);
+}
+
+.ld-clear-all {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--ld-text-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.ld-clear-all:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ld-accent-red);
+}
+
+.ld-notification-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.ld-notification-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ld-text-secondary);
+}
+
+.ld-empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.ld-notification-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ld-border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.ld-notification-item:hover {
+  background: #f8f9fa;
+}
+
+.ld-notification-item.unread {
+  background: rgba(255, 107, 53, 0.03);
+}
+
+.ld-notification-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ld-accent-orange);
+}
+
+.ld-notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.ld-notification-icon.quiz_completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.ld-notification-icon.suspended {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.ld-notification-icon.report {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.ld-notification-icon.feedback {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.ld-notification-icon.system {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.ld-notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ld-notification-message {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: var(--ld-text-primary);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.ld-notification-time {
+  font-size: 11px;
+  color: var(--ld-text-secondary);
+  font-weight: 500;
+}
+
+.ld-delete-notif {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.ld-notification-item:hover .ld-delete-notif {
+  opacity: 1;
+}
+
+.ld-delete-notif:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}

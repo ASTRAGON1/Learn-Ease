@@ -12,7 +12,6 @@ const {
   Content,
   Quiz,
   Path,
-  ContentFeedback,
   QuizResult,
   Feedback,
   Report
@@ -62,17 +61,17 @@ router.get('/topics', async (req, res) => {
 
 // Test: Get all Paths
 router.get('/paths', async (req, res) => {
-    try {
-      const paths = await Path.find();
-      res.json({
-        success: true,
-        count: paths.length,
-        data: paths
-      });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
+  try {
+    const paths = await Path.find();
+    res.json({
+      success: true,
+      count: paths.length,
+      data: paths
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // Test: Get all students
 router.get('/students', async (req, res) => {
@@ -152,20 +151,6 @@ router.get('/quizresults', async (req, res) => {
       success: true,
       count: quizResults.length,
       data: quizResults
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Test: Get all content feedback
-router.get('/contentfeedback', async (req, res) => {
-  try {
-    const contentFeedback = await ContentFeedback.find();
-    res.json({
-      success: true,
-      count: contentFeedback.length,
-      data: contentFeedback
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

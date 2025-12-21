@@ -18,7 +18,7 @@ const achievementController = require('../controllers/achievementController');
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Validate input
     if (!email || !password) {
       return res.status(400).json({
@@ -26,17 +26,17 @@ router.post('/login', async (req, res) => {
         error: 'Email and password are required'
       });
     }
-    
+
     // Find admin by email
     const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
-    
+
     if (!admin) {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials'
       });
     }
-    
+
     // Check password (plain text comparison - in production, use bcrypt)
     if (admin.password !== password) {
       return res.status(401).json({
@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
         error: 'Invalid credentials'
       });
     }
-    
+
     // Login successful
     res.json({
       success: true,
@@ -70,14 +70,14 @@ router.get('/users', async (req, res) => {
   try {
     // Fetch all students
     const students = await Student.find({}).select('name email type status suspended createdAt profilePic lastActivity');
-    
+
     // Fetch all teachers
     const teachers = await Teacher.find({}).select('fullName email userStatus ranking profilePic headline bio createdAt isOnline lastActivity');
-    
+
     // Auto-mark users as offline if inactive for more than 30 minutes
     const INACTIVITY_THRESHOLD = 30 * 60 * 1000; // 30 minutes in milliseconds
     const now = new Date();
-    
+
     // Transform students to unified format
     const studentUsers = students.map(student => {
       // Students don't have isOnline field, so set online to false
@@ -94,19 +94,19 @@ router.get('/users', async (req, res) => {
         lastActivity: student.lastActivity
       };
     });
-    
+
     // Transform teachers to unified format
     const teacherUsers = teachers.map(teacher => {
-      const isActive = teacher.isOnline && teacher.lastActivity && 
-                       (now - new Date(teacher.lastActivity)) < INACTIVITY_THRESHOLD;
-      
+      const isActive = teacher.isOnline && teacher.lastActivity &&
+        (now - new Date(teacher.lastActivity)) < INACTIVITY_THRESHOLD;
+
       // Auto-update if marked online but inactive
       if (teacher.isOnline && !isActive) {
-        Teacher.findByIdAndUpdate(teacher._id, { isOnline: false }).catch(err => 
+        Teacher.findByIdAndUpdate(teacher._id, { isOnline: false }).catch(err =>
           console.error('Error auto-updating teacher online status:', err)
         );
       }
-      
+
       return {
         id: teacher._id.toString(),
         name: teacher.fullName,
@@ -125,13 +125,13 @@ router.get('/users', async (req, res) => {
         lastActivity: teacher.lastActivity
       };
     });
-    
+
     // Combine both arrays
     const allUsers = [...studentUsers, ...teacherUsers];
-    
+
     // Sort by creation date (newest first)
     allUsers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
+
     res.json({
       success: true,
       count: allUsers.length,
@@ -155,24 +155,26 @@ router.patch('/users/:id/suspend', async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body; // 'student' or 'instructor'
-    
+
     if (!role) {
       return res.status(400).json({
         success: false,
         error: 'Role is required'
       });
     }
-    
+
     if (role === 'student') {
       const student = await Student.findById(id);
-      
+
       if (!student) {
         return res.status(404).json({
           success: false,
           error: 'Student not found'
         });
       }
-      
+
+
+
       // Don't allow suspending pending students
       if (student.status === 'pending') {
         return res.status(400).json({
@@ -180,26 +182,37 @@ router.patch('/users/:id/suspend', async (req, res) => {
           error: 'Cannot suspend a pending student. Please accept or decline their application first.'
         });
       }
-      
+
       // Update to suspended
       student.suspended = true;
       student.status = 'inactive';
       await student.save();
-      
+
+      // Notify student
+      const { createNotification } = require('../controllers/notificationController');
+      await createNotification({
+        recipient: student._id,
+        recipientModel: 'Student',
+        message: 'Your account has been suspended. Please contact support.',
+        type: 'suspended'
+      });
+
       return res.json({
         success: true,
         data: { id, role: 'student', status: 'suspended' }
       });
     } else if (role === 'instructor') {
       const teacher = await Teacher.findById(id);
-      
+
       if (!teacher) {
         return res.status(404).json({
           success: false,
           error: 'Teacher not found'
         });
       }
-      
+
+
+
       // Don't allow suspending pending teachers
       if (teacher.userStatus === 'pending') {
         return res.status(400).json({
@@ -207,17 +220,26 @@ router.patch('/users/:id/suspend', async (req, res) => {
           error: 'Cannot suspend a pending instructor. Please accept or decline their application first.'
         });
       }
-      
+
       // Update to suspended
       teacher.userStatus = 'suspended';
       await teacher.save();
-      
+
+      // Notify teacher
+      const { createNotification } = require('../controllers/notificationController');
+      await createNotification({
+        recipient: teacher._id,
+        recipientModel: 'Teacher',
+        message: 'Your account has been suspended. Please contact support.',
+        type: 'suspended'
+      });
+
       return res.json({
         success: true,
         data: { id, role: 'instructor', status: 'suspended' }
       });
     }
-    
+
     return res.status(400).json({
       success: false,
       error: 'Invalid role'
@@ -240,28 +262,37 @@ router.patch('/users/:id/reinstate', async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
-    
+
     if (!role) {
       return res.status(400).json({
         success: false,
         error: 'Role is required'
       });
     }
-    
+
     if (role === 'student') {
       const student = await Student.findByIdAndUpdate(
         id,
         { suspended: false, status: 'active' },
         { new: true }
       );
-      
+
       if (!student) {
         return res.status(404).json({
           success: false,
           error: 'Student not found'
         });
       }
-      
+
+      // Notify student
+      const { createNotification } = require('../controllers/notificationController');
+      await createNotification({
+        recipient: student._id,
+        recipientModel: 'Student',
+        message: 'Your account has been reinstated. Welcome back!',
+        type: 'system'
+      });
+
       return res.json({
         success: true,
         data: { id, role: 'student', status: 'active' }
@@ -272,20 +303,29 @@ router.patch('/users/:id/reinstate', async (req, res) => {
         { userStatus: 'active' },
         { new: true }
       );
-      
+
       if (!teacher) {
         return res.status(404).json({
           success: false,
           error: 'Teacher not found'
         });
       }
-      
+
+      // Notify teacher
+      const { createNotification } = require('../controllers/notificationController');
+      await createNotification({
+        recipient: teacher._id,
+        recipientModel: 'Teacher',
+        message: 'Your account has been reinstated. Welcome back!',
+        type: 'system'
+      });
+
       return res.json({
         success: true,
         data: { id, role: 'instructor', status: 'active' }
       });
     }
-    
+
     return res.status(400).json({
       success: false,
       error: 'Invalid role'
@@ -308,34 +348,34 @@ router.delete('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
-    
+
     if (!role) {
       return res.status(400).json({
         success: false,
         error: 'Role is required'
       });
     }
-    
+
     if (role === 'student') {
       // First, get the student to check for Firebase UID
       const student = await Student.findById(id);
-      
+
       if (!student) {
         return res.status(404).json({
           success: false,
           error: 'Student not found'
         });
       }
-      
+
       // Delete from Firebase if they have a Firebase UID
       if (student.firebaseUID) {
         console.log(`Attempting to delete Firebase student: ${student.firebaseUID}`);
         await deleteFirebaseUser(student.firebaseUID);
       }
-      
+
       // Delete from MongoDB
       await Student.findByIdAndDelete(id);
-      
+
       return res.json({
         success: true,
         message: 'Student deleted successfully from both Firebase and MongoDB'
@@ -343,29 +383,29 @@ router.delete('/users/:id', async (req, res) => {
     } else if (role === 'instructor') {
       // First, get the teacher to check for Firebase UID
       const teacher = await Teacher.findById(id);
-      
+
       if (!teacher) {
         return res.status(404).json({
           success: false,
           error: 'Teacher not found'
         });
       }
-      
+
       // Delete from Firebase if they have a Firebase UID
       if (teacher.firebaseUID) {
         console.log(`Attempting to delete Firebase teacher: ${teacher.firebaseUID}`);
         await deleteFirebaseUser(teacher.firebaseUID);
       }
-      
+
       // Delete from MongoDB
       await Teacher.findByIdAndDelete(id);
-      
+
       return res.json({
         success: true,
         message: 'Teacher deleted successfully from both Firebase and MongoDB'
       });
     }
-    
+
     return res.status(400).json({
       success: false,
       error: 'Invalid role'
@@ -388,7 +428,7 @@ router.post('/users/cleanup-inactive', async (req, res) => {
   try {
     const INACTIVITY_THRESHOLD = 30 * 60 * 1000; // 30 minutes
     const cutoffTime = new Date(Date.now() - INACTIVITY_THRESHOLD);
-    
+
     // Update teachers
     const teachersResult = await Teacher.updateMany(
       {
@@ -397,7 +437,7 @@ router.post('/users/cleanup-inactive', async (req, res) => {
       },
       { isOnline: false }
     );
-    
+
     res.json({
       success: true,
       message: 'Inactive users marked as offline',
@@ -421,7 +461,7 @@ router.post('/users/cleanup-inactive', async (req, res) => {
 router.get('/teacher/:email/content', async (req, res) => {
   try {
     const { email } = req.params;
-    
+
     // First, find the teacher to get their ID
     const teacher = await Teacher.findOne({ email });
     if (!teacher) {
@@ -430,16 +470,16 @@ router.get('/teacher/:email/content', async (req, res) => {
         error: 'Teacher not found'
       });
     }
-    
+
     // Fetch content for this teacher
     const Content = require('../models/Content');
-    const content = await Content.find({ 
+    const content = await Content.find({
       teacher: teacher._id,
       status: { $ne: 'deleted' } // Exclude deleted content
     })
       .select('title pathType contentType topic lesson course description difficulty status createdAt')
       .sort({ createdAt: -1 });
-    
+
     res.json({
       success: true,
       data: content
@@ -461,7 +501,7 @@ router.get('/teacher/:email/content', async (req, res) => {
 router.get('/teacher/:email/quizzes', async (req, res) => {
   try {
     const { email } = req.params;
-    
+
     // First, find the teacher to get their ID
     const teacher = await Teacher.findOne({ email });
     if (!teacher) {
@@ -470,15 +510,15 @@ router.get('/teacher/:email/quizzes', async (req, res) => {
         error: 'Teacher not found'
       });
     }
-    
+
     // Fetch quizzes for this teacher
     const Quiz = require('../models/Quiz');
-    const quizzes = await Quiz.find({ 
+    const quizzes = await Quiz.find({
       teacher: teacher._id
     })
       .select('title pathType topic lesson course difficulty status createdAt questionsAndAnswers')
       .sort({ createdAt: -1 });
-    
+
     res.json({
       success: true,
       data: quizzes
@@ -500,7 +540,7 @@ router.get('/teacher/:email/quizzes', async (req, res) => {
 router.get('/teacher/:email/deleted-content', async (req, res) => {
   try {
     const { email } = req.params;
-    
+
     // First, find the teacher to get their ID
     const teacher = await Teacher.findOne({ email });
     if (!teacher) {
@@ -509,16 +549,16 @@ router.get('/teacher/:email/deleted-content', async (req, res) => {
         error: 'Teacher not found'
       });
     }
-    
+
     // Fetch deleted content for this teacher
     const Content = require('../models/Content');
-    const deletedContent = await Content.find({ 
+    const deletedContent = await Content.find({
       teacher: teacher._id,
       status: 'deleted'
     })
       .select('title pathType contentType topic lesson course description difficulty status previousStatus deletedAt createdAt')
       .sort({ deletedAt: -1 });
-    
+
     res.json({
       success: true,
       data: deletedContent
@@ -540,7 +580,7 @@ router.get('/teacher/:email/deleted-content', async (req, res) => {
 router.get('/teacher/:email/deleted-quizzes', async (req, res) => {
   try {
     const { email } = req.params;
-    
+
     // First, find the teacher to get their ID
     const teacher = await Teacher.findOne({ email });
     if (!teacher) {
@@ -549,16 +589,16 @@ router.get('/teacher/:email/deleted-quizzes', async (req, res) => {
         error: 'Teacher not found'
       });
     }
-    
+
     // Fetch archived quizzes for this teacher
     const Quiz = require('../models/Quiz');
-    const deletedQuizzes = await Quiz.find({ 
+    const deletedQuizzes = await Quiz.find({
       teacher: teacher._id,
       status: 'archived'
     })
       .select('title pathType topic lesson course difficulty status previousStatus createdAt updatedAt')
       .sort({ updatedAt: -1 });
-    
+
     res.json({
       success: true,
       data: deletedQuizzes
@@ -582,23 +622,23 @@ router.get('/teacher/:email/deleted-quizzes', async (req, res) => {
 router.get('/learning-paths', async (req, res) => {
   try {
     const paths = await Path.find({ isPublished: true }).sort({ createdAt: 1 });
-    
+
     const pathsWithData = await Promise.all(
       paths.map(async (path) => {
         const courses = await Course.find({ pathId: path._id }).sort({ order: 1 });
-        
+
         const coursesWithData = await Promise.all(
           courses.map(async (course) => {
             const topics = await Topic.find({ courseId: course._id, pathId: path._id }).sort({ order: 1 });
-            
+
             const topicsWithData = await Promise.all(
               topics.map(async (topic) => {
-                const lessons = await Lesson.find({ 
-                  topicId: topic._id, 
-                  courseId: course._id, 
-                  pathId: path._id 
+                const lessons = await Lesson.find({
+                  topicId: topic._id,
+                  courseId: course._id,
+                  pathId: path._id
                 }).sort({ order: 1 });
-                
+
                 return {
                   id: topic._id,
                   name: topic.title,
@@ -609,7 +649,7 @@ router.get('/learning-paths', async (req, res) => {
                 };
               })
             );
-            
+
             return {
               id: course._id,
               name: course.title,
@@ -617,7 +657,7 @@ router.get('/learning-paths', async (req, res) => {
             };
           })
         );
-        
+
         return {
           id: path._id,
           name: path.title,
@@ -626,7 +666,7 @@ router.get('/learning-paths', async (req, res) => {
         };
       })
     );
-    
+
     res.json({
       success: true,
       data: pathsWithData
@@ -648,30 +688,30 @@ router.get('/learning-paths', async (req, res) => {
 router.post('/learning-paths', async (req, res) => {
   try {
     const { name, type } = req.body;
-    
+
     if (!name || !type) {
       return res.status(400).json({
         success: false,
         error: 'Name and type are required'
       });
     }
-    
+
     if (!['autism', 'downSyndrome'].includes(type)) {
       return res.status(400).json({
         success: false,
         error: 'Type must be either "autism" or "downSyndrome"'
       });
     }
-    
+
     const path = new Path({
       type,
       title: name,
       courses: [],
       isPublished: true
     });
-    
+
     await path.save();
-    
+
     res.json({
       success: true,
       data: {
@@ -698,14 +738,14 @@ router.post('/learning-paths/:pathId/courses', async (req, res) => {
   try {
     const { pathId } = req.params;
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Course name is required'
       });
     }
-    
+
     const path = await Path.findById(pathId);
     if (!path) {
       return res.status(404).json({
@@ -713,19 +753,19 @@ router.post('/learning-paths/:pathId/courses', async (req, res) => {
         error: 'Path not found'
       });
     }
-    
+
     const course = new Course({
       title: name,
       pathId: pathId,
       topics: [],
       order: path.courses.length
     });
-    
+
     await course.save();
-    
+
     path.courses.push(course._id);
     await path.save();
-    
+
     res.json({
       success: true,
       data: {
@@ -752,14 +792,14 @@ router.post('/learning-paths/:pathId/courses/:courseId/topics', async (req, res)
   try {
     const { pathId, courseId } = req.params;
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Topic name is required'
       });
     }
-    
+
     const course = await Course.findById(courseId);
     if (!course || course.pathId.toString() !== pathId) {
       return res.status(404).json({
@@ -767,7 +807,7 @@ router.post('/learning-paths/:pathId/courses/:courseId/topics', async (req, res)
         error: 'Course not found'
       });
     }
-    
+
     const topic = new Topic({
       title: name,
       courseId: courseId,
@@ -775,12 +815,12 @@ router.post('/learning-paths/:pathId/courses/:courseId/topics', async (req, res)
       lessons: [],
       order: course.topics.length
     });
-    
+
     await topic.save();
-    
+
     course.topics.push(topic._id);
     await course.save();
-    
+
     res.json({
       success: true,
       data: {
@@ -807,14 +847,14 @@ router.post('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons',
   try {
     const { pathId, courseId, topicId } = req.params;
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Lesson name is required'
       });
     }
-    
+
     const topic = await Topic.findById(topicId);
     if (!topic || topic.courseId.toString() !== courseId || topic.pathId.toString() !== pathId) {
       return res.status(404).json({
@@ -822,7 +862,7 @@ router.post('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons',
         error: 'Topic not found'
       });
     }
-    
+
     const lesson = new Lesson({
       title: name,
       topicId: topicId,
@@ -830,12 +870,12 @@ router.post('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons',
       pathId: pathId,
       order: topic.lessons.length
     });
-    
+
     await lesson.save();
-    
+
     topic.lessons.push(lesson._id);
     await topic.save();
-    
+
     res.json({
       success: true,
       data: {
@@ -861,27 +901,27 @@ router.put('/learning-paths/:pathId/courses/:courseId', async (req, res) => {
   try {
     const { pathId, courseId } = req.params;
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Course name is required'
       });
     }
-    
+
     const course = await Course.findByIdAndUpdate(
       courseId,
       { title: name },
       { new: true }
     );
-    
+
     if (!course || course.pathId !== pathId) {
       return res.status(404).json({
         success: false,
         error: 'Course not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: { id: course._id, name: course.title }
@@ -904,27 +944,27 @@ router.put('/learning-paths/:pathId/courses/:courseId/topics/:topicId', async (r
   try {
     const { pathId, courseId, topicId } = req.params;
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Topic name is required'
       });
     }
-    
+
     const topic = await Topic.findByIdAndUpdate(
       topicId,
       { title: name },
       { new: true }
     );
-    
+
     if (!topic || topic.courseId !== courseId || topic.pathId !== pathId) {
       return res.status(404).json({
         success: false,
         error: 'Topic not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: { id: topic._id, name: topic.title }
@@ -947,27 +987,27 @@ router.put('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:l
   try {
     const { pathId, courseId, topicId, lessonId } = req.params;
     const { name } = req.body;
-    
+
     if (!name) {
       return res.status(400).json({
         success: false,
         error: 'Lesson name is required'
       });
     }
-    
+
     const lesson = await Lesson.findByIdAndUpdate(
       lessonId,
       { title: name },
       { new: true }
     );
-    
+
     if (!lesson || lesson.topicId !== topicId || lesson.courseId !== courseId || lesson.pathId !== pathId) {
       return res.status(404).json({
         success: false,
         error: 'Lesson not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: { id: lesson._id, name: lesson.title }
@@ -989,7 +1029,7 @@ router.put('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:l
 router.post('/learning-paths/bulk-import', async (req, res) => {
   try {
     const { data } = req.body;
-    
+
     if (!data || !Array.isArray(data)) {
       return res.status(400).json({
         success: false,
@@ -1014,8 +1054,8 @@ router.post('/learning-paths/bulk-import', async (req, res) => {
             pathType = 'downSyndrome';
           } else if (generalPath.includes('autism')) {
             pathType = 'autism';
+          }
         }
-      }
 
         // Create Path
         const path = new Path({
@@ -1070,8 +1110,8 @@ router.post('/learning-paths/bulk-import', async (req, res) => {
                 const lessons = topicData.lessons || topicData.lessons || [];
                 for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
                   try {
-                    const lessonName = typeof lessons[lessonIndex] === 'string' 
-                      ? lessons[lessonIndex] 
+                    const lessonName = typeof lessons[lessonIndex] === 'string'
+                      ? lessons[lessonIndex]
                       : (lessons[lessonIndex].name || lessons[lessonIndex].title || `Lesson ${lessonIndex + 1}`);
 
                     // Create Lesson
@@ -1137,7 +1177,7 @@ router.post('/learning-paths/bulk-import', async (req, res) => {
 router.delete('/learning-paths/:pathId', async (req, res) => {
   try {
     const { pathId } = req.params;
-    
+
     const path = await Path.findById(pathId);
     if (!path) {
       return res.status(404).json({
@@ -1145,7 +1185,7 @@ router.delete('/learning-paths/:pathId', async (req, res) => {
         error: 'Path not found'
       });
     }
-    
+
     // Delete all courses and their nested content
     const courses = await Course.find({ pathId });
     for (const course of courses) {
@@ -1156,9 +1196,9 @@ router.delete('/learning-paths/:pathId', async (req, res) => {
       }
       await Course.findByIdAndDelete(course._id);
     }
-    
+
     await Path.findByIdAndDelete(pathId);
-    
+
     res.json({
       success: true,
       message: 'Path and all its content deleted successfully'
@@ -1180,7 +1220,7 @@ router.delete('/learning-paths/:pathId', async (req, res) => {
 router.delete('/learning-paths/:pathId/courses/:courseId', async (req, res) => {
   try {
     const { pathId, courseId } = req.params;
-    
+
     const course = await Course.findById(courseId);
     if (!course || course.pathId !== pathId) {
       return res.status(404).json({
@@ -1188,23 +1228,23 @@ router.delete('/learning-paths/:pathId/courses/:courseId', async (req, res) => {
         error: 'Course not found'
       });
     }
-    
+
     // Delete all topics and their lessons
     const topics = await Topic.find({ courseId });
     for (const topic of topics) {
       await Lesson.deleteMany({ topicId: topic._id });
       await Topic.findByIdAndDelete(topic._id);
     }
-    
+
     // Remove course from path
     const path = await Path.findById(pathId);
     if (path) {
       path.courses = path.courses.filter(id => id !== courseId);
       await path.save();
     }
-    
+
     await Course.findByIdAndDelete(courseId);
-    
+
     res.json({
       success: true,
       message: 'Course and all its content deleted successfully'
@@ -1226,7 +1266,7 @@ router.delete('/learning-paths/:pathId/courses/:courseId', async (req, res) => {
 router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId', async (req, res) => {
   try {
     const { pathId, courseId, topicId } = req.params;
-    
+
     const topic = await Topic.findById(topicId);
     if (!topic || topic.courseId !== courseId || topic.pathId !== pathId) {
       return res.status(404).json({
@@ -1234,19 +1274,19 @@ router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId', async
         error: 'Topic not found'
       });
     }
-    
+
     // Delete all lessons
     await Lesson.deleteMany({ topicId });
-    
+
     // Remove topic from course
     const course = await Course.findById(courseId);
     if (course) {
       course.topics = course.topics.filter(id => id !== topicId);
       await course.save();
     }
-    
+
     await Topic.findByIdAndDelete(topicId);
-    
+
     res.json({
       success: true,
       message: 'Topic and all its lessons deleted successfully'
@@ -1268,7 +1308,7 @@ router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId', async
 router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons/:lessonId', async (req, res) => {
   try {
     const { pathId, courseId, topicId, lessonId } = req.params;
-    
+
     const lesson = await Lesson.findById(lessonId);
     if (!lesson || lesson.topicId !== topicId || lesson.courseId !== courseId || lesson.pathId !== pathId) {
       return res.status(404).json({
@@ -1276,16 +1316,16 @@ router.delete('/learning-paths/:pathId/courses/:courseId/topics/:topicId/lessons
         error: 'Lesson not found'
       });
     }
-    
+
     // Remove lesson from topic
     const topic = await Topic.findById(topicId);
     if (topic) {
       topic.lessons = topic.lessons.filter(id => id !== lessonId);
       await topic.save();
     }
-    
+
     await Lesson.findByIdAndDelete(lessonId);
-    
+
     res.json({
       success: true,
       message: 'Lesson deleted successfully'

@@ -57,6 +57,7 @@ export default function InstructorDashboard2() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [activeSection, setActiveSection] = useState("course");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   const [instructorName, setInstructorName] = useState('Instructor');
   const [email, setEmail] = useState('');
@@ -73,6 +74,26 @@ export default function InstructorDashboard2() {
   const [curriculumData, setCurriculumData] = useState([]);
   const [curriculumLoading, setCurriculumLoading] = useState(true);
 
+  // Real Notifications State
+  const [notifications, setNotifications] = useState([]);
+
+  // Format time ago helper
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    return `${months}mo ago`;
+  };
+
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
     let isMounted = true;
@@ -81,14 +102,12 @@ export default function InstructorDashboard2() {
       if (!isMounted) return;
 
       if (!firebaseUser) {
-        // Not authenticated - redirect to login
         setLoading(false);
         navigate('/all-login');
         return;
       }
 
       try {
-        // Get MongoDB token using Firebase Auth
         const token = await getMongoDBToken();
         if (!token) {
           console.error('Failed to get MongoDB token');
@@ -99,7 +118,6 @@ export default function InstructorDashboard2() {
 
         setMongoToken(token);
 
-        // Fetch teacher data and check information gathering
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const response = await fetch(`${API_URL}/api/teachers/auth/me`, {
           method: 'GET',
@@ -120,38 +138,17 @@ export default function InstructorDashboard2() {
             const data = await response.json();
             const teacher = data.data || data;
 
-            // Store current user ID
-            if (teacher._id) {
-              setCurrentUserId(teacher._id.toString());
-            }
+            if (teacher._id) setCurrentUserId(teacher._id.toString());
+            if (teacher.fullName) setInstructorName(teacher.fullName.split(' ')[0]);
+            if (teacher.userStatus) setUserStatus(teacher.userStatus);
+            if (teacher.email) setEmail(teacher.email);
+            if (teacher.profilePic) setProfilePic(teacher.profilePic);
 
-            // Update instructor name from API
-            if (teacher.fullName) {
-              const firstName = teacher.fullName.split(' ')[0];
-              setInstructorName(firstName);
-            }
-
-            // Update user status
-            if (teacher.userStatus) {
-              setUserStatus(teacher.userStatus);
-            }
-
-            // Set email and profile picture
-            if (teacher.email) {
-              setEmail(teacher.email);
-            }
-            if (teacher.profilePic) {
-              setProfilePic(teacher.profilePic);
-            }
-
-            // Check if information gathering is complete
+            // Information gathering check
             const isInfoGatheringComplete = teacher.informationGatheringComplete === true;
-
             if (!isInfoGatheringComplete) {
               const areasOfExpertise = teacher.areasOfExpertise || [];
               const cv = teacher.cv || '';
-
-              // Determine which step to redirect to based on what data is missing
               if (areasOfExpertise.length === 0) {
                 setLoading(false);
                 navigate('/InformationGathering-1');
@@ -168,7 +165,6 @@ export default function InstructorDashboard2() {
             }
           }
         }
-
         setLoading(false);
       } catch (error) {
         console.error('Error checking information gathering status:', error);
@@ -182,11 +178,9 @@ export default function InstructorDashboard2() {
     };
   }, [navigate]);
 
-  // Set active section from location state
+  // Set active section
   useEffect(() => {
-    if (location.state?.section === 'resources') {
-      setActiveSection('resources');
-    }
+    if (location.state?.section === 'resources') setActiveSection('resources');
   }, [location]);
 
   // Fetch daily tip
@@ -196,25 +190,20 @@ export default function InstructorDashboard2() {
         setTipLoading(true);
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const response = await fetch(`${API_URL}/api/ai/daily-tip`);
-
         if (response.ok) {
           const data = await response.json();
-          if (data.success && data.data?.tip) {
-            setDailyTip(data.data.tip);
-          }
+          if (data.success && data.data?.tip) setDailyTip(data.data.tip);
         }
       } catch (error) {
         console.error('Error fetching daily tip:', error);
-        // Keep default tip on error
       } finally {
         setTipLoading(false);
       }
     };
-
     fetchDailyTip();
-  }, []); // Fetch once on mount - tip changes daily on server
+  }, []);
 
-  // Fetch learning paths data
+  // Fetch learning paths
   useEffect(() => {
     const fetchPaths = async () => {
       try {
@@ -223,7 +212,6 @@ export default function InstructorDashboard2() {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            // Transform to expected format
             const transformed = result.data.map(path => ({
               GeneralPath: path.id.includes('autism') ? 'autism' : path.id.includes('down') ? 'downSyndrome' : path.id,
               pathTitle: path.name,
@@ -244,9 +232,36 @@ export default function InstructorDashboard2() {
         setCurriculumLoading(false);
       }
     };
-
     fetchPaths();
   }, []);
+
+  // Fetch Notifications
+  const fetchNotifications = async () => {
+    if (!mongoToken) return;
+    try {
+      const response = await fetch(`${API_URL}/api/notifications`, {
+        headers: { 'Authorization': `Bearer ${mongoToken}` }
+      });
+      if (response.ok) {
+        const resData = await response.json();
+        const formatted = (resData.data || []).map(n => ({
+          ...n,
+          id: n._id,
+          text: n.message,
+          time: formatTimeAgo(n.createdAt)
+        }));
+        setNotifications(formatted);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (mongoToken) {
+      fetchNotifications();
+    }
+  }, [mongoToken]);
 
   // Sample data for instructor dashboard
   const sampleMetrics = [
@@ -255,40 +270,45 @@ export default function InstructorDashboard2() {
     { label: "Favorites given", value: "300", change: "+15.01%" },
   ];
 
-  // Notifications - stored in component state only (no storage)
-  const [notifications, setNotifications] = useState([
-    { id: Date.now() - 86400000, type: "likes", text: "You reached 1,032 likes", time: "2 hours ago", read: false, timestamp: Date.now() - 7200000 },
-    { id: Date.now() - 86400000 + 1, type: "approved", text: "You got accepted by the admin", time: "5 hours ago", read: false, timestamp: Date.now() - 18000000 },
-    { id: Date.now() - 86400000 + 2, type: "views", text: "You reached 2,315 views", time: "1 day ago", read: false, timestamp: Date.now() - 86400000 },
-    { id: Date.now() - 86400000 + 3, type: "likes", text: "You reached 1,000 likes milestone", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
-    { id: Date.now() - 86400000 + 4, type: "uploaded", text: "Your content got uploaded successfully", time: "2 days ago", read: false, timestamp: Date.now() - 172800000 },
-    { id: Date.now() - 86400000 + 5, type: "report", text: "You uploaded a new report", time: "3 days ago", read: false, timestamp: Date.now() - 259200000 },
-    { id: Date.now() - 86400000 + 6, type: "feedback", text: "You submitted new feedback", time: "4 days ago", read: false, timestamp: Date.now() - 345600000 },
-  ]);
-
-  // Function to add a new notification
-  const addNotification = (type, text) => {
-    const newNotif = {
-      id: Date.now(),
-      type,
-      text,
-      time: "Just now",
-      read: false,
-      timestamp: Date.now()
-    };
-    setNotifications(prev => [newNotif, ...prev]);
-  };
-
   // Function to mark notification as read
-  const markAsRead = (id) => {
+  const markAsRead = async (id) => {
     setNotifications(prev =>
       prev.map(notif => notif.id === id ? { ...notif, read: true } : notif)
     );
+    try {
+      await fetch(`${API_URL}/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${mongoToken}` }
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
   // Function to delete notification
-  const deleteNotification = (id) => {
+  const deleteNotification = async (id) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
+    try {
+      await fetch(`${API_URL}/api/notifications/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${mongoToken}` }
+      });
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  // Clear all notifications
+  const clearAllNotifications = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    try {
+      await fetch(`${API_URL}/api/notifications/mark-all-read`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${mongoToken}` }
+      });
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
   };
 
   // Count unread notifications
@@ -328,35 +348,22 @@ export default function InstructorDashboard2() {
     navigate("/all-login", { replace: true });
   };
 
-  // Scroll detection for chatbot animation
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setScrollDirection("down");
-      } else if (currentScrollY < lastScrollY) {
-        setScrollDirection("up");
-      }
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
-
-  // Close profile dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileDropdownOpen && !event.target.closest('.ld-profile-container')) {
         setProfileDropdownOpen(false);
       }
+      if (notificationOpen && !event.target.closest('.ld-notification-wrapper')) {
+        setNotificationOpen(false);
+      }
     };
 
-    if (profileDropdownOpen) {
+    if (profileDropdownOpen || notificationOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [profileDropdownOpen]);
+  }, [profileDropdownOpen, notificationOpen]);
 
   // Fetch instructor ranking
   useEffect(() => {
@@ -1431,7 +1438,10 @@ export default function InstructorDashboard2() {
           </div>
           <div className="ld-header-right">
             <div className="ld-notification-wrapper">
-              <button className="ld-notification-btn">
+              <button
+                className="ld-notification-btn"
+                onClick={() => setNotificationOpen(!notificationOpen)}
+              >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
@@ -1440,13 +1450,21 @@ export default function InstructorDashboard2() {
                   <span className="ld-notification-badge">{unreadCount}</span>
                 )}
               </button>
-              <div className="ld-notification-popover">
+              <div
+                className="ld-notification-popover"
+                style={{
+                  opacity: notificationOpen ? 1 : undefined,
+                  visibility: notificationOpen ? 'visible' : undefined,
+                  transform: notificationOpen ? 'translateY(0)' : undefined,
+                  pointerEvents: notificationOpen ? 'auto' : undefined
+                }}
+              >
                 <div className="ld-notification-popover-header">
                   <h4>Notifications {unreadCount > 0 && `(${unreadCount})`}</h4>
                   {notifications.length > 0 && (
                     <button
                       className="ld-notification-clear-btn"
-                      onClick={() => setNotifications([])}
+                      onClick={clearAllNotifications}
                       title="Clear all"
                     >
                       Clear All

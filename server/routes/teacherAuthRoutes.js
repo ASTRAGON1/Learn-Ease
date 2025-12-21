@@ -63,14 +63,14 @@ router.post('/auth/register', async (req, res) => {
 
     // Application will be created when instructor submits information gathering form
 
-    res.status(201).json({ 
-      data: { 
-        id: doc._id, 
-        fullName: doc.fullName, 
+    res.status(201).json({
+      data: {
+        id: doc._id,
+        fullName: doc.fullName,
         email: doc.email,
         firebaseUID: doc.firebaseUID || null,
         userStatus: doc.userStatus
-      } 
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -85,18 +85,21 @@ router.post('/auth/register', async (req, res) => {
 router.post('/auth/login', async (req, res) => {
   try {
     const { email, password, firebaseUID } = req.body;
-    
-    // If the input contains '@', it's definitely an email - search by email
-    // If it doesn't contain '@', it might be a username, but Teacher model only has email
-    // So we'll only search by email
-    const isEmail = email && email.includes('@');
-    
-    if (!isEmail) {
-      // If it's not an email, teacher login should fail (teachers only have email)
-      return res.status(404).json({ error: 'Teacher not found' });
+
+    // Determine valid search criteria
+    const identifier = email ? email.trim() : '';
+    const isEmail = identifier.includes('@');
+
+    let t;
+    if (isEmail) {
+      t = await Teacher.findOne({ email: identifier.toLowerCase() });
+    } else {
+      // Search by fullName if not an email
+      t = await Teacher.findOne({
+        fullName: { $regex: new RegExp(`^${identifier}$`, 'i') }
+      });
     }
-    
-    const t = await Teacher.findOne({ email: email.toLowerCase().trim() });
+
     if (!t) return res.status(404).json({ error: 'Teacher not found' });
 
     // If firebaseUID is provided, verify it matches or update it
@@ -124,20 +127,20 @@ router.post('/auth/login', async (req, res) => {
     await t.save();
 
     const token = jwt.sign({ sub: t._id, role: 'teacher' }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ 
-      data: { 
-        token, 
-        teacher: { 
-          id: t._id, 
-          fullName: t.fullName, 
-          email: t.email, 
+    res.json({
+      data: {
+        token,
+        teacher: {
+          id: t._id,
+          fullName: t.fullName,
+          email: t.email,
           profilePic: t.profilePic,
           areasOfExpertise: t.areasOfExpertise || [],
           cv: t.cv || '',
           informationGatheringComplete: t.informationGatheringComplete || false,
           userStatus: t.userStatus || 'pending'
-        } 
-      } 
+        }
+      }
     });
   } catch {
     res.status(500).json({ error: 'Server error' });
@@ -148,14 +151,14 @@ router.post('/auth/login', async (req, res) => {
 router.get('/auth/me', require('../middleware/auth')(['teacher']), async (req, res) => {
   const me = await Teacher.findById(req.user.sub).select('-password');
   if (!me) return res.status(404).json({ error: 'Not found' });
-  
+
   // Check if teacher has a password set (not Firebase-only)
   const teacherWithPassword = await Teacher.findById(req.user.sub);
   const hasPassword = !!(teacherWithPassword && teacherWithPassword.password);
-  
+
   const response = me.toObject();
   response.hasPassword = hasPassword;
-  
+
   res.json({ data: response });
 });
 
@@ -166,7 +169,7 @@ router.post('/auth/logout', require('../middleware/auth')(['teacher']), async (r
       isOnline: false,
       lastActivity: new Date()
     });
-    
+
     res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.error('Teacher logout error:', error);
@@ -181,7 +184,7 @@ router.post('/auth/activity', require('../middleware/auth')(['teacher']), async 
       lastActivity: new Date(),
       isOnline: true
     });
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Teacher activity update error:', error);

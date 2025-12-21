@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/', auth(['teacher']), async (req, res) => {
   try {
     const teacherId = req.user.sub;
-    
+
     // Check if application already exists
     const existingApplication = await Application.findOne({ teacherId });
     if (existingApplication) {
@@ -32,7 +32,7 @@ router.post('/', auth(['teacher']), async (req, res) => {
       status: 'pending'
     });
 
-    res.status(201).json({ 
+    res.status(201).json({
       data: {
         id: application._id.toString(),
         status: application.status,
@@ -54,13 +54,13 @@ router.get('/', async (req, res) => {
     const applications = await Application.find()
       .populate('teacherId', 'fullName email profilePic cv bio')
       .sort({ createdAt: -1 });
-    
+
     const formattedApplications = applications.map(app => {
       // Get CV and bio from Teacher model if available, otherwise use application data
       const teacher = app.teacherId;
       const cvUrl = teacher?.cv || app.cv || '';
       const description = teacher?.bio || app.description || app.bio || '';
-      
+
       return {
         id: app._id.toString(),
         teacherId: teacher?._id?.toString() || app.teacherId?.toString(),
@@ -87,7 +87,7 @@ router.get('/:id', async (req, res) => {
   try {
     const application = await Application.findById(req.params.id)
       .populate('teacherId', 'fullName email profilePic');
-    
+
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
     }
@@ -103,7 +103,7 @@ router.get('/:id', async (req, res) => {
 router.post('/decide/:id', async (req, res) => {
   try {
     const { decision, reason } = req.body;
-    
+
     if (!decision || !['accept', 'decline'].includes(decision)) {
       return res.status(400).json({ error: 'Invalid decision. Must be "accept" or "decline"' });
     }
@@ -120,7 +120,7 @@ router.post('/decide/:id', async (req, res) => {
     const status = decision === 'accept' ? 'accepted' : 'declined';
     application.status = status;
     application.reviewedAt = new Date();
-    
+
     if (decision === 'decline') {
       application.declinedReason = reason || '';
     }
@@ -132,9 +132,27 @@ router.post('/decide/:id', async (req, res) => {
       await Teacher.findByIdAndUpdate(application.teacherId, {
         userStatus: 'active'
       });
+
+      // Notify teacher
+      const { createNotification } = require('../controllers/notificationController');
+      await createNotification({
+        recipient: application.teacherId,
+        recipientModel: 'Teacher',
+        message: 'Your instructor application has been accepted! You can now start creating courses.',
+        type: 'approved'
+      });
+    } else if (decision === 'decline') {
+      // Notify teacher of rejection
+      const { createNotification } = require('../controllers/notificationController');
+      await createNotification({
+        recipient: application.teacherId,
+        recipientModel: 'Teacher',
+        message: `Your instructor application was declined.${reason ? ` Reason: ${reason}` : ''}`,
+        type: 'system'
+      });
     }
 
-    res.json({ 
+    res.json({
       data: {
         id: application._id.toString(),
         status: application.status,

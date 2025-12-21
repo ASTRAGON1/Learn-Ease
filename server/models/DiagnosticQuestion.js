@@ -1,12 +1,7 @@
 const mongoose = require('mongoose');
 
 const diagnosticQuestionSchema = new mongoose.Schema({
-  questionId: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
+  // questionId removed, using default _id
   section: {
     type: Number,
     required: true,
@@ -26,34 +21,47 @@ const diagnosticQuestionSchema = new mongoose.Schema({
     type: String,
     required: true
   }],
-  // Scoring structure: { autism: { "0": 2, "1": 1 }, downSyndrome: { "0": 1 } }
-  // or empty object {} for section 2 questions
+  // Scoring only for section 1 and 3 (Preferences)
   scoring: {
     type: mongoose.Schema.Types.Mixed,
-    default: {}
+    default: {},
+    validate: {
+      validator: function (v) {
+        // Section 2 (Knowledge) generally shouldn't have scoring, it relies on Accuracy
+        if (this.section === 2 && Object.keys(v || {}).length > 0) {
+          return false;
+        }
+        return true;
+      },
+      message: 'Scoring is not allowed for Section 2'
+    }
   },
+  // Correct answer only for section 2 (Knowledge)
   correctAnswer: {
     type: Number,
-    default: null // null for subjective questions, number for section 2 questions
+    default: null,
+    validate: {
+      validator: function (v) {
+        if (this.section !== 2 && v !== null && v !== undefined) {
+          return false;
+        }
+        return true;
+      },
+      message: 'Correct answer is only allowed for Section 2'
+    }
   },
   isActive: {
     type: Boolean,
     default: true
-  },
-  createdBy: {
-    type: String,
-    default: 'admin'
   }
 }, {
   timestamps: true,
-  minimize: false // Prevents Mongoose from removing empty objects
+  minimize: false
 });
 
-// Compound index for section and order
 diagnosticQuestionSchema.index({ section: 1, order: 1 });
 diagnosticQuestionSchema.index({ isActive: 1 });
 
-// Explicitly set collection name to match MongoDB
 const DiagnosticQuestion = mongoose.model('DiagnosticQuestion', diagnosticQuestionSchema, 'DiagnosticQuestion');
 
 module.exports = DiagnosticQuestion;
