@@ -93,6 +93,11 @@ const trackSchema = new mongoose.Schema({
         lastAccessedAt: {
             type: Date,
             default: Date.now
+        },
+        completedLessonsCount: {
+            type: Number,
+            default: 0,
+            min: 0
         }
     }],
     // For "Resume where you left off" functionality

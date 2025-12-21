@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
+import achievementsData from "../data/achievements.json";
 import "./CoursePlayer.css";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -16,8 +17,6 @@ export default function CoursePlayer() {
 
   // Check if diagnostic quiz is completed
   useDiagnosticQuizCheck();
-
-  // Fetch student data on component mount
   useEffect(() => {
     const fetchStudentData = async () => {
       // First, try to get from sessionStorage (set during login)
@@ -79,6 +78,51 @@ export default function CoursePlayer() {
   const [courseLoading, setCourseLoading] = useState(true);
   const [studentPathType, setStudentPathType] = useState(null);
   const [learningPath, setLearningPath] = useState(null);
+  const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
+
+  // Helper functions for tab content
+  const getCurrentLesson = () => {
+    // Default to first lesson if none expanded or logic is complex
+    // Here we try to find the "active" lesson based on completed count
+    if (lessons.length === 0) return null;
+    const activeIndex = Math.min(completedLessonsCount, lessons.length - 1);
+    return lessons[activeIndex];
+  };
+
+  const getLessonMaterials = (lesson) => {
+    if (!lesson || !lesson.materials) return [];
+    return lesson.materials;
+  };
+
+  const getLessonQuizzes = (lesson) => {
+    if (!lesson || !lesson.quizzes) return [];
+    return lesson.quizzes;
+  };
+
+  const getLessonAchievements = (lesson) => {
+    if (!lesson) return [];
+    // Distribute achievements across lessons
+    const lessonIndex = lessons.findIndex(l => l.id === lesson.id);
+    if (lessonIndex === -1) return [];
+
+    // Use modulo to cycle through achievements if there are more lessons than achievements
+    const achievementIndex = lessonIndex % achievementsData.length;
+    const achievement = achievementsData[achievementIndex];
+
+    // Return formatted achievement (ensure properties match what UI expects)
+    return [{
+      id: achievement._id?.$oid || achievement.id,
+      title: achievement.title,
+      description: achievement.description,
+      icon: achievement.badge === 'platinum' ? 'trophy' : (achievement.badge === 'gold' ? 'star' : 'award'),
+      points: achievement.badge === 'platinum' ? 100 : (achievement.badge === 'gold' ? 50 : 25)
+    }];
+  };
+
+  const currentLesson = getCurrentLesson();
+  const lessonMaterials = getLessonMaterials(currentLesson);
+  const lessonQuizzes = getLessonQuizzes(currentLesson);
+  const lessonAchievementsList = getLessonAchievements(currentLesson);
 
   // Fetch student type from API
   useEffect(() => {
@@ -151,8 +195,8 @@ export default function CoursePlayer() {
     }
 
     try {
-      // Parse course index from id (e.g., "0" for first course, "1" for second, etc.)
-      const courseIndex = parseInt(id);
+      // Parse course index from id (URL uses 1-based indexing, so subtract 1)
+      const courseIndex = parseInt(id) - 1;
 
       if (isNaN(courseIndex) || courseIndex < 0 || courseIndex >= learningPath.courses.length) {
         console.error('Invalid course index:', id);
@@ -172,7 +216,8 @@ export default function CoursePlayer() {
         description: course.description || `Learn ${course.name}`,
         instructor: "LearnEase Team",
         duration: `${course.topics?.length || 0} topics`,
-        level: "Beginner"
+        level: "Beginner",
+        id: course._id || course.id // Ensure we store the ID
       });
 
       // Set topics and lessons
@@ -193,7 +238,9 @@ export default function CoursePlayer() {
             title: typeof lesson === 'string' ? lesson : lesson.name,
             topic: topic.name,
             duration: "15 min",
-            completed: false
+            completed: false,
+            materials: (typeof lesson === 'object' && lesson.materials) ? lesson.materials : [],
+            quizzes: (typeof lesson === 'object' && lesson.quizzes) ? lesson.quizzes : []
           }))
         );
 
@@ -217,6 +264,81 @@ export default function CoursePlayer() {
       setCourseLoading(false);
     }
   }, [learningPath, id]);
+
+  // Fetch progress for this specific course
+  useEffect(() => {
+    const fetchProgress = async () => {
+      // We need course ID. If courseData is set, we can use it.
+      if (!courseData || !courseData.id) return;
+
+      const token = window.sessionStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/students/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data && result.data.courseProgress) {
+            const currentCourseId = courseData.id;
+            const progressEntry = result.data.courseProgress.find(c => c.course === currentCourseId || c.course?._id === currentCourseId);
+
+            if (progressEntry) {
+              setCompletedLessonsCount(progressEntry.completedLessonsCount || 0);
+              // Also expand the next lesson
+              const nextLessonIndex = progressEntry.completedLessonsCount || 0;
+              // We can find the lesson ID for this index
+              // lessons array is flattened
+              // But here we might not have updated 'lessons' state yet if this effect runs too early?
+              // It depends on courseData being set.
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching course progress:', error);
+      }
+    };
+
+    fetchProgress();
+  }, [courseData]);
+
+  const handleCompleteLesson = async (lessonGlobalIndex) => {
+    const token = window.sessionStorage.getItem('token');
+    if (!token || !courseData?.id) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/students/complete-lesson`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          courseId: courseData.id,
+          lessonIndex: lessonGlobalIndex,
+          totalLessons: lessons.length
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setCompletedLessonsCount(result.completedLessonsCount);
+          // Auto expand next lesson?
+          const nextIndex = result.completedLessonsCount;
+          if (nextIndex < lessons.length) {
+            setExpandedLessons(new Set([lessons[nextIndex].id]));
+          }
+        } else {
+          alert(result.message || 'Could not complete lesson');
+        }
+      }
+    } catch (error) {
+      console.error('Error completing lesson:', error);
+    }
+  };
 
   const passedQuizzes = quizzes.filter(q => q.status === "passed");
   const upcomingQuizzes = quizzes.filter(q => q.status === "upcoming");
@@ -393,273 +515,109 @@ export default function CoursePlayer() {
                       </div>
                     )}
                     {activeTab === "materials" && (
-                      <div>
-                        <p>Course materials will be available here.</p>
+                      <div className="cp-materials-content">
+                        {currentLesson ? (
+                          <div className="cp-materials-list">
+                            <h3 style={{ marginBottom: '16px' }}>Materials for: {currentLesson.title}</h3>
+                            {lessonMaterials.map((material) => (
+                              <div key={material.id} className="cp-material-item">
+                                <div className="cp-material-icon">
+                                  {material.type === 'PDF' ? '📄' : '📝'}
+                                </div>
+                                <div className="cp-material-info">
+                                  <div className="cp-material-title">{material.title}</div>
+                                  <div className="cp-material-meta">{material.type} • {material.size}</div>
+                                </div>
+                                <button className="cp-material-download">
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p>Please select a lesson to view materials.</p>
+                        )}
                       </div>
                     )}
                     {activeTab === "achievements" && (
                       <div className="cp-achievements-content">
                         <div className="cp-achievements-header">
                           <div>
-                            <h3 className="cp-achievements-title">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                                <path d="M4 22h16"></path>
-                                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                              </svg>
-                              Course Achievements
-                            </h3>
-                            <p className="cp-achievements-subtitle">Earn achievements by completing this course</p>
+                            <h3 className="cp-achievements-title">Lesson Achievements</h3>
+                            <p className="cp-achievements-subtitle">Earn these by completing {currentLesson?.title}</p>
                           </div>
-                          <Link to="/achievements" className="cp-view-all-achievements">
-                            View All
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M5 12h14M12 5l7 7-7 7"></path>
-                            </svg>
-                          </Link>
                         </div>
 
-                        {courseAchievements.length > 0 ? (
-                          <div className="cp-achievements-list">
-                            {courseAchievements.map((achievement) => (
-                              <div
-                                key={achievement.id}
-                                className={`cp-achievement-card ${achievement.unlocked ? "unlocked" : ""}`}
-                              >
-                                <div className="cp-achievement-icon-wrapper">
-                                  {achievement.icon === "trophy" && (
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                                      <path d="M4 22h16"></path>
-                                      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
-                                      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
-                                      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-                                    </svg>
-                                  )}
-                                  {achievement.icon === "award" && (
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <circle cx="12" cy="8" r="6"></circle>
-                                      <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"></path>
-                                    </svg>
-                                  )}
-                                  {achievement.icon === "star" && (
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                    </svg>
-                                  )}
-                                  {achievement.unlocked && (
-                                    <div className="cp-achievement-check">
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                      </svg>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="cp-achievement-content">
-                                  <div className="cp-achievement-header-row">
-                                    <h4 className="cp-achievement-name">{achievement.title}</h4>
-                                    {achievement.unlocked && (
-                                      <span className={`cp-achievement-badge ${achievement.badge}`}>
-                                        {achievement.badge === "platinum" ? "Platinum" : achievement.badge === "gold" ? "Gold" : "Silver"}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="cp-achievement-desc">{achievement.description}</p>
-                                  {!achievement.unlocked && (
-                                    <div className="cp-achievement-progress">
-                                      <div className="cp-achievement-progress-bar">
-                                        <div
-                                          className="cp-achievement-progress-fill"
-                                          style={{ width: `${achievement.progress}%` }}
-                                        ></div>
-                                      </div>
-                                      <span className="cp-achievement-progress-text">{achievement.progress}%</span>
-                                    </div>
-                                  )}
-                                  {achievement.unlocked && (
-                                    <div className="cp-achievement-unlocked">
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                      </svg>
-                                      <span>Unlocked!</span>
-                                    </div>
-                                  )}
+                        <div className="cp-achievements-list">
+                          {lessonAchievementsList.map((achievement) => (
+                            <div key={achievement.id} className="cp-achievement-card">
+                              <div className="cp-achievement-icon-wrapper">
+                                {achievement.icon === "trophy" && "🏆"}
+                                {achievement.icon === "award" && "🎖️"}
+                                {achievement.icon === "star" && "⭐"}
+                              </div>
+                              <div className="cp-achievement-content">
+                                <h4 className="cp-achievement-name">{achievement.title}</h4>
+                                <p className="cp-achievement-desc">{achievement.description}</p>
+                                <div className="cp-achievement-badge" style={{ marginTop: '8px', display: 'inline-block' }}>
+                                  +{achievement.points} Points
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p>No achievements available for this course yet.</p>
-                        )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                     {activeTab === "quiz" && (
                       <div className="cp-quiz-content">
-                        {/* Passed Quizzes Section */}
-                        {passedQuizzes.length > 0 && (
-                          <div className="cp-quiz-section">
-                            <div
-                              className="cp-quiz-section-header clickable"
-                              onClick={() => setPassedQuizzesExpanded(!passedQuizzesExpanded)}
-                            >
-                              <h3 className="cp-quiz-section-title">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                Passed Quizzes ({passedQuizzes.length})
-                              </h3>
-                              <svg
-                                className={`cp-quiz-dropdown-icon ${passedQuizzesExpanded ? "expanded" : ""}`}
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path d="M6 9l6 6 6-6"></path>
-                              </svg>
-                            </div>
-                            {passedQuizzesExpanded && (
-                              <div className="cp-quiz-list">
-                                {passedQuizzes.map((quiz) => (
-                                  <div key={quiz.id} className="cp-quiz-card passed">
-                                    <div className="cp-quiz-card-header">
-                                      <div className="cp-quiz-card-info">
-                                        <h4 className="cp-quiz-card-title">{quiz.title}</h4>
-                                        <p className="cp-quiz-card-meta">{quiz.lesson} • {quiz.date}</p>
-                                      </div>
-                                      <div className="cp-quiz-score">
-                                        <span className="cp-quiz-score-value">{quiz.score}%</span>
-                                        <span className="cp-quiz-score-label">Score</span>
-                                      </div>
-                                    </div>
-                                    <div className="cp-quiz-card-details">
-                                      <div className="cp-quiz-detail-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                          <circle cx="12" cy="12" r="10"></circle>
-                                          <polyline points="12 6 12 12 16 14"></polyline>
-                                        </svg>
-                                        <span>{quiz.duration}</span>
-                                      </div>
-                                      <div className="cp-quiz-detail-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                          <path d="M9 11l3 3L22 4"></path>
-                                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                                        </svg>
-                                        <span>{quiz.correctAnswers}/{quiz.totalQuestions} correct</span>
-                                      </div>
-                                    </div>
-                                    <div className="cp-quiz-progress-bar">
-                                      <div
-                                        className="cp-quiz-progress-fill"
-                                        style={{ width: `${quiz.score}%` }}
-                                      ></div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Upcoming Quizzes Section */}
-                        {upcomingQuizzes.length > 0 && (
-                          <div className="cp-quiz-section">
-                            <div className="cp-quiz-section-header">
-                              <h3 className="cp-quiz-section-title">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <circle cx="12" cy="12" r="10"></circle>
-                                  <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                Upcoming Quizzes ({upcomingQuizzes.length})
-                              </h3>
-                            </div>
-                            <div className="cp-quiz-list">
-                              {upcomingQuizzes.map((quiz) => (
-                                <div key={quiz.id} className="cp-quiz-card upcoming">
-                                  <div className="cp-quiz-card-header">
-                                    <div className="cp-quiz-card-info">
-                                      <h4 className="cp-quiz-card-title">{quiz.title}</h4>
-                                      <p className="cp-quiz-card-meta">{quiz.lesson} • {quiz.date}</p>
-                                    </div>
-                                    <div className="cp-quiz-badge upcoming">
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                      </svg>
-                                      Upcoming
-                                    </div>
-                                  </div>
-                                  <div className="cp-quiz-card-details">
-                                    <div className="cp-quiz-detail-item">
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                      </svg>
-                                      <span>{quiz.duration}</span>
-                                    </div>
-                                    <div className="cp-quiz-detail-item">
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M9 11l3 3L22 4"></path>
-                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                                      </svg>
-                                      <span>{quiz.totalQuestions} questions</span>
-                                    </div>
-                                  </div>
-                                  <button
-                                    className="cp-quiz-start-btn"
-                                    onClick={() => navigate(`/quiz`)}
-                                  >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                    </svg>
-                                    Start Quiz
-                                  </button>
+                        {currentLesson ? (
+                          <div className="cp-quiz-list">
+                            <h3 style={{ marginBottom: '16px' }}>Quizzes for: {currentLesson.title}</h3>
+                            {lessonQuizzes.map((quiz) => (
+                              <div key={quiz.id} className="cp-quiz-card">
+                                <div className="cp-quiz-header">
+                                  <span className={`cp-quiz-difficulty ${quiz.difficulty.toLowerCase()}`}>
+                                    {quiz.difficulty}
+                                  </span>
+                                  <span className="cp-quiz-time">{quiz.time}</span>
                                 </div>
-                              ))}
-                            </div>
+                                <h4 className="cp-quiz-title">{quiz.title}</h4>
+                                <p className="cp-quiz-questions">{quiz.questions} Questions</p>
+                                <button className="cp-quiz-start-btn">Start Quiz</button>
+                              </div>
+                            ))}
                           </div>
-                        )}
-
-                        {/* Empty State */}
-                        {passedQuizzes.length === 0 && upcomingQuizzes.length === 0 && (
-                          <div className="cp-quiz-empty">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M9 11l3 3L22 4"></path>
-                              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                            </svg>
-                            <h3 className="cp-quiz-empty-title">No quizzes available</h3>
-                            <p className="cp-quiz-empty-text">Quizzes for this course will appear here once they are assigned.</p>
-                          </div>
+                        ) : (
+                          <p>Please select a lesson to view quizzes.</p>
                         )}
                       </div>
                     )}
                   </div>
-
                 </div>
-
-                {/* Right: Lesson List */}
                 <aside className="cp-lessons-sidebar">
                   {lessons.length > 0 ? (
                     <div className="cp-lessons-list">
-                      {lessons.map((lesson) => {
+                      {lessons.map((lesson, index) => {
                         const isExpanded = expandedLessons.has(lesson.id);
+                        const isCompleted = index < completedLessonsCount;
+                        const isLocked = index > completedLessonsCount;
+                        const isActive = index === completedLessonsCount; // The current lesson user should be on
+
                         return (
-                          <div key={lesson.id} className={`cp-lesson-item ${isExpanded ? "expanded" : ""}`}>
+                          <div key={lesson.id} className={`cp-lesson-item ${isExpanded ? "expanded" : ""} ${isLocked ? "locked" : ""} ${isCompleted ? "completed" : ""} ${isActive ? "active" : ""}`}>
                             <div
                               className="cp-lesson-header"
-                              onClick={() => toggleLesson(lesson.id)}
+                              onClick={() => !isLocked && toggleLesson(lesson.id)}
                             >
                               <div className="cp-lesson-info">
-                                <div className="cp-lesson-title">{lesson.title}</div>
+                                <div className="cp-lesson-title">
+                                  {isLocked && <span className="cp-locked-icon">🔒</span>}
+                                  {lesson.title}
+                                </div>
                                 {lesson.topic && (
                                   <div className="cp-lesson-topic">Topic: {lesson.topic}</div>
                                 )}
@@ -679,10 +637,36 @@ export default function CoursePlayer() {
                                 </svg>
                               </button>
                             </div>
+
+                            {/* Unlock/Complete Button Area (Only visible if expanded and not locked) */}
+                            {isExpanded && !isLocked && !isCompleted && (
+                              <div style={{ padding: '0 16px 16px' }}>
+                                <button
+                                  className="cp-complete-btn"
+                                  onClick={() => handleCompleteLesson(index)}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                  </svg>
+                                  Mark as Completed
+                                </button>
+                              </div>
+                            )}
+
+                            {isExpanded && isCompleted && (
+                              <div style={{ padding: '0 16px 16px', color: '#16a34a', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M20 6L9 17l-5-5"></path>
+                                </svg>
+                                Completed
+                              </div>
+                            )}
+
                             {isExpanded && lesson.subLessons && (
                               <div className="cp-sublessons">
-                                {lesson.subLessons.map((subLesson, index) => (
-                                  <div key={index} className="cp-sublesson-item">
+                                {lesson.subLessons.map((subLesson, subIndex) => (
+                                  <div key={subIndex} className="cp-sublesson-item">
                                     <span className="cp-sublesson-title">{subLesson.title}</span>
                                     <span className="cp-sublesson-duration">{subLesson.duration}</span>
                                   </div>
@@ -699,11 +683,12 @@ export default function CoursePlayer() {
                     </div>
                   )}
                 </aside>
-              </div>
+              </div >
             </>
-          )}
-        </div>
-      </div>
-    </div>
+          )
+          }
+        </div >
+      </div >
+    </div >
   );
 }

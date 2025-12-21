@@ -11,7 +11,7 @@ import icPersonalizedPath from "../assets/Path.svg";
 // Course topic images mapping - using emojis as placeholders for beautiful visual representation
 const getCourseImage = (courseTitle) => {
   const title = courseTitle.toLowerCase();
-  
+
   if (title.includes('listening')) {
     return { emoji: '👂', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#667eea' };
   } else if (title.includes('emotional') || title.includes('emotion')) {
@@ -99,7 +99,7 @@ function CourseCard({ course, index, isActive, isLocked, navigate }) {
       <div className="courses-card-body">
         <div className="courses-card-number">Course {index + 1}</div>
         <h3 className="courses-card-title">{course.CoursesTitle}</h3>
-        
+
         <div className="courses-card-stats">
           <div className="courses-stat">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -124,11 +124,11 @@ function CourseCard({ course, index, isActive, isLocked, navigate }) {
               <span className="courses-progress-percent">{progress}%</span>
             </div>
             <div className="courses-progress-bar">
-              <div 
-                className="courses-progress-fill" 
-                style={{ 
+              <div
+                className="courses-progress-fill"
+                style={{
                   width: `${progress}%`,
-                  background: courseImage.gradient 
+                  background: courseImage.gradient
                 }}
               />
             </div>
@@ -145,9 +145,9 @@ function CourseCard({ course, index, isActive, isLocked, navigate }) {
               Locked
             </button>
           ) : isActive ? (
-            <button 
+            <button
               className="courses-btn courses-btn-primary"
-              onClick={() => navigate(`/course/${index}`)}
+              onClick={() => navigate(`/course/${index + 1}`)}
               style={{ background: courseImage.gradient }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -157,9 +157,9 @@ function CourseCard({ course, index, isActive, isLocked, navigate }) {
               Continue
             </button>
           ) : (
-            <button 
+            <button
               className="courses-btn courses-btn-secondary"
-              onClick={() => navigate(`/course/${index}`)}
+              onClick={() => navigate(`/course/${index + 1}`)}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -238,7 +238,7 @@ export default function Courses() {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
         const response = await fetch(`${API_URL}/api/admin/learning-paths`);
@@ -250,12 +250,12 @@ export default function Courses() {
               if (!p.id) return false;
               const pathId = p.id.toLowerCase();
               const pathName = p.name.toLowerCase();
-              return pathId.includes(normalizedType) || 
-                     pathName.includes(normalizedType) ||
-                     (normalizedType === 'autism' && (pathId.includes('autism') || pathName.includes('autism'))) ||
-                     (normalizedType === 'downsyndrome' && (pathId.includes('downsyndrome') || pathName.includes('down syndrome')));
+              return pathId.includes(normalizedType) ||
+                pathName.includes(normalizedType) ||
+                (normalizedType === 'autism' && (pathId.includes('autism') || pathName.includes('autism'))) ||
+                (normalizedType === 'downsyndrome' && (pathId.includes('downsyndrome') || pathName.includes('down syndrome')));
             });
-            
+
             if (path) {
               setStudentPath({
                 GeneralPath: normalizedType,
@@ -294,7 +294,7 @@ export default function Courses() {
   // Filter courses by search term
   const filteredCourses = useMemo(() => {
     if (!searchTerm.trim()) return courses;
-    return courses.filter(course => 
+    return courses.filter(course =>
       course.CoursesTitle.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [courses, searchTerm]);
@@ -306,7 +306,7 @@ export default function Courses() {
     const completed = 0;
     const inProgress = 0;
     const locked = total - completed - inProgress;
-    
+
     return { total, completed, inProgress, locked };
   }, [courses]);
 
@@ -323,9 +323,9 @@ export default function Courses() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "dashboard", 
-      label: "Dashboard", 
+    {
+      key: "dashboard",
+      label: "Dashboard",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="7" height="7"></rect>
@@ -333,18 +333,18 @@ export default function Courses() {
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-      ), 
-      to: "/student-dashboard-2" 
+      ),
+      to: "/student-dashboard-2"
     },
-    { 
-      key: "personalized", 
-      label: "Personalized Path", 
-      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/personalized" 
+    {
+      key: "personalized",
+      label: "Personalized Path",
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/personalized"
     },
-    { 
-      key: "achievements", 
-      label: "Achievements", 
+    {
+      key: "achievements",
+      label: "Achievements",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
@@ -354,14 +354,14 @@ export default function Courses() {
           <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
         </svg>
-      ), 
-      to: "/achievements" 
+      ),
+      to: "/achievements"
     },
-    { 
-      key: "courses", 
-      label: "Courses", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/courses" 
+    {
+      key: "courses",
+      label: "Courses",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/courses"
     },
   ];
 
@@ -395,7 +395,7 @@ export default function Courses() {
   return (
     <div className="courses-page">
       {/* Left Sidebar */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -421,7 +421,7 @@ export default function Courses() {
           </ul>
 
           <div className="ld-sidebar-footer">
-            <button 
+            <button
               className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
               onClick={handleLogout}
             >
@@ -542,9 +542,9 @@ export default function Courses() {
           {filteredCourses.length > 0 ? (
             <div className="courses-grid">
               {filteredCourses.map((course, index) => (
-                <CourseCard 
-                  key={index} 
-                  course={course} 
+                <CourseCard
+                  key={index}
+                  course={course}
                   index={index}
                   isActive={index === 0}
                   isLocked={index > 0}

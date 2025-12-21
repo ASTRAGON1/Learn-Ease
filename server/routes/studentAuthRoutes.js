@@ -541,5 +541,97 @@ router.put('/change-password', require('../middleware/auth')(['student']), async
   }
 });
 
+// POST /api/students/complete-lesson - Mark a lesson as completed
+router.post('/complete-lesson', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const { courseId, lessonIndex } = req.body;
+    const studentId = req.user.sub;
+
+    if (!courseId || lessonIndex === undefined) {
+      return res.status(400).json({ error: 'Missing courseId or lessonIndex' });
+    }
+
+    // Find Track record
+    let track = await Track.findOne({ student: studentId });
+    if (!track) {
+      // Should exist if progress was fetched, but if not create one
+      track = new Track({ student: studentId, courses: [] });
+    }
+
+    // Find course progress
+    // Note: We need to match course by ID.
+    // If courseId passed is an index (from URL), we need to resolve it, but frontend should pass actual ID if available.
+    // However, CoursePlayer might pass the Course Object ID if we update it to do so.
+    // Let's assume frontend passes correct mongoose ObjectId for courseId OR we handle string if it's not.
+
+    // For now, let's assume courseId is the Mongodb ID.
+    let courseProgressIndex = track.courses.findIndex(c => c.course.toString() === courseId);
+
+    if (courseProgressIndex === -1) {
+      // Create new course entry
+      track.courses.push({
+        course: courseId,
+        status: 'in_progress',
+        completedLessonsCount: 0,
+        progressPercent: 0,
+        startedAt: new Date()
+      });
+      courseProgressIndex = track.courses.length - 1;
+    }
+
+    const courseProgress = track.courses[courseProgressIndex];
+
+    // Check if we are completing the NEXT lesson (sequential enforcement)
+    // or if we are just re-completing.
+
+    // If lessonIndex matches completedLessonsCount, it means we are completing the next unlocked lesson.
+    // E.g. completed = 0. We complete lesson index 0. New completed = 1.
+    if (lessonIndex === courseProgress.completedLessonsCount) {
+      courseProgress.completedLessonsCount += 1;
+
+      // Update progress percent
+      // We need total lessons count. If we don't have it, valid defaults?
+      // Let's rely on frontend passing it or totalLessons in DB.
+      if (req.body.totalLessons) {
+        courseProgress.totalLessons = req.body.totalLessons;
+      }
+
+      if (courseProgress.totalLessons > 0) {
+        courseProgress.progressPercent = Math.round((courseProgress.completedLessonsCount / courseProgress.totalLessons) * 100);
+      }
+
+      // Check if course completed
+      if (courseProgress.completedLessonsCount >= courseProgress.totalLessons && courseProgress.totalLessons > 0) {
+        courseProgress.status = 'completed';
+        courseProgress.completedAt = new Date();
+        // Could increment global stats here too
+        track.coursesCompleted += 1;
+        track.coursesInProgress = Math.max(0, track.coursesInProgress - 1);
+      }
+
+      courseProgress.lastAccessedAt = new Date();
+
+      await track.save();
+
+      return res.json({
+        success: true,
+        completedLessonsCount: courseProgress.completedLessonsCount,
+        progressPercent: courseProgress.progressPercent,
+        isCourseCompleted: courseProgress.status === 'completed'
+      });
+    } else if (lessonIndex < courseProgress.completedLessonsCount) {
+      // Already completed
+      return res.json({ success: true, message: 'Lesson already completed' });
+    } else {
+      // Trying to skip ahead
+      return res.status(403).json({ error: 'Cannot skip lessons. Please complete previous lessons first.' });
+    }
+
+  } catch (error) {
+    console.error('Complete lesson error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
 

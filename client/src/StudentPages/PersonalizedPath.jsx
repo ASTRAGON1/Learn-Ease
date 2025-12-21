@@ -74,8 +74,8 @@ function TimelineNode({ course, index, total, onClick }) {
         <div className="pp-timeline-node-title">{course.title}</div>
         <div className="pp-timeline-node-progress">
           <div className="pp-timeline-progress-bar">
-            <div 
-              className="pp-timeline-progress-fill" 
+            <div
+              className="pp-timeline-progress-fill"
               style={{ width: `${course.progress}%` }}
             />
           </div>
@@ -125,12 +125,12 @@ function CourseCard({ course, isExpanded, onToggle, onContinue, navigate }) {
       {isExpanded && (
         <div className="pp-course-card-body">
           <div className="pp-course-card-progress-bar">
-            <div 
-              className="pp-course-card-progress-fill" 
+            <div
+              className="pp-course-card-progress-fill"
               style={{ width: `${progress}%` }}
             />
           </div>
-          
+
           {course.topics && course.topics.length > 0 && (
             <div className="pp-course-topics">
               {course.topics.map((topic, idx) => {
@@ -144,7 +144,7 @@ function CourseCard({ course, isExpanded, onToggle, onContinue, navigate }) {
                       <span className="pp-topic-progress">{topicCompleted}/{topicLessons}</span>
                     </div>
                     <div className="pp-topic-progress-bar">
-                      <div 
+                      <div
                         className="pp-topic-progress-fill"
                         style={{ width: `${(topicCompleted / topicLessons) * 100}%` }}
                       />
@@ -157,7 +157,7 @@ function CourseCard({ course, isExpanded, onToggle, onContinue, navigate }) {
 
           <div className="pp-course-card-actions">
             {course.status === "active" && (
-              <button 
+              <button
                 className="pp-course-btn pp-course-btn-primary"
                 onClick={() => onContinue(course)}
               >
@@ -224,7 +224,7 @@ function PersonalizedPath() {
       streak: 0,
     }
   });
-  
+
   // Check if diagnostic quiz is completed
   useDiagnosticQuizCheck();
 
@@ -259,7 +259,7 @@ function PersonalizedPath() {
           const progressResult = await progressResponse.json();
           if (progressResult.success && progressResult.data) {
             setProgressData(progressResult.data);
-            
+
             // Update student progress state
             setStudentProgress(prev => ({
               ...prev,
@@ -277,13 +277,13 @@ function PersonalizedPath() {
               currentCourseIndex: progressResult.data.courseProgress
                 .findIndex(cp => cp.status === 'in_progress') || 0,
               stats: {
-                courses: { 
-                  completed: progressResult.data.coursesCompleted, 
-                  total: progressResult.data.totalCourses 
+                courses: {
+                  completed: progressResult.data.coursesCompleted,
+                  total: progressResult.data.totalCourses
                 },
-                quizzes: { 
-                  completed: progressResult.data.quizzesCompleted, 
-                  total: progressResult.data.totalQuizzes 
+                quizzes: {
+                  completed: progressResult.data.quizzesCompleted,
+                  total: progressResult.data.totalQuizzes
                 },
                 hours: progressResult.data.hoursStudied,
                 streak: progressResult.data.currentStreak,
@@ -340,7 +340,7 @@ function PersonalizedPath() {
   useEffect(() => {
     const fetchPath = async () => {
       if (!studentPathType) return;
-      
+
       setLoading(true);
       try {
         const response = await fetch(`${API_URL}/api/admin/learning-paths`);
@@ -377,16 +377,16 @@ function PersonalizedPath() {
   // Transform courses with progress data
   const courses = useMemo(() => {
     if (!studentPath) return [];
-    
+
     return studentPath.Courses.map((course, index) => {
       const totalLessons = course.Topics.reduce(
         (sum, topic) => sum + topic.lessons.length,
         0
       );
-      
+
       let status = "locked";
       let progress = 0;
-      
+
       if (studentProgress.completedCourses.includes(index)) {
         status = "completed";
         progress = 100;
@@ -398,11 +398,11 @@ function PersonalizedPath() {
         status = "completed";
         progress = 100;
       }
-      
+
       const courseProg = studentProgress.courseProgress[index] || { completedLessons: 0, totalLessons };
-      
+
       return {
-        id: index,
+        id: index + 1,
         title: course.CoursesTitle,
         courseNumber: index + 1,
         totalCourses: studentPath.Courses.length,
@@ -454,9 +454,9 @@ function PersonalizedPath() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "dashboard", 
-      label: "Dashboard", 
+    {
+      key: "dashboard",
+      label: "Dashboard",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="7" height="7"></rect>
@@ -464,18 +464,18 @@ function PersonalizedPath() {
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-      ), 
-      to: "/student-dashboard-2" 
+      ),
+      to: "/student-dashboard-2"
     },
-    { 
-      key: "personalized", 
-      label: "Personalized Path", 
-      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/personalized" 
+    {
+      key: "personalized",
+      label: "Personalized Path",
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/personalized"
     },
-    { 
-      key: "achievements", 
-      label: "Achievements", 
+    {
+      key: "achievements",
+      label: "Achievements",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
@@ -485,14 +485,14 @@ function PersonalizedPath() {
           <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
         </svg>
-      ), 
-      to: "/achievements" 
+      ),
+      to: "/achievements"
     },
-    { 
-      key: "courses", 
-      label: "Courses", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/courses" 
+    {
+      key: "courses",
+      label: "Courses",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/courses"
     },
   ];
 
@@ -512,27 +512,27 @@ function PersonalizedPath() {
   };
 
   const stats = [
-    { 
-      icon: "📚", 
-      label: "Courses", 
+    {
+      icon: "📚",
+      label: "Courses",
       value: `${studentProgress.stats.courses.completed}/${studentProgress.stats.courses.total}`,
       trend: null
     },
-    { 
-      icon: "🧪", 
-      label: "Quizzes", 
+    {
+      icon: "🧪",
+      label: "Quizzes",
       value: `${studentProgress.stats.quizzes.completed}/${studentProgress.stats.quizzes.total}`,
       trend: null
     },
-    { 
-      icon: "⏱", 
-      label: "Hours Studied", 
+    {
+      icon: "⏱",
+      label: "Hours Studied",
       value: `${studentProgress.stats.hours}h`,
       trend: null
     },
-    { 
-      icon: "🔥", 
-      label: "Day Streak", 
+    {
+      icon: "🔥",
+      label: "Day Streak",
       value: `${studentProgress.stats.streak} days`,
       trend: null
     },
@@ -541,7 +541,7 @@ function PersonalizedPath() {
   return (
     <div className="pp-layout">
       {/* Left Sidebar with Hover Animation */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -572,7 +572,7 @@ function PersonalizedPath() {
 
           {/* Logout Button */}
           <div className="ld-sidebar-footer">
-            <button 
+            <button
               className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
               onClick={handleLogout}
             >
@@ -631,93 +631,93 @@ function PersonalizedPath() {
                 </div>
               </section>
 
-            {/* Statistics Dashboard */}
-            <section className="pp-stats-section-new">
-              <h3 className="pp-section-title-new">Your Learning Stats</h3>
-              <div className="pp-stats-grid-new">
-                {stats.map((stat, idx) => (
-                  <StatCard key={idx} {...stat} />
-                ))}
-              </div>
-            </section>
-
-            {/* Learning Path Timeline */}
-            <section className="pp-timeline-section">
-              <div className="pp-section-header">
-                <h3 className="pp-section-title">Learning Path</h3>
-                <span className="pp-section-subtitle">Your personalized journey</span>
-              </div>
-              <div className="pp-timeline-container">
-                {courses.map((course, index) => (
-                  <TimelineNode
-                    key={course.id}
-                    course={course}
-                    index={index}
-                    total={courses.length}
-                    onClick={() => handleCourseToggle(course.id)}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* Course Cards */}
-            <section className="pp-courses-section">
-              <div className="pp-section-header">
-                <h3 className="pp-section-title">My Courses</h3>
-                <Link to="/courses" className="pp-btn-primary">
-                  Browse All Courses
-                </Link>
-              </div>
-              <div className="pp-courses-list">
-                {courses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    isExpanded={expandedCourse === course.id}
-                    onToggle={() => handleCourseToggle(course.id)}
-                    onContinue={handleContinue}
-                    navigate={navigate}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* Next Steps Section */}
-            {activeCourse && (
-              <section className="pp-next-steps">
-                <div className="pp-next-steps-card">
-                  <div className="pp-next-steps-header">
-                    <div className="pp-next-steps-icon">🚀</div>
-                    <div>
-                      <h3 className="pp-next-steps-title">Continue Your Journey</h3>
-                      <p className="pp-next-steps-subtitle">You're making great progress!</p>
-                    </div>
-                  </div>
-                  <div className="pp-next-steps-content">
-                    <div className="pp-next-course-info">
-                      <h4>{activeCourse.title}</h4>
-                      <p>Next: Continue from where you left off</p>
-                      <div className="pp-next-course-progress">
-                        <div className="pp-next-course-progress-bar">
-                          <div 
-                            className="pp-next-course-progress-fill"
-                            style={{ width: `${activeCourse.progress}%` }}
-                          />
-                        </div>
-                        <span>{activeCourse.progress}% Complete</span>
-                      </div>
-                    </div>
-                    <button 
-                      className="pp-next-steps-btn"
-                      onClick={() => handleContinue(activeCourse)}
-                    >
-                      Continue Learning →
-                    </button>
-                  </div>
+              {/* Statistics Dashboard */}
+              <section className="pp-stats-section-new">
+                <h3 className="pp-section-title-new">Your Learning Stats</h3>
+                <div className="pp-stats-grid-new">
+                  {stats.map((stat, idx) => (
+                    <StatCard key={idx} {...stat} />
+                  ))}
                 </div>
               </section>
-            )}
-          </main>
+
+              {/* Learning Path Timeline */}
+              <section className="pp-timeline-section">
+                <div className="pp-section-header">
+                  <h3 className="pp-section-title">Learning Path</h3>
+                  <span className="pp-section-subtitle">Your personalized journey</span>
+                </div>
+                <div className="pp-timeline-container">
+                  {courses.map((course, index) => (
+                    <TimelineNode
+                      key={course.id}
+                      course={course}
+                      index={index}
+                      total={courses.length}
+                      onClick={() => handleCourseToggle(course.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* Course Cards */}
+              <section className="pp-courses-section">
+                <div className="pp-section-header">
+                  <h3 className="pp-section-title">My Courses</h3>
+                  <Link to="/courses" className="pp-btn-primary">
+                    Browse All Courses
+                  </Link>
+                </div>
+                <div className="pp-courses-list">
+                  {courses.map((course) => (
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      isExpanded={expandedCourse === course.id}
+                      onToggle={() => handleCourseToggle(course.id)}
+                      onContinue={handleContinue}
+                      navigate={navigate}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* Next Steps Section */}
+              {activeCourse && (
+                <section className="pp-next-steps">
+                  <div className="pp-next-steps-card">
+                    <div className="pp-next-steps-header">
+                      <div className="pp-next-steps-icon">🚀</div>
+                      <div>
+                        <h3 className="pp-next-steps-title">Continue Your Journey</h3>
+                        <p className="pp-next-steps-subtitle">You're making great progress!</p>
+                      </div>
+                    </div>
+                    <div className="pp-next-steps-content">
+                      <div className="pp-next-course-info">
+                        <h4>{activeCourse.title}</h4>
+                        <p>Next: Continue from where you left off</p>
+                        <div className="pp-next-course-progress">
+                          <div className="pp-next-course-progress-bar">
+                            <div
+                              className="pp-next-course-progress-fill"
+                              style={{ width: `${activeCourse.progress}%` }}
+                            />
+                          </div>
+                          <span>{activeCourse.progress}% Complete</span>
+                        </div>
+                      </div>
+                      <button
+                        className="pp-next-steps-btn"
+                        onClick={() => handleContinue(activeCourse)}
+                      >
+                        Continue Learning →
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </main>
           )}
 
           {/* Right Sidebar */}

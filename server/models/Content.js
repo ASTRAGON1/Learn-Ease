@@ -109,10 +109,7 @@ const contentSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  likedBy: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student'
-  }]
+
 }, {
   timestamps: true,
   collection: 'Content'
