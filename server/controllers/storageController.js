@@ -186,3 +186,34 @@ exports.createContent = async (req, res) => {
     return res.status(500).json({ error: 'Server error', message: e.message });
   }
 };
+
+exports.getPublishedContent = async (req, res) => {
+  try {
+    const { courseId, lessonId, contentType } = req.query;
+    const query = { status: 'published' };
+
+    if (courseId) query.course = courseId;
+    if (lessonId) query.lesson = lessonId;
+    if (contentType) query.contentType = contentType;
+
+    const content = await Content.find(query)
+      .select('title contentType fileURL lesson topic course status description')
+      .sort({ createdAt: -1 });
+
+    const transformed = content.map(c => ({
+      _id: c._id,
+      title: c.title,
+      contentType: c.contentType,
+      fileURL: c.fileURL,
+      description: c.description,
+      lesson: c.lesson,
+      topic: c.topic,
+      course: c.course
+    }));
+
+    return res.status(200).json({ data: transformed });
+  } catch (e) {
+    console.error('getPublishedContent error', e);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};

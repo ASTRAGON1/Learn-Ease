@@ -6,6 +6,7 @@ const Content = require('../models/Content');
 
 router.get('/', auth(['teacher']), ctrl.getContent);
 router.post('/', auth(['teacher']), ctrl.createContent);
+router.get('/published', auth(['student', 'teacher', 'admin']), ctrl.getPublishedContent);
 
 // PATCH /api/content/:id - Update content (for archiving, restoring, etc.)
 router.patch('/:id', auth(['teacher']), async (req, res) => {
@@ -55,7 +56,7 @@ router.patch('/:id', auth(['teacher']), async (req, res) => {
 router.delete('/:id', auth(['teacher']), async (req, res) => {
   try {
     const content = await Content.findOne({ _id: req.params.id, teacher: req.user.sub });
-    
+
     if (!content) {
       return res.status(404).json({ error: 'Content not found or not yours' });
     }
@@ -75,8 +76,8 @@ router.delete('/:id', auth(['teacher']), async (req, res) => {
     const previousStatus = content.status;
     const updated = await Content.findOneAndUpdate(
       { _id: req.params.id, teacher: req.user.sub },
-      { 
-        $set: { 
+      {
+        $set: {
           status: 'deleted',
           previousStatus: previousStatus !== 'archived' ? previousStatus : content.previousStatus || 'published',
           deletedAt: new Date()
@@ -88,10 +89,10 @@ router.delete('/:id', auth(['teacher']), async (req, res) => {
     if (!updated) {
       return res.status(404).json({ error: 'Content not found or not yours' });
     }
-    
+
     console.log('Content marked as deleted in MongoDB');
-    
-    res.json({ 
+
+    res.json({
       message: 'Content deleted successfully',
       data: updated
     });

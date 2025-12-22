@@ -22,6 +22,15 @@ const quizResultSchema = new mongoose.Schema({
     enum: ['completed', 'paused', 'in-progress'],
     default: 'in-progress'
   },
+  answers: {
+    type: Map,
+    of: String,
+    default: {}
+  },
+  currentQuestionIndex: {
+    type: Number,
+    default: 0
+  },
   releaseDate: {
     type: Date,
     default: Date.now

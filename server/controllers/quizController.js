@@ -149,3 +149,101 @@ exports.submitQuiz = async (req, res) => {
     return res.status(500).json({ error: 'Server error', message: e.message });
   }
 };
+
+exports.getPublishedQuizzes = async (req, res) => {
+  try {
+    const { courseId, lessonId } = req.query;
+    const query = { status: 'published' };
+
+    if (courseId) query.course = courseId;
+    if (lessonId) query.lesson = lessonId;
+
+    const quizzes = await Quiz.find(query)
+      .select('title difficulty questionsAndAnswers lesson topic course status releaseDate')
+      .sort({ createdAt: -1 });
+
+    const transformed = quizzes.map(q => ({
+      _id: q._id,
+      title: q.title,
+      difficulty: q.difficulty,
+      questionsCount: q.questionsAndAnswers?.length || 0,
+      lesson: q.lesson,
+      topic: q.topic,
+      course: q.course,
+      time: `${(q.questionsAndAnswers?.length || 0) * 2} min` // Estimated time
+    }));
+
+    return res.status(200).json({ data: transformed });
+  } catch (e) {
+    console.error('getPublishedQuizzes error', e);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.getQuizById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const quiz = await Quiz.findById(id)
+      .select('title difficulty questionsAndAnswers lesson topic course');
+
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Only return published quizzes to students
+    if (req.user.role === 'student' && quiz.status !== 'published') {
+      return res.status(403).json({ error: 'Quiz not available' });
+    }
+
+    return res.status(200).json({ data: quiz });
+  } catch (e) {
+    console.error('getQuizById error', e);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.saveQuizProgress = async (req, res) => {
+  try {
+    const QuizResult = require('../models/QuizResult');
+    const studentId = req.user.sub;
+    const { quizId, status, answers, currentQuestionIndex, grade } = req.body;
+
+    if (!quizId) {
+      return res.status(400).json({ error: 'Quiz ID is required' });
+    }
+
+    // Find existing quiz result or create new one
+    let quizResult = await QuizResult.findOne({
+      quiz: quizId,
+      student: studentId
+    });
+
+    if (quizResult) {
+      // Update existing result
+      quizResult.status = status || quizResult.status;
+      quizResult.answers = answers || quizResult.answers;
+      quizResult.currentQuestionIndex = currentQuestionIndex !== undefined ? currentQuestionIndex : quizResult.currentQuestionIndex;
+      if (grade !== undefined) {
+        quizResult.grade = grade;
+      }
+      await quizResult.save();
+    } else {
+      // Create new result
+      quizResult = await QuizResult.create({
+        quiz: quizId,
+        student: studentId,
+        status: status || 'in-progress',
+        answers: answers || {},
+        currentQuestionIndex: currentQuestionIndex || 0,
+        grade: grade || null
+      });
+    }
+
+    return res.status(200).json({ data: quizResult });
+  } catch (e) {
+    console.error('saveQuizProgress error', e);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+

@@ -613,11 +613,86 @@ router.post('/complete-lesson', require('../middleware/auth')(['student']), asyn
 
       await track.save();
 
+      // Award achievements for this course
+      // First, get the course title to match achievements
+      const Course = require('../models/Course');
+      const course = await Course.findById(courseId);
+
+      if (!course) {
+        console.log(`⚠️  Course not found for courseId: ${courseId}`);
+        return res.json({
+          success: true,
+          completedLessonsCount: courseProgress.completedLessonsCount,
+          progressPercent: courseProgress.progressPercent,
+          isCourseCompleted: courseProgress.status === 'completed',
+          achievementsEarned: []
+        });
+      }
+
+      console.log(`🔍 Checking achievements for course: "${course.title}"`);
+      // Match achievements by course name (title)
+      const achievements = await Achievement.find({ course: course.title });
+      console.log(`📊 Found ${achievements.length} achievement(s) for this course`);
+
+      const student = await Student.findById(studentId);
+      const newAchievements = [];
+
+      if (achievements.length > 0 && student) {
+        console.log(`✅ Student found, processing ${achievements.length} achievement(s)`);
+        for (const achievement of achievements) {
+          // Check if student already has this achievement
+          const alreadyHas = student.achievements.some(
+            a => a.achievement.toString() === achievement._id.toString()
+          );
+
+          if (!alreadyHas) {
+            console.log(`🎯 Awarding achievement: ${achievement.title}`);
+            student.achievements.push({
+              achievement: achievement._id,
+              completedAt: new Date(),
+              earnedAt: new Date()
+            });
+            newAchievements.push({
+              id: achievement._id,
+              title: achievement.title,
+              description: achievement.description,
+              badge: achievement.badge
+            });
+
+            // Send notification
+            const Notification = require('../models/Notification');
+            await Notification.create({
+              recipient: studentId,
+              recipientModel: 'Student',
+              type: 'system',
+              message: `🎉 Achievement Unlocked: "${achievement.title}"!`
+            });
+          } else {
+            console.log(`⏭️  Student already has achievement: ${achievement.title}`);
+          }
+        }
+
+        if (newAchievements.length > 0) {
+          await student.save();
+          console.log(`✅ Awarded ${newAchievements.length} achievement(s) to student ${studentId}`);
+        } else {
+          console.log(`ℹ️  No new achievements to award (student already has all)`);
+        }
+      } else {
+        if (achievements.length === 0) {
+          console.log(`⚠️  No achievements found for course: "${course.title}"`);
+        }
+        if (!student) {
+          console.log(`❌ Student not found: ${studentId}`);
+        }
+      }
+
       return res.json({
         success: true,
         completedLessonsCount: courseProgress.completedLessonsCount,
         progressPercent: courseProgress.progressPercent,
-        isCourseCompleted: courseProgress.status === 'completed'
+        isCourseCompleted: courseProgress.status === 'completed',
+        achievementsEarned: newAchievements
       });
     } else if (lessonIndex < courseProgress.completedLessonsCount) {
       // Already completed

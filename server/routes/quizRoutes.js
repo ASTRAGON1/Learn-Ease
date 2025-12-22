@@ -6,6 +6,9 @@ const Quiz = require('../models/Quiz');
 
 router.get('/', auth(['teacher']), ctrl.getQuizzes);
 router.post('/', auth(['teacher']), ctrl.createQuiz);
+router.get('/published', auth(['student', 'teacher', 'admin']), ctrl.getPublishedQuizzes);
+router.get('/:id', auth(['student', 'teacher', 'admin']), ctrl.getQuizById);
+router.post('/progress', auth(['student']), ctrl.saveQuizProgress);
 router.post('/:id/submit', auth(['student']), ctrl.submitQuiz);
 
 // PATCH /api/quizzes/:id - Update quiz (for archiving)
