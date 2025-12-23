@@ -46,17 +46,31 @@ export default function TimeTracker() {
             const currentRole = window.sessionStorage.getItem('role') || window.localStorage.getItem('role');
 
             if (!currentToken || currentRole !== 'student') return;
-            if (!isActiveRef.current) return; // Don't track if tab hidden
+            // Removed visibility check to allow background pings
+            // if (!isActiveRef.current) return; 
 
             try {
-                await fetch(`${API_URL}/api/students/track-time`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: JSON.stringify({ minutes: 1 })
-                });
+                if (isActiveRef.current) {
+                    // Tab active: Track time AND keep online
+                    await fetch(`${API_URL}/api/students/track-time`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${currentToken}`
+                        },
+                        body: JSON.stringify({ minutes: 1 })
+                    });
+                } else {
+                    // Tab background: Just keep online (Ping)
+                    await fetch(`${API_URL}/api/students/auth/activity`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${currentToken}`
+                        },
+                        body: JSON.stringify({ ping: true })
+                    });
+                }
             } catch (err) {
                 console.error('Time tracker error:', err);
             }
@@ -68,7 +82,33 @@ export default function TimeTracker() {
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
-    }, [location]); // Re-run on location change to ensure fresh check if needed, though setInterval persists
+    }, [location]);
+
+    // Send "I'm Online" ping on route change to keep status fresh immediately
+    useEffect(() => {
+        const pingOnlineStatus = async () => {
+            const currentToken = window.sessionStorage.getItem('token') || window.localStorage.getItem('token');
+            const currentRole = window.sessionStorage.getItem('role') || window.localStorage.getItem('role');
+
+            if (!currentToken || currentRole !== 'student') return;
+
+            try {
+                // Use /auth/activity for ping to update online status without adding time
+                await fetch(`${API_URL}/api/students/auth/activity`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ ping: true })
+                });
+            } catch (err) {
+                console.error('Online status ping error:', err);
+            }
+        };
+
+        pingOnlineStatus();
+    }, [location]);
 
     return null; // Render nothing
 }

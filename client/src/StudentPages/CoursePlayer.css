@@ -2811,7 +2811,7 @@
   }
 }
 
-/* Video Like Button - Modern Design */
+/* Video Like Button - Simple Clean Design */
 .cp-video-actions {
   display: flex;
   gap: 12px;
@@ -2824,69 +2824,47 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  padding: 10px 20px;
+  background: #ffffff;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 10px;
   color: #6b7280;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.cp-like-btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(220, 38, 38, 0.1);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .cp-like-btn:hover {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-color: #fca5a5;
-  color: #dc2626;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
-}
-
-.cp-like-btn:hover::before {
-  width: 300px;
-  height: 300px;
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cp-like-btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);
 }
 
 .cp-like-btn.liked {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border-color: #f87171;
-  color: #dc2626;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-  animation: likeAnimation 0.4s ease;
+  background: #4C0FAD;
+  border-color: #4C0FAD;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(76, 15, 173, 0.25);
 }
 
 .cp-like-btn.liked:hover {
-  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
-  border-color: #ef4444;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25);
+  background: #3d0c8a;
+  border-color: #3d0c8a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 15, 173, 0.3);
 }
 
 .cp-like-btn svg {
   flex-shrink: 0;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease;
 }
 
 .cp-like-btn:hover svg {
@@ -2894,21 +2872,7 @@
 }
 
 .cp-like-btn.liked svg {
-  animation: heartBeat 0.6s ease;
-}
-
-@keyframes likeAnimation {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
-
-  100% {
-    transform: scale(1);
-  }
+  animation: heartBeat 0.4s ease;
 }
 
 @keyframes heartBeat {
@@ -2918,15 +2882,7 @@
     transform: scale(1);
   }
 
-  25% {
-    transform: scale(1.2);
-  }
-
   50% {
-    transform: scale(1.1);
-  }
-
-  75% {
-    transform: scale(1.15);
+    transform: scale(1.2);
   }
 }

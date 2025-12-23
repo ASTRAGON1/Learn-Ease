@@ -145,8 +145,9 @@ router.post('/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Update last activity
+    // Update last activity and online status
     student.lastActivity = new Date();
+    student.isOnline = true;
     await student.save();
 
     // Generate token
@@ -201,7 +202,8 @@ router.get('/auth/me', require('../middleware/auth')(['student']), requireDiagno
 router.post('/auth/logout', require('../middleware/auth')(['student']), async (req, res) => {
   try {
     await Student.findByIdAndUpdate(req.user.sub, {
-      lastActivity: new Date()
+      lastActivity: new Date(),
+      isOnline: false
     });
 
     res.json({ success: true, message: 'Logged out successfully' });
@@ -219,25 +221,25 @@ router.post('/auth/activity', require('../middleware/auth')(['student']), async 
 
     // 1. Update Student model
     const student = await Student.findByIdAndUpdate(studentId, {
-      lastActivity: now
+      lastActivity: now,
+      isOnline: true
     });
 
     // 2. Update Track model (increment hoursStudied)
-    // We assume this is called every ~1 minute (60000ms) by the frontend heartbeat.
-    // To be safe, we can just add a fixed small amount (e.g. 1 minute = 1/60 hours)
-    // OR we could try to calculate diff, but reliable heartbeat is easier.
-
-    let track = await Track.findOne({ student: studentId });
-    if (track) {
-      // Add 1 minute (1/60 of an hour)
-      // Store as float hours
-      const increment = 1 / 60;
-      track.hoursStudied = (track.hoursStudied || 0) + increment;
-      track.lastActivityDate = now;
-      await track.save();
+    // If it's just a ping (e.g. on page load), don't add time
+    if (!req.body.ping) {
+      let track = await Track.findOne({ student: studentId });
+      if (track) {
+        // Add 1 minute (1/60 of an hour)
+        const increment = 1 / 60;
+        track.hoursStudied = (track.hoursStudied || 0) + increment;
+        track.lastActivityDate = now;
+        await track.save();
+      }
+      res.json({ success: true, hours: track ? track.hoursStudied : 0 });
+    } else {
+      res.json({ success: true, message: "Ping received" });
     }
-
-    res.json({ success: true, hours: track ? track.hoursStudied : 0 });
   } catch (error) {
     console.error('Student activity update error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -644,7 +646,14 @@ router.post('/track-time', require('../middleware/auth')(['student']), async (re
     }
 
     const { Track } = require('../models');
-    // Ideally update existing Track or create if missing
+
+    // 1. Update Student model to keep them online!
+    await Student.findByIdAndUpdate(studentId, {
+      lastActivity: new Date(),
+      isOnline: true
+    });
+
+    // 2. Update Track model
     let track = await Track.findOne({ student: studentId });
     if (!track) {
       track = await Track.create({ student: studentId });

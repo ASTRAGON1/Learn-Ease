@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
 router.get('/users', async (req, res) => {
   try {
     // Fetch all students
-    const students = await Student.find({}).select('name email type status suspended createdAt profilePic lastActivity');
+    const students = await Student.find({}).select('name email type status suspended createdAt profilePic lastActivity isOnline');
 
     // Fetch all teachers
     const teachers = await Teacher.find({}).select('fullName email userStatus ranking profilePic headline bio createdAt isOnline lastActivity');
@@ -80,14 +80,24 @@ router.get('/users', async (req, res) => {
 
     // Transform students to unified format
     const studentUsers = students.map(student => {
-      // Students don't have isOnline field, so set online to false
+      // Calculate online status based on isOnline flag and recent activity
+      const isActive = student.isOnline && student.lastActivity &&
+        (now - new Date(student.lastActivity)) < INACTIVITY_THRESHOLD;
+
+      // Auto-update if marked online but inactive
+      if (student.isOnline && !isActive) {
+        Student.findByIdAndUpdate(student._id, { isOnline: false }).catch(err =>
+          console.error('Error auto-updating student online status:', err)
+        );
+      }
+
       return {
         id: student._id.toString(),
         name: student.name,
         email: student.email,
         role: 'student',
         status: student.userStatus || 'active',
-        online: false, // Students don't have isOnline field
+        online: isActive,
         category: student.type === 'autism' ? 'Autism' : student.type === 'downSyndrome' ? 'Down Syndrome' : 'Not Assigned',
         avatar: student.profilePic,
         createdAt: student.createdAt,
@@ -778,19 +788,19 @@ router.get('/teacher/:email/weekly-metrics', async (req, res) => {
       totalViews += item.views || 0;
       totalLikes += item.likes || 0;
 
-      // Use lastViewedAt if available, otherwise use updatedAt as fallback
-      const viewTimestamp = item.lastViewedAt || item.updatedAt || item.createdAt;
-      if (viewTimestamp && item.views > 0) {
-        const viewDay = new Date(viewTimestamp).getDay();
+      // ONLY use lastViewedAt - no fallback to updatedAt/createdAt
+      // This prevents views from shifting when document is updated for other reasons
+      if (item.lastViewedAt && item.views > 0) {
+        const viewDay = new Date(item.lastViewedAt).getDay();
         const dayIndex = viewDay === 0 ? 6 : viewDay - 1;
         weeklyData[dayIndex].views += item.views;
         viewsDistributed += item.views;
       }
 
-      // Use lastLikedAt if available, otherwise use updatedAt as fallback
-      const likeTimestamp = item.lastLikedAt || item.updatedAt || item.createdAt;
-      if (likeTimestamp && item.likes > 0) {
-        const likeDay = new Date(likeTimestamp).getDay();
+      // ONLY use lastLikedAt - no fallback to updatedAt/createdAt
+      // This prevents likes from shifting when document is updated for other reasons
+      if (item.lastLikedAt && item.likes > 0) {
+        const likeDay = new Date(item.lastLikedAt).getDay();
         const dayIndex = likeDay === 0 ? 6 : likeDay - 1;
         weeklyData[dayIndex].likes += item.likes;
         likesDistributed += item.likes;

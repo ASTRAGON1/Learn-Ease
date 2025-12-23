@@ -308,6 +308,19 @@ export default function StudentDashboard2() {
     }
   }, [profileDropdownOpen]);
 
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationOpen && !event.target.closest('.ld-notification-wrapper')) {
+        setNotificationOpen(false);
+      }
+    };
+    if (notificationOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [notificationOpen]);
+
   // Helper function to assign colors
   const getCourseColor = (index) => {
     const colors = ["yellow", "purple", "blue", "green", "orange", "pink", "teal", "indigo"];
@@ -685,7 +698,7 @@ export default function StudentDashboard2() {
             </h1>
           </div>
           <div className="ld-header-right">
-            <div className="ld-notification-wrapper" style={{ position: 'relative' }}>
+            <div className="ld-notification-wrapper">
               <button
                 className="ld-notification-btn"
                 aria-label="Notifications"
@@ -695,78 +708,98 @@ export default function StudentDashboard2() {
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
-                {notifications.some(n => !n.read) && <span className="ld-notification-badge-dot"></span>}
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span className="ld-notification-badge">
+                    {notifications.filter(n => !n.read).length}
+                  </span>
+                )}
               </button>
 
-              {/* Notification Dropdown */}
-              {notificationOpen && (
-                <div className="ld-notification-dropdown">
-                  <div className="ld-notification-header">
-                    <h3>Notifications</h3>
-                    {notifications.length > 0 && (
-                      <button
-                        className="ld-clear-all"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          setNotifications([]); // Optimistic
-                          const token = window.sessionStorage.getItem("token");
-                          if (token) {
-                            try {
-                              // Assuming we have a clear all endpoint or loop delete. 
-                              // For now, just clear state optimally.
-                              // Actually, better to loop mark read or add clear endpoint.
-                              // Let's just mark all as read for "Clear all" visual equivalent or actually delete.
-                              // Implementation plan says Delete All is nice to have.
-                              // We'll just set local state empty for now or Implement delete all endpoint if needed.
-                              // Let's stick to simple clear for now.
-                            } catch (e) { }
-                          }
-                        }}
-                      >
-                        Clear all
-                      </button>
-                    )}
-                  </div>
-                  <div className="ld-notification-list">
-                    {notifications.length === 0 ? (
-                      <div className="ld-notification-empty">
-                        <div className="ld-empty-icon">🔔</div>
-                        <p>No new notifications</p>
-                      </div>
-                    ) : (
-                      notifications.map(notif => (
-                        <div
-                          key={notif._id}
-                          className={`ld-notification-item ${!notif.read ? 'unread' : ''}`}
-                          onClick={() => markAsRead(notif._id)}
-                        >
-                          <div className={`ld-notification-icon ${notif.type}`}>
-                            {notif.type === 'quiz_completed' && '📝'}
-                            {notif.type === 'suspended' && '⚠️'}
-                            {notif.type === 'report' && '🛡️'}
-                            {notif.type === 'feedback' && '💬'}
-                            {notif.type === 'system' && '📢'}
-                            {!['quiz_completed', 'suspended', 'report', 'feedback', 'system'].includes(notif.type) && '📢'}
-                          </div>
-                          <div className="ld-notification-content">
-                            <p className="ld-notification-message">{notif.message}</p>
-                            <span className="ld-notification-time">{formatTimeAgo(notif.createdAt)}</span>
-                          </div>
-                          <button
-                            className="ld-delete-notif"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNotification(notif._id);
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
+              {/* Notification Popover */}
+              <div
+                className="ld-notification-popover"
+                style={{
+                  opacity: notificationOpen ? 1 : undefined,
+                  visibility: notificationOpen ? 'visible' : undefined,
+                  transform: notificationOpen ? 'translateY(0)' : undefined,
+                  pointerEvents: notificationOpen ? 'auto' : undefined
+                }}
+              >
+                <div className="ld-notification-header">
+                  <h3>Notifications ({notifications.length})</h3>
+                  {notifications.length > 0 && (
+                    <button
+                      className="ld-clear-all"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setNotifications([]); // Optimistic
+                        const token = window.sessionStorage.getItem("token");
+                        if (token) {
+                          try {
+                            // Logic to clear on backend if endpoint exists
+                          } catch (e) { }
+                        }
+                      }}
+                    >
+                      Clear All
+                    </button>
+                  )}
                 </div>
-              )}
+                <div className="ld-notification-list">
+                  {notifications.length === 0 ? (
+                    <div className="ld-notification-empty">
+                      <div className="ld-empty-icon">🔔</div>
+                      <p>No new notifications</p>
+                    </div>
+                  ) : (
+                    notifications.map(notif => (
+                      <div
+                        key={notif._id}
+                        className={`ld-notification-item ${!notif.read ? 'unread' : ''}`}
+                        onClick={() => markAsRead(notif._id)}
+                      >
+                        <div className={`ld-notification-icon ${notif.type}`}>
+                          {notif.type === 'quiz_completed' && (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                          )}
+                          {notif.type === 'suspended' && (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                          )}
+                          {notif.type === 'report' && (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                          )}
+                          {notif.type === 'feedback' && (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                          )}
+                          {notif.type === 'system' && (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                          )}
+                          {!['quiz_completed', 'suspended', 'report', 'feedback', 'system'].includes(notif.type) && (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                          )}
+                        </div>
+
+                        <div className="ld-notification-content">
+                          <p className="ld-notification-message">{notif.message}</p>
+                          <span className="ld-notification-time">{formatTimeAgo(notif.createdAt)}</span>
+                        </div>
+
+                        {!notif.read && <div className="ld-notification-unread-dot"></div>}
+
+                        <button
+                          className="ld-delete-notif"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification(notif._id);
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
             <div className="ld-profile-container">
               <button

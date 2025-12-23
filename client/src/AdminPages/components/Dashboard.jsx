@@ -7,7 +7,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
     () => (profiles.students || []).reduce((s, p) => s + (p.hours || 0), 0),
     [profiles]
   );
-  
+
   const instructorsTotal = useMemo(
     () =>
       (profiles.instructors || []).reduce(
@@ -24,7 +24,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
   const totalUsers = users.length;
   const totalStudents = users.filter((u) => u.role === "student").length;
   const totalInstructors = users.filter((u) => u.role === "instructor").length;
-  
+
   // Calculate online/offline/suspended by role
   const onlineStudents = users.filter((u) => u.role === "student" && u.online && u.status === "active").length;
   const onlineTeachers = users.filter((u) => u.role === "instructor" && u.online && u.status === "active").length;
@@ -32,7 +32,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
   const offlineTeachers = users.filter((u) => u.role === "instructor" && !u.online && u.status === "active").length;
   const suspendedStudents = users.filter((u) => u.role === "student" && u.status === "suspended").length;
   const suspendedTeachers = users.filter((u) => u.role === "instructor" && u.status === "suspended").length;
-  
+
   // Calculate reports and feedbacks by role
   const reportsByStudent = reports.filter((r) => {
     const user = users.find(u => u.id === r.reporterId);
@@ -42,7 +42,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
     const user = users.find(u => u.id === r.reporterId);
     return user && user.role === "instructor";
   }).length;
-  
+
   const feedbacksByStudent = feedbacks.filter((f) => {
     const user = users.find(u => u.id === f.reporterId);
     return user && user.role === "student";
@@ -65,7 +65,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
     let filtered = users.filter((u) => u.online && u.status === "active");
     if (search) {
       const searchLower = search.toLowerCase();
-      filtered = filtered.filter((u) => 
+      filtered = filtered.filter((u) =>
         u.name.toLowerCase().includes(searchLower) ||
         u.role.toLowerCase().includes(searchLower) ||
         u.category.toLowerCase().includes(searchLower)
@@ -78,7 +78,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
     let filtered = users.filter((u) => u.status === "suspended");
     if (search) {
       const searchLower = search.toLowerCase();
-      filtered = filtered.filter((u) => 
+      filtered = filtered.filter((u) =>
         u.name.toLowerCase().includes(searchLower) ||
         u.role.toLowerCase().includes(searchLower) ||
         u.category.toLowerCase().includes(searchLower)
@@ -114,32 +114,32 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
 
       {/* Key Metrics Cards */}
       <div className="admin-dashboard-metrics">
-        <StatCard 
-          title="Total Users" 
-          value={totalUsers} 
+        <StatCard
+          title="Total Users"
+          value={totalUsers}
           hint={`${onlineStudents + onlineTeachers} online now`}
           icon="users"
           color="primary"
           onClick={onNavigate ? () => onNavigate("users") : undefined}
         />
-        <StatCard 
-          title="Students" 
+        <StatCard
+          title="Students"
           value={totalStudents}
           hint={`${byCat.autism} Autism / ${byCat.down} Down Syndrome`}
           icon="students"
           color="blue"
           onClick={onNavigate ? () => onNavigate("profiles") : undefined}
         />
-        <StatCard 
-          title="Instructors" 
+        <StatCard
+          title="Instructors"
           value={totalInstructors}
           hint={`${instructorsTotal} total uploads`}
           icon="instructors"
           color="purple"
           onClick={onNavigate ? () => onNavigate("profiles") : undefined}
         />
-        <StatCard 
-          title="Applications" 
+        <StatCard
+          title="Applications"
           value={totalApplications}
           hint={`${pendingApplications} pending review`}
           icon="applications"
@@ -281,7 +281,7 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
                   </tr>
                 ) : (
                   filteredOnlineUsers.map((u) => (
-                    <tr 
+                    <tr
                       key={u.id}
                       className={u.role === "instructor" ? "admin-dashboard-table-row-clickable" : ""}
                       onClick={u.role === "instructor" ? () => onOpenInstructor(u.id) : undefined}
@@ -289,18 +289,24 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
                     >
                       <td>
                         <div className="admin-dashboard-table-name">
-                          {u.avatar ? (
-                            <img 
-                              src={u.avatar} 
+                          {u.avatar && u.avatar.trim() !== '' ? (
+                            <img
+                              src={u.avatar}
                               alt={u.name}
                               className="admin-dashboard-table-avatar"
                               style={{ objectFit: 'cover' }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
                             />
-                          ) : (
-                            <div className="admin-dashboard-table-avatar">
-                              {u.name.slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
+                          ) : null}
+                          <div
+                            className="admin-dashboard-table-avatar"
+                            style={{ display: (u.avatar && u.avatar.trim() !== '') ? 'none' : 'flex' }}
+                          >
+                            {u.name.slice(0, 2).toUpperCase()}
+                          </div>
                           <span>{u.name}</span>
                         </div>
                       </td>
@@ -362,18 +368,24 @@ function Dashboard({ users, profiles, onReinstate, search, onOpenInstructor, app
                     <tr key={u.id}>
                       <td>
                         <div className="admin-dashboard-table-name">
-                          {u.avatar ? (
-                            <img 
-                              src={u.avatar} 
+                          {u.avatar && u.avatar.trim() !== '' ? (
+                            <img
+                              src={u.avatar}
                               alt={u.name}
                               className="admin-dashboard-table-avatar admin-dashboard-table-avatar-suspended"
                               style={{ objectFit: 'cover' }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
                             />
-                          ) : (
-                            <div className="admin-dashboard-table-avatar admin-dashboard-table-avatar-suspended">
-                              {u.name.slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
+                          ) : null}
+                          <div
+                            className="admin-dashboard-table-avatar admin-dashboard-table-avatar-suspended"
+                            style={{ display: (u.avatar && u.avatar.trim() !== '') ? 'none' : 'flex' }}
+                          >
+                            {u.name.slice(0, 2).toUpperCase()}
+                          </div>
                           <span>{u.name}</span>
                         </div>
                       </td>
