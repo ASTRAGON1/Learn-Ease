@@ -164,19 +164,11 @@ function CourseCard({ course, isExpanded, onToggle, onContinue, navigate }) {
                 Continue Learning
               </button>
             )}
-            {course.status === "completed" && (
-              <button className="pp-course-btn pp-course-btn-secondary">
-                Review Course
-              </button>
-            )}
             {course.status === "locked" && (
               <button className="pp-course-btn pp-course-btn-disabled" disabled>
                 Complete Previous Course
               </button>
             )}
-            <button className="pp-course-btn pp-course-btn-ghost">
-              View Details
-            </button>
           </div>
         </div>
       )}
@@ -249,48 +241,6 @@ function PersonalizedPath() {
             setStudentPathType(infoData.data.type);
           }
         }
-
-        // Fetch student progress
-        const progressResponse = await fetch(`${API_URL}/api/students/progress`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (progressResponse.ok) {
-          const progressResult = await progressResponse.json();
-          if (progressResult.success && progressResult.data) {
-            setProgressData(progressResult.data);
-
-            // Update student progress state
-            setStudentProgress(prev => ({
-              ...prev,
-              courseProgress: progressResult.data.courseProgress.reduce((acc, cp) => {
-                const courseIndex = parseInt(cp.courseId) || 0;
-                acc[courseIndex] = {
-                  completedLessons: cp.completedLessons,
-                  totalLessons: cp.totalLessons
-                };
-                return acc;
-              }, {}),
-              completedCourses: progressResult.data.courseProgress
-                .filter(cp => cp.status === 'completed')
-                .map(cp => parseInt(cp.courseId) || 0),
-              currentCourseIndex: progressResult.data.courseProgress
-                .findIndex(cp => cp.status === 'in_progress') || 0,
-              stats: {
-                courses: {
-                  completed: progressResult.data.coursesCompleted,
-                  total: progressResult.data.totalCourses
-                },
-                quizzes: {
-                  completed: progressResult.data.quizzesCompleted,
-                  total: progressResult.data.totalQuizzes
-                },
-                hours: progressResult.data.hoursStudied,
-                streak: progressResult.data.currentStreak,
-              }
-            }));
-          }
-        }
       } catch (error) {
         console.error('Error fetching student data:', error);
       }
@@ -298,6 +248,90 @@ function PersonalizedPath() {
 
     fetchStudentData();
   }, [navigate]);
+
+  // Fetch student progress AFTER studentPath is loaded
+  useEffect(() => {
+    if (!studentPath) return;
+
+    const fetchStudentProgress = async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/students/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            const backendProgress = data.data;
+            const backendCourses = backendProgress.courseProgress || [];
+            setProgressData(backendProgress);
+
+            // Map backend progress to frontend indices
+            const completedIndices = [];
+            const newCourseProgress = {};
+            let maxCompletedIndex = -1;
+
+            studentPath.Courses.forEach((course, index) => {
+              // Find matching backend course record by ID (handling populated object or raw ID)
+              const courseRecord = backendCourses.find(c => {
+                const backendId = c.course && (c.course._id || c.course.id || c.course);
+                return String(backendId) === String(course.id);
+              });
+
+              if (courseRecord) {
+                if (courseRecord.status === 'completed') {
+                  completedIndices.push(index);
+                  if (index > maxCompletedIndex) {
+                    maxCompletedIndex = index;
+                  }
+                }
+
+                newCourseProgress[index] = {
+                  completedLessons: courseRecord.completedLessonsCount || 0,
+                  totalLessons: courseRecord.totalLessons || 0,
+                  status: courseRecord.status
+                };
+              }
+            });
+
+            // Determine next active course
+            let nextIndex = 0;
+            if (completedIndices.length > 0) {
+              nextIndex = maxCompletedIndex + 1;
+            }
+            if (nextIndex >= studentPath.Courses.length) {
+              nextIndex = studentPath.Courses.length - 1;
+            }
+
+            setStudentProgress({
+              currentCourseIndex: nextIndex,
+              completedCourses: completedIndices,
+              courseProgress: newCourseProgress,
+              stats: {
+                courses: {
+                  completed: backendProgress.coursesCompleted,
+                  total: backendProgress.totalCourses
+                },
+                quizzes: {
+                  completed: backendProgress.quizzesCompleted,
+                  total: backendProgress.totalQuizzes
+                },
+                hours: backendProgress.hoursStudied,
+                streak: backendProgress.currentStreak,
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching student progress:', error);
+      }
+    };
+
+    fetchStudentProgress();
+  }, [studentPath]);
 
   // Fetch recent achievements
   useEffect(() => {
@@ -355,6 +389,7 @@ function PersonalizedPath() {
                 GeneralPath: normalizedType,
                 pathTitle: path.name,
                 Courses: path.courses.map(course => ({
+                  id: course._id || course.id, // Capture ID for mapping
                   CoursesTitle: course.name,
                   Topics: course.topics.map(topic => ({
                     TopicsTitle: topic.name,
@@ -402,7 +437,7 @@ function PersonalizedPath() {
       const courseProg = studentProgress.courseProgress[index] || { completedLessons: 0, totalLessons };
 
       return {
-        id: index + 1,
+        id: course.id || index + 1,
         title: course.CoursesTitle,
         courseNumber: index + 1,
         totalCourses: studentPath.Courses.length,
@@ -526,8 +561,8 @@ function PersonalizedPath() {
     },
     {
       icon: "⏱",
-      label: "Hours Studied",
-      value: `${studentProgress.stats.hours}h`,
+      label: "Minutes Studied",
+      value: `${Math.round(studentProgress.stats.hours * 60)}m`,
       trend: null
     },
     {
@@ -755,9 +790,6 @@ function PersonalizedPath() {
                         <div className="pp-achievement-content-new">
                           <div className="pp-achievement-title-new">{achievement.title}</div>
                           <div className="pp-achievement-desc-new">{achievement.course}</div>
-                          {achievement.grade !== null && achievement.grade !== undefined && (
-                            <div className="pp-achievement-grade-new">{achievement.grade}%</div>
-                          )}
                         </div>
                       </div>
                     );

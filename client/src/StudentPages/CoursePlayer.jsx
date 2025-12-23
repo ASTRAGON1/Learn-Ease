@@ -86,6 +86,7 @@ export default function CoursePlayer() {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [earnedAchievements, setEarnedAchievements] = useState([]);
   const [showAchievementModal, setShowAchievementModal] = useState(false);
+  const [likedVideos, setLikedVideos] = useState(new Set()); // Track liked videos
 
   // Quiz player state
   const [activeQuiz, setActiveQuiz] = useState(null);
@@ -361,11 +362,20 @@ export default function CoursePlayer() {
     }
 
     try {
-      // Parse course index from id (URL uses 1-based indexing, so subtract 1)
-      const courseIndex = parseInt(id) - 1;
+      // Try to find course by ID first
+      let course = learningPath.courses.find(c => c.id === id || c._id === id);
+      let courseIndex = -1;
 
-      if (isNaN(courseIndex) || courseIndex < 0 || courseIndex >= learningPath.courses.length) {
-        console.error('Invalid course index:', id);
+      // If not found by ID, try parsing as 1-based index (legacy support)
+      if (!course) {
+        courseIndex = parseInt(id) - 1;
+        if (!isNaN(courseIndex) && courseIndex >= 0 && courseIndex < learningPath.courses.length) {
+          course = learningPath.courses[courseIndex];
+        }
+      }
+
+      if (!course) {
+        console.error('Invalid course ID or index:', id);
         setCourseData(null);
         setTopics([]);
         setLessons([]);
@@ -373,8 +383,7 @@ export default function CoursePlayer() {
         return;
       }
 
-      const course = learningPath.courses[courseIndex];
-      console.log(`✅ Loading course ${courseIndex}:`, course.name);
+      console.log(`✅ Loading course:`, course.name);
 
       // Set course data
       setCourseData({
@@ -696,7 +705,24 @@ export default function CoursePlayer() {
                             controls
                             className="cp-video-player"
                             src={lessonVideos[currentVideoIndex]?.fileURL}
-                            onEnded={() => setVideoCompleted(true)}
+                            onEnded={async () => {
+                              setVideoCompleted(true);
+
+                              // Track video view
+                              const videoId = lessonVideos[currentVideoIndex]?._id;
+                              if (videoId) {
+                                try {
+                                  await fetch(`${API_URL}/api/students/content/${videoId}/view`, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    }
+                                  });
+                                } catch (error) {
+                                  console.error('Error tracking video view:', error);
+                                }
+                              }
+                            }}
                             onPlay={() => setVideoCompleted(false)}
                           >
                             Your browser does not support the video tag.
@@ -711,6 +737,50 @@ export default function CoursePlayer() {
                             {lessonVideos[currentVideoIndex]?.description && (
                               <p className="cp-video-description">{lessonVideos[currentVideoIndex]?.description}</p>
                             )}
+                            <div className="cp-video-actions">
+                              <button
+                                className={`cp-like-btn ${likedVideos.has(lessonVideos[currentVideoIndex]?._id) ? 'liked' : ''}`}
+                                onClick={async () => {
+                                  const videoId = lessonVideos[currentVideoIndex]?._id;
+                                  if (videoId) {
+                                    const isLiked = likedVideos.has(videoId);
+                                    const action = isLiked ? 'unlike' : 'like';
+
+                                    try {
+                                      const response = await fetch(`${API_URL}/api/students/content/${videoId}/like`, {
+                                        method: 'POST',
+                                        headers: {
+                                          'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({ action })
+                                      });
+
+                                      if (response.ok) {
+                                        // Update local state only if API call succeeds
+                                        setLikedVideos(prev => {
+                                          const newSet = new Set(prev);
+                                          if (isLiked) {
+                                            newSet.delete(videoId);
+                                          } else {
+                                            newSet.add(videoId);
+                                          }
+                                          return newSet;
+                                        });
+                                      } else {
+                                        console.error('Failed to update like status');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error liking video:', error);
+                                    }
+                                  }
+                                }}
+                              >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill={likedVideos.has(lessonVideos[currentVideoIndex]?._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                {likedVideos.has(lessonVideos[currentVideoIndex]?._id) ? 'Liked' : 'Like'}
+                              </button>
+                            </div>
                           </div>
                         </div>
                         {lessonVideos.length > 1 && (
@@ -860,7 +930,24 @@ export default function CoursePlayer() {
                                     </div>
                                     <button
                                       className="cp-material-card-btn"
-                                      onClick={() => setSelectedMaterial(material)}
+                                      onClick={async () => {
+                                        setSelectedMaterial(material);
+
+                                        // Track material view
+                                        const materialId = material._id;
+                                        if (materialId) {
+                                          try {
+                                            await fetch(`${API_URL}/api/students/content/${materialId}/view`, {
+                                              method: 'POST',
+                                              headers: {
+                                                'Content-Type': 'application/json'
+                                              }
+                                            });
+                                          } catch (error) {
+                                            console.error('Error tracking material view:', error);
+                                          }
+                                        }
+                                      }}
                                     >
                                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -1106,6 +1193,35 @@ export default function CoursePlayer() {
                   ) : (
                     <div className="cp-lessons-empty">
                       <p>No lessons available for this course.</p>
+                    </div>
+                  )}
+
+                  {/* Completion / Next Course Footer */}
+                  {courseData && lessons.length > 0 && completedLessonsCount >= lessons.length && (
+                    <div className="cp-completion-card">
+                      <span className="cp-completion-icon">🎉</span>
+                      <h3 className="cp-completion-title">Course Completed!</h3>
+                      <p className="cp-completion-text">You've successfully finished all lessons.</p>
+                      <button
+                        className="cp-completion-btn"
+                        onClick={() => {
+                          if (learningPath && courseData) {
+                            const currentIdx = learningPath.courses.findIndex(c => c.id === courseData.id || c._id === courseData.id);
+                            if (currentIdx !== -1 && currentIdx < learningPath.courses.length - 1) {
+                              const nextCourse = learningPath.courses[currentIdx + 1];
+                              const nextId = nextCourse.id || nextCourse._id;
+                              window.location.href = `/course/${nextId}`;
+                            } else {
+                              navigate('/student-dashboard-2');
+                            }
+                          }
+                        }}
+                      >
+                        Go to Next Course
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </button>
                     </div>
                   )}
                 </aside>

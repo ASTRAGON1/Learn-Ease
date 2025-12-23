@@ -9,17 +9,17 @@ const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         return { ok: false, error: result.error || 'Login failed' };
       }
-      
-      return { 
-        ok: true, 
-        token: result.token || "admin_token", 
-        adminName: result.adminName || "Admin" 
+
+      return {
+        ok: true,
+        token: result.token || "admin_token",
+        adminName: result.adminName || "Admin"
       };
     } catch (error) {
       console.error('Error during admin login:', error);
@@ -44,7 +44,7 @@ const api = {
       const response = await fetch(`${API_URL}/api/applications/decide/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           decision: decision === 'accept' ? 'accept' : 'decline',
           reason: reason || ''
         })
@@ -70,6 +70,32 @@ const api = {
       return { ok: true, data: result.data || [] };
     } catch (error) {
       console.error('Error fetching users:', error);
+      return { ok: false, data: [] };
+    }
+  },
+  getStudentProfiles: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/student-profiles`);
+      if (!response.ok) {
+        return { ok: false, data: [] };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data || [] };
+    } catch (error) {
+      console.error('Error fetching student profiles:', error);
+      return { ok: false, data: [] };
+    }
+  },
+  getInstructorProfiles: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/instructor-profiles`);
+      if (!response.ok) {
+        return { ok: false, data: [] };
+      }
+      const result = await response.json();
+      return { ok: true, data: result.data || [] };
+    } catch (error) {
+      console.error('Error fetching instructor profiles:', error);
       return { ok: false, data: [] };
     }
   },
@@ -403,7 +429,7 @@ const api = {
   saveSettings: async (settings) => ({ ok: true, settings }),
   addUser: async (payload) => ({ ok: true, payload }),
   createUser: async (userData) => ({ ok: true, userData }),
-  
+
   // Achievements API
   getAchievements: async () => {
     try {
@@ -479,10 +505,10 @@ const api = {
         body: JSON.stringify({ achievements })
       });
       console.log('📊 Response status:', response.status);
-      
+
       const result = await response.json();
       console.log('📊 Response data:', result);
-      
+
       if (!response.ok) {
         return { success: false, error: result.error || 'Failed to import achievements' };
       }
@@ -492,7 +518,7 @@ const api = {
       return { success: false, error: 'Network error: ' + error.message };
     }
   },
-  
+
   // Diagnostic Test Questions API
   getDiagnosticQuestions: async () => {
     try {
@@ -587,7 +613,7 @@ const api = {
       console.log('Bulk import response status:', response.status);
       const result = await response.json();
       console.log('Bulk import result:', result);
-      
+
       if (!response.ok) {
         return { success: false, error: result.error || 'Failed to import questions' };
       }

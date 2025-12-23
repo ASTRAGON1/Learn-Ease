@@ -10,7 +10,7 @@
   {
     "type": "course",
     "title": "Communication Excellence",
-    "course": "Communication Skills",
+    "course": "Speaking & Communication",
     "badge": "gold",
     "description": "Outstanding achievement in communication",
     "category": "Core Course"
@@ -26,7 +26,7 @@
   {
     "type": "course",
     "title": "Social Interaction Champion",
-    "course": "Social Skills",
+    "course": "Social Interaction",
     "badge": "gold",
     "description": "Great progress in social interactions",
     "category": "Core Course"
@@ -42,7 +42,7 @@
   {
     "type": "course",
     "title": "Emotional Intelligence",
-    "course": "Understanding Emotions",
+    "course": "Emotional Recognition & Expression",
     "badge": "gold",
     "description": "Strong performance in emotional learning",
     "category": "Core Course"
@@ -50,7 +50,7 @@
   {
     "type": "course",
     "title": "Reading Comprehension Expert",
-    "course": "Reading Skills",
+    "course": "Reading Comprehension",
     "badge": "platinum",
     "description": "Mastered reading comprehension techniques",
     "category": "Core Course"
@@ -58,7 +58,7 @@
   {
     "type": "course",
     "title": "Writing Wizard",
-    "course": "Writing Skills",
+    "course": "Writing Practice",
     "badge": "gold",
     "description": "Excellent writing abilities demonstrated",
     "category": "Core Course"
@@ -130,7 +130,7 @@
   {
     "type": "course",
     "title": "Independence Master",
-    "course": "Independent Living Skills",
+    "course": "Daily Life Skills",
     "badge": "gold",
     "description": "Demonstrated strong independence",
     "category": "Core Course"
@@ -298,7 +298,7 @@
   {
     "type": "extra",
     "title": "Math Wizard",
-    "course": "Practical Mathematics",
+    "course": "Math Basics",
     "badge": "platinum",
     "description": "Mastered practical math applications",
     "category": "Extra Course"

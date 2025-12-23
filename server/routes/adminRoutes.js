@@ -147,6 +147,156 @@ router.get('/users', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/student-profiles
+ * @desc    Get student performance profiles with real stats
+ * @access  Admin
+ */
+router.get('/student-profiles', async (req, res) => {
+  try {
+    const Track = require('../models/Track');
+    const Quiz = require('../models/Quiz');
+    const QuizResult = require('../models/QuizResult');
+
+    // Fetch all students
+    const students = await Student.find({}).select('_id name type');
+
+    const studentProfiles = await Promise.all(
+      students.map(async (student) => {
+        try {
+          // Get Track data for this student
+          const track = await Track.findOne({ student: student._id });
+
+          // Calculate minutes studied (convert hours to minutes)
+          const minutesStudied = track ? Math.round((track.hoursStudied || 0) * 60) : 0;
+
+          // Get student's path type
+          const studentType = student.type || 'autism';
+          const normalizedType = studentType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentType.toLowerCase();
+
+          // Find the learning path
+          const path = await Path.findOne({
+            $or: [
+              { type: normalizedType },
+              { title: new RegExp(normalizedType, 'i') }
+            ]
+          });
+
+          let avgScore = 0;
+          let completionRate = 0;
+
+          if (path && path.courses) {
+            // Get all published quizzes for this path
+            const pathQuizzes = await Quiz.find({
+              status: 'published',
+              course: { $in: path.courses }
+            }).select('_id');
+
+            const pathQuizIds = pathQuizzes.map(q => q._id);
+
+            // Get all quiz results for this student in this path
+            const quizResults = await QuizResult.find({
+              student: student._id,
+              quiz: { $in: pathQuizIds },
+              status: 'completed'
+            }).select('grade');
+
+            // Calculate average score
+            if (quizResults.length > 0) {
+              const totalScore = quizResults.reduce((sum, result) => sum + (result.grade || 0), 0);
+              avgScore = Math.round(totalScore / quizResults.length);
+            }
+
+
+            // Calculate completion rate (completed courses / total courses in path)
+            const totalCourses = path.courses.length;
+            const completedCourses = track ? (track.coursesCompleted || 0) : 0;
+            completionRate = totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0;
+          }
+
+          return {
+            userId: student._id.toString(),
+            hours: minutesStudied, // Now in minutes
+            performance: {
+              avgScore: avgScore,
+              completionRate: completionRate
+            }
+          };
+        } catch (err) {
+          console.error(`Error calculating stats for student ${student._id}:`, err);
+          return {
+            userId: student._id.toString(),
+            hours: 0,
+            performance: { avgScore: 0, completionRate: 0 }
+          };
+        }
+      })
+    );
+
+    res.json({
+      success: true,
+      data: studentProfiles
+    });
+  } catch (error) {
+    console.error('Error fetching student profiles:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/instructor-profiles
+ * @desc    Get instructor profiles with real latest upload data
+ * @access  Admin
+ */
+router.get('/instructor-profiles', async (req, res) => {
+  try {
+    const Content = require('../models/Content');
+
+    // Fetch all teachers
+    const teachers = await Teacher.find({}).select('_id fullName');
+
+    const instructorProfiles = await Promise.all(
+      teachers.map(async (teacher) => {
+        try {
+          // Get the latest content uploaded by this teacher
+          const latestContent = await Content.findOne({
+            teacher: teacher._id,
+            status: { $ne: 'deleted' }
+          })
+            .sort({ createdAt: -1 })
+            .select('title')
+            .limit(1);
+
+          return {
+            userId: teacher._id.toString(),
+            latestUpload: latestContent ? latestContent.title : null
+          };
+        } catch (err) {
+          console.error(`Error fetching content for teacher ${teacher._id}:`, err);
+          return {
+            userId: teacher._id.toString(),
+            latestUpload: null
+          };
+        }
+      })
+    );
+
+    res.json({
+      success: true,
+      data: instructorProfiles
+    });
+  } catch (error) {
+    console.error('Error fetching instructor profiles:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * @route   PATCH /api/admin/users/:id/suspend
  * @desc    Suspend a user (student or teacher)
  * @access  Admin
@@ -477,7 +627,7 @@ router.get('/teacher/:email/content', async (req, res) => {
       teacher: teacher._id,
       status: { $ne: 'deleted' } // Exclude deleted content
     })
-      .select('title pathType contentType topic lesson course description difficulty status createdAt')
+      .select('title pathType contentType topic lesson course description difficulty status createdAt views likes')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -516,7 +666,7 @@ router.get('/teacher/:email/quizzes', async (req, res) => {
     const quizzes = await Quiz.find({
       teacher: teacher._id
     })
-      .select('title pathType topic lesson course difficulty status createdAt questionsAndAnswers')
+      .select('title pathType topic lesson course difficulty status createdAt questionsAndAnswers views likes')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -529,6 +679,47 @@ router.get('/teacher/:email/quizzes', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+/**
+ * @route   GET /api/admin/teacher/:email/quiz-results
+ * @desc    Get all quiz results for an instructor's quizzes
+ * @access  Admin
+ */
+router.get('/teacher/:email/quiz-results', async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const teacher = await Teacher.findOne({ email });
+    if (!teacher) {
+      return res.status(404).json({ success: false, error: 'Teacher not found' });
+    }
+
+    const Quiz = require('../models/Quiz');
+    const quizzes = await Quiz.find({ teacher: teacher._id }).select('_id');
+    const quizIds = quizzes.map(q => q._id);
+
+    const QuizResult = require('../models/QuizResult');
+    const results = await QuizResult.find({ quiz: { $in: quizIds } })
+      .populate('student', 'fullName profilePic')
+      .sort({ updatedAt: -1 })
+      .limit(50);
+
+    const formattedResults = results.map(result => ({
+      student: result.student?.fullName || 'Student',
+      profilePic: result.student?.profilePic || '',
+      date: new Date(result.updatedAt).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      }),
+      grade: result.status === 'completed' && result.grade != null ? `${Math.round(result.grade)}%` : '--%',
+      status: result.status === 'completed' ? 'Complete' : 'Paused'
+    }));
+
+    res.json({ success: true, data: formattedResults });
+  } catch (error) {
+    console.error('Error fetching quiz results:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function QuizInformation() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("all"); // all | upcoming | graded
+  const [tab, setTab] = useState("your_course"); // your_course | upcoming | graded
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,15 +22,16 @@ export default function QuizInformation() {
       if (!token) return;
 
       try {
-        // TODO: Replace with actual API endpoint when available
-        // const response = await fetch(`${API_URL}/api/quizzes/student`, {
-        //   headers: { 'Authorization': `Bearer ${token}` }
-        // });
-        // if (response.ok) {
-        //   const data = await response.json();
-        //   setQuizzes(data.quizzes || []);
-        // }
-        setQuizzes([]); // Empty array until API is ready
+        const response = await fetch(`${API_URL}/api/quizzes/student`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setQuizzes(data.quizzes || []);
+        } else {
+          console.error('Failed to fetch quizzes');
+          setQuizzes([]);
+        }
       } catch (error) {
         console.error('Error fetching quizzes:', error);
         setQuizzes([]);
@@ -43,10 +44,7 @@ export default function QuizInformation() {
   }, []);
 
   const rows = useMemo(() => {
-    return quizzes.filter((x) => {
-      const matchTab = tab === "all" ? true : x.status === tab;
-      return matchTab;
-    });
+    return quizzes.filter((x) => x.status === tab);
   }, [quizzes, tab]);
 
   const getStatusIcon = (status) => {
@@ -55,6 +53,8 @@ export default function QuizInformation() {
         return <CheckCircle2 size={18} />;
       case "upcoming":
         return <Clock size={18} />;
+      case "your_course":
+        return <PlayCircle size={18} />;
       default:
         return <AlertCircle size={18} />;
     }
@@ -63,23 +63,25 @@ export default function QuizInformation() {
   const getStatusLabel = (status) => {
     switch (status) {
       case "graded":
-        return "Graded";
+        return "Graded/Paused";
       case "upcoming":
         return "Upcoming";
+      case "your_course":
+        return "Available";
       default:
         return "Unknown";
     }
   };
 
   const handleStartQuiz = (quiz) => {
-    if (quiz.status === "upcoming") {
-      navigate("/quiz", { state: { quizId: quiz.id } });
+    if (quiz.status === "your_course") {
+      navigate(`/quiz/${quiz.id}`);
     }
   };
 
   const stats = useMemo(() => {
     return {
-      all: quizzes.length,
+      your_course: quizzes.filter((q) => q.status === "your_course").length,
       upcoming: quizzes.filter((q) => q.status === "upcoming").length,
       graded: quizzes.filter((q) => q.status === "graded").length,
     };
@@ -103,13 +105,13 @@ export default function QuizInformation() {
 
       {/* Stats Cards */}
       <div className="qi-stats">
-        <div className="qi-stat-card" onClick={() => setTab("all")}>
+        <div className="qi-stat-card" onClick={() => setTab("your_course")}>
           <div className="qi-stat-icon all">
             <BookOpen size={24} />
           </div>
           <div className="qi-stat-content">
-            <div className="qi-stat-value">{stats.all}</div>
-            <div className="qi-stat-label">All Quizzes</div>
+            <div className="qi-stat-value">{stats.your_course}</div>
+            <div className="qi-stat-label">Your Course</div>
           </div>
         </div>
         <div className="qi-stat-card" onClick={() => setTab("upcoming")}>
@@ -127,7 +129,7 @@ export default function QuizInformation() {
           </div>
           <div className="qi-stat-content">
             <div className="qi-stat-value">{stats.graded}</div>
-            <div className="qi-stat-label">Graded</div>
+            <div className="qi-stat-label">Graded/Paused</div>
           </div>
         </div>
       </div>
@@ -136,9 +138,9 @@ export default function QuizInformation() {
       <div className="qi-tabs-container">
         <div className="qi-tabs">
           {[
-            ["all", "All", stats.all],
+            ["your_course", "Your Course", stats.your_course],
             ["upcoming", "Upcoming", stats.upcoming],
-            ["graded", "Graded", stats.graded],
+            ["graded", "Graded/Paused", stats.graded],
           ].map(([key, label, count]) => (
             <button
               key={key}
@@ -164,81 +166,60 @@ export default function QuizInformation() {
         ) : rows.length > 0 ? (
           <div className="qi-cards-grid">
             {rows.map((quiz) => (
-              <div key={quiz.id} className={`qi-card qi-card-${quiz.status}`}>
+              <div key={quiz.id} className="qi-modern-card">
                 <div className="qi-card-header">
-                  <div className="qi-card-status">
-                    <span className={`qi-status-badge qi-status-${quiz.status}`}>
-                      {getStatusIcon(quiz.status)}
-                      {getStatusLabel(quiz.status)}
-                    </span>
-                  </div>
-                  <div className="qi-card-id">{quiz.courseId}</div>
+                  <span className={`qi-status-pill ${quiz.status}`}>
+                    {quiz.status === "upcoming" && "⏳ "}
+                    {quiz.status === "graded" && "✅ "}
+                    {quiz.status === "your_course" && "▶️ "}
+                    {getStatusLabel(quiz.status)}
+                  </span>
                 </div>
 
                 <div className="qi-card-body">
                   <h3 className="qi-card-title">{quiz.quizTitle}</h3>
-                  <p className="qi-card-course">{quiz.courseTitle}</p>
+                  <div className="qi-lesson">Lesson: {quiz.lessonTitle}</div>
 
-                  <div className="qi-card-info">
-                    <div className="qi-info-item">
-                      <User size={16} />
-                      <span>{quiz.instructor}</span>
+                  <div className="qi-meta-row">
+                    <div className="qi-question-count">
+                      <span>{quiz.questions} Questions</span>
                     </div>
-                    <div className="qi-info-item">
-                      <Calendar size={16} />
-                      <span>{quiz.date}</span>
+                    <div className={`qi-difficulty ${quiz.difficulty?.toLowerCase()}`}>
+                      {quiz.difficulty}
                     </div>
-                    <div className="qi-info-item">
-                      <Clock size={16} />
-                      <span>{quiz.duration}</span>
-                    </div>
-                    {quiz.questions && (
-                      <div className="qi-info-item">
-                        <BookOpen size={16} />
-                        <span>{quiz.questions} questions</span>
-                      </div>
-                    )}
                   </div>
-
-                  {quiz.status === "graded" && (
-                    <div className="qi-score-section">
-                      <div className="qi-score-header">
-                        <span className="qi-score-label">Your Score</span>
-                        <span className="qi-score-value">
-                          {quiz.score}/{quiz.maxScore}
-                        </span>
-                      </div>
-                      <div className="qi-score-bar">
-                        <div
-                          className="qi-score-fill"
-                          style={{ width: `${(quiz.score / quiz.maxScore) * 100}%` }}
-                        ></div>
-                      </div>
-                      <div className="qi-score-percentage">
-                        {Math.round((quiz.score / quiz.maxScore) * 100)}%
-                      </div>
-                    </div>
-                  )}
-
                 </div>
 
-                <div className="qi-card-footer">
-                  {quiz.status === "upcoming" && (
+                <div style={{ marginTop: 'auto' }}>
+                  {quiz.status === "your_course" && (
                     <button
-                      className="qi-btn qi-btn-primary"
+                      className="qi-action-btn"
                       onClick={() => handleStartQuiz(quiz)}
                     >
                       <PlayCircle size={18} />
-                      Start Quiz
+                      Join Quiz
                     </button>
                   )}
                   {quiz.status === "graded" && (
-                    <button
-                      className="qi-btn qi-btn-secondary"
-                      onClick={() => navigate("/quiz-results", { state: { quiz } })}
-                    >
-                      <Award size={18} />
-                      View Results
+                    // Check if quiz is paused or completed
+                    quiz.resultStatus === 'paused' ? (
+                      <button
+                        className="qi-action-btn secondary"
+                        onClick={() => handleStartQuiz(quiz)}
+                      >
+                        <PlayCircle size={18} />
+                        Resume Quiz
+                      </button>
+                    ) : (
+                      <div className="qi-status-badge passed">
+                        <Award size={18} />
+                        Score: {quiz.score}%
+                      </div>
+                    )
+                  )}
+                  {quiz.status === "upcoming" && (
+                    <button className="qi-action-btn secondary" disabled>
+                      Upcoming
                     </button>
                   )}
                 </div>

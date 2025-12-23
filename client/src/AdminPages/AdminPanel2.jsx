@@ -49,6 +49,8 @@ export default function AdminPanel2() {
   const [achievements, setAchievements] = useState([]);
   const [diagnosticQuestions, setDiagnosticQuestions] = useState([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState(null);
+  const [studentProfiles, setStudentProfiles] = useState([]); // Real student stats
+  const [instructorProfiles, setInstructorProfiles] = useState([]); // Real instructor uploads
 
   const [search, setSearch] = useState(""); // Global search for all components except Users
   const [userSearch, setUserSearch] = useState(""); // Separate search for Users component
@@ -69,22 +71,20 @@ export default function AdminPanel2() {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   const profiles = useMemo(() => ({
-    students: users
+    students: studentProfiles.length > 0 ? studentProfiles : users
       .filter(u => u.role === "student")
       .map(u => ({
         userId: u.id,
-        hours: u.student?.hours ?? 0,
-        performance: u.student?.performance ?? { avgScore: 0, completionRate: 0 },
+        hours: 0,
+        performance: { avgScore: 0, completionRate: 0 },
       })),
-    instructors: users
+    instructors: instructorProfiles.length > 0 ? instructorProfiles : users
       .filter(u => u.role === "instructor")
       .map(u => ({
         userId: u.id,
-        videos: u.instructor?.uploads?.videos ?? [],
-        files: u.instructor?.uploads?.files ?? [],
-        quizzes: u.instructor?.uploads?.quizzes ?? [],
+        latestUpload: null
       })),
-  }), [users]);
+  }), [users, studentProfiles, instructorProfiles]);
 
   // Check authentication on mount
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function AdminPanel2() {
         }
       };
       fetchApplications();
-      
+
       // Refresh applications every 30 seconds
       const interval = setInterval(fetchApplications, 30000);
       return () => clearInterval(interval);
@@ -170,7 +170,7 @@ export default function AdminPanel2() {
         }
       };
       fetchFeedback();
-      
+
       // Refresh feedback every 30 seconds
       const interval = setInterval(fetchFeedback, 30000);
       return () => clearInterval(interval);
@@ -214,7 +214,7 @@ export default function AdminPanel2() {
         }
       };
       fetchReports();
-      
+
       // Refresh reports every 30 seconds
       const interval = setInterval(fetchReports, 30000);
       return () => clearInterval(interval);
@@ -250,7 +250,7 @@ export default function AdminPanel2() {
         }
       };
       fetchUsers();
-      
+
       // Refresh users every 30 seconds
       const interval = setInterval(fetchUsers, 30000);
       return () => clearInterval(interval);
@@ -285,7 +285,7 @@ export default function AdminPanel2() {
         }
       };
       fetchLearningPaths();
-      
+
       // Refresh learning paths every 30 seconds
       const interval = setInterval(fetchLearningPaths, 30000);
       return () => clearInterval(interval);
@@ -320,7 +320,7 @@ export default function AdminPanel2() {
         }
       };
       fetchAchievements();
-      
+
       // Refresh achievements every 30 seconds
       const interval = setInterval(fetchAchievements, 30000);
       return () => clearInterval(interval);
@@ -355,12 +355,82 @@ export default function AdminPanel2() {
         }
       };
       fetchDiagnosticQuestions();
-      
+
       // Refresh diagnostic questions every 30 seconds
       const interval = setInterval(fetchDiagnosticQuestions, 30000);
       return () => clearInterval(interval);
     } else {
       setDiagnosticQuestions([]);
+    }
+  }, [isAuthed]);
+
+  // Fetch student profiles on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchStudentProfiles = async () => {
+        try {
+          console.log('Fetching student profiles from API...');
+          const res = await api.getStudentProfiles();
+          console.log('Student profiles API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} student profiles:`, res.data);
+              setStudentProfiles(res.data);
+            } else {
+              console.log('No student profiles data, setting empty array');
+              setStudentProfiles([]);
+            }
+          } else {
+            console.warn('Failed to fetch student profiles:', res);
+            setStudentProfiles([]);
+          }
+        } catch (error) {
+          console.error('Error fetching student profiles:', error);
+          setStudentProfiles([]);
+        }
+      };
+      fetchStudentProfiles();
+
+      // Refresh student profiles every 30 seconds
+      const interval = setInterval(fetchStudentProfiles, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setStudentProfiles([]);
+    }
+  }, [isAuthed]);
+
+  // Fetch instructor profiles on mount and when authenticated
+  useEffect(() => {
+    if (isAuthed) {
+      const fetchInstructorProfiles = async () => {
+        try {
+          console.log('Fetching instructor profiles from API...');
+          const res = await api.getInstructorProfiles();
+          console.log('Instructor profiles API response:', res);
+          if (res.ok) {
+            if (res.data && Array.isArray(res.data)) {
+              console.log(`Setting ${res.data.length} instructor profiles:`, res.data);
+              setInstructorProfiles(res.data);
+            } else {
+              console.log('No instructor profiles data, setting empty array');
+              setInstructorProfiles([]);
+            }
+          } else {
+            console.warn('Failed to fetch instructor profiles:', res);
+            setInstructorProfiles([]);
+          }
+        } catch (error) {
+          console.error('Error fetching instructor profiles:', error);
+          setInstructorProfiles([]);
+        }
+      };
+      fetchInstructorProfiles();
+
+      // Refresh instructor profiles every 30 seconds
+      const interval = setInterval(fetchInstructorProfiles, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setInstructorProfiles([]);
     }
   }, [isAuthed]);
 
@@ -454,7 +524,7 @@ export default function AdminPanel2() {
         alert(res.error || "Failed to process application");
         return;
       }
-  
+
       // Update local state
       if (decision === "decline") {
         setApplications(prev =>
@@ -470,21 +540,21 @@ export default function AdminPanel2() {
         alert("Application declined.");
         return;
       }
-  
+
       // If accepted, update status
       setApplications(prev =>
         prev.map(a => (a.id === id ? { ...a, status: "accepted" } : a))
       );
-  
+
       const app = applications.find(a => a.id === id);
       if (!app) return;
       if (users.some(u => u.name === app.name && u.role === "instructor")) return;
-  
+
       const defaultSkills =
         app.category === "Autism"
           ? ["Autism", "ABA", "Speech Therapy"]
           : ["Down Syndrome", "Early Intervention"];
-  
+
       const newUser = {
         id: `u-${Date.now()}`,
         name: app.name,
@@ -507,7 +577,7 @@ export default function AdminPanel2() {
           contactEmail: app.email || "",
         },
       };
-  
+
       setUsers(prev => [newUser, ...prev]);
       alert("Application accepted. Instructor can now upload content and generate quizzes.");
     } catch (error) {
@@ -534,7 +604,7 @@ export default function AdminPanel2() {
         return;
       }
       // Update both show and visible for backward compatibility
-      setFeedback((prev) => prev.map((f) => 
+      setFeedback((prev) => prev.map((f) =>
         (f.id === id || f._id === id) ? { ...f, show: visible, visible } : f
       ));
     } catch (error) {
@@ -549,10 +619,10 @@ export default function AdminPanel2() {
       showToast("User not found", "error");
       return;
     }
-    
+
     const reason = prompt("Reason for suspension?");
     if (reason === null) return;
-    
+
     try {
       const res = await api.suspendUser(id, user.role);
       if (!res.ok) {
@@ -568,14 +638,14 @@ export default function AdminPanel2() {
       showToast("An error occurred while suspending the user", "error");
     }
   }
-  
+
   async function handleReinstate(id) {
     const user = users.find(u => u.id === id);
     if (!user) {
       showToast("User not found", "error");
       return;
     }
-    
+
     try {
       const res = await api.reinstateUser(id, user.role);
       if (!res.ok) {
@@ -604,7 +674,7 @@ export default function AdminPanel2() {
       showToast("User not found", "error");
       return;
     }
-    
+
     // Show confirmation modal
     setDeleteConfirmModal({
       show: true,
@@ -616,10 +686,10 @@ export default function AdminPanel2() {
 
   async function confirmDelete() {
     const { userId, userRole } = deleteConfirmModal;
-    
+
     // Close modal
     setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' });
-    
+
     try {
       const res = await api.deleteUser(userId, userRole);
       if (!res.ok) {
@@ -645,9 +715,9 @@ export default function AdminPanel2() {
         prev.map((p) =>
           p.id === pathId
             ? {
-                ...p,
-                courses: p.courses.map((c) => (c.id === courseId ? { ...c, name } : c)),
-              }
+              ...p,
+              courses: p.courses.map((c) => (c.id === courseId ? { ...c, name } : c)),
+            }
             : p
         )
       );
@@ -669,16 +739,16 @@ export default function AdminPanel2() {
         prev.map((p) =>
           p.id === pathId
             ? {
-                ...p,
-                courses: p.courses.map((c) =>
-                  c.id === courseId
-                    ? {
-                        ...c,
-                        topics: c.topics.map((t) => (t.id === topicId ? { ...t, name } : t)),
-                      }
-                    : c
-                ),
-              }
+              ...p,
+              courses: p.courses.map((c) =>
+                c.id === courseId
+                  ? {
+                    ...c,
+                    topics: c.topics.map((t) => (t.id === topicId ? { ...t, name } : t)),
+                  }
+                  : c
+              ),
+            }
             : p
         )
       );
@@ -700,25 +770,25 @@ export default function AdminPanel2() {
         prev.map((p) =>
           p.id === pathId
             ? {
-                ...p,
-                courses: p.courses.map((c) =>
-                  c.id === courseId
-                    ? {
-                        ...c,
-                        topics: c.topics.map((t) =>
-                          t.id === topicId
-                            ? {
-                                ...t,
-                                lessons: t.lessons.map((l) =>
-                                  l.id === lessonId ? { ...l, name } : l
-                                ),
-                              }
-                            : t
-                        ),
-                      }
-                    : c
-                ),
-              }
+              ...p,
+              courses: p.courses.map((c) =>
+                c.id === courseId
+                  ? {
+                    ...c,
+                    topics: c.topics.map((t) =>
+                      t.id === topicId
+                        ? {
+                          ...t,
+                          lessons: t.lessons.map((l) =>
+                            l.id === lessonId ? { ...l, name } : l
+                          ),
+                        }
+                        : t
+                    ),
+                  }
+                  : c
+              ),
+            }
             : p
         )
       );
@@ -901,7 +971,7 @@ export default function AdminPanel2() {
       showToast("An error occurred while deleting the lesson", "error");
     }
   }
-  
+
   async function handleCreateAchievement(achievementData) {
     try {
       const res = await api.createAchievement(achievementData);
@@ -957,7 +1027,7 @@ export default function AdminPanel2() {
 
   // Removed handleToggleAchievementStatus - achievements no longer have isActive status
 
-  
+
   // Diagnostic Questions Handlers
   async function handleCreateDiagnosticQuestion(questionData) {
     try {
@@ -1029,7 +1099,7 @@ export default function AdminPanel2() {
     }
   }
 
-  
+
   function openInstructor(id) {
     setSelectedInstructorId(id);
     setSection("instructorProfile");
@@ -1056,9 +1126,9 @@ export default function AdminPanel2() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "dashboard", 
-      label: "Dashboard", 
+    {
+      key: "dashboard",
+      label: "Dashboard",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="7" height="7"></rect>
@@ -1069,9 +1139,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("dashboard")
     },
-    { 
-      key: "applications", 
-      label: "Applications", 
+    {
+      key: "applications",
+      label: "Applications",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -1083,9 +1153,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("applications")
     },
-    { 
-      key: "reports", 
-      label: "Reports", 
+    {
+      key: "reports",
+      label: "Reports",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
@@ -1094,9 +1164,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("reports")
     },
-    { 
-      key: "feedback", 
-      label: "Feedback", 
+    {
+      key: "feedback",
+      label: "Feedback",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -1104,9 +1174,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("feedback")
     },
-    { 
-      key: "users", 
-      label: "Users", 
+    {
+      key: "users",
+      label: "Users",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -1117,9 +1187,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("users")
     },
-    { 
-      key: "learning", 
-      label: "Learning Paths", 
+    {
+      key: "learning",
+      label: "Learning Paths",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -1128,9 +1198,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("learning")
     },
-    { 
-      key: "achievements-tests", 
-      label: "Achievements & Tests", 
+    {
+      key: "achievements-tests",
+      label: "Achievements & Tests",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="8" r="7"></circle>
@@ -1139,9 +1209,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("achievements-tests")
     },
-    { 
-      key: "profiles", 
-      label: "Profiles", 
+    {
+      key: "profiles",
+      label: "Profiles",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -1150,9 +1220,9 @@ export default function AdminPanel2() {
       ),
       onClick: () => setSection("profiles")
     },
-    { 
-      key: "settings", 
-      label: "Settings", 
+    {
+      key: "settings",
+      label: "Settings",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="3"></circle>
@@ -1178,7 +1248,7 @@ export default function AdminPanel2() {
   return (
     <div className="ld-page">
       {/* Left Sidebar with Hover Animation */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -1209,7 +1279,7 @@ export default function AdminPanel2() {
 
           {/* Logout Button */}
           <div className="ld-sidebar-footer">
-            <button 
+            <button
               className="ld-sidebar-link ld-sidebar-logout"
               onClick={handleLogout}
             >
@@ -1235,19 +1305,19 @@ export default function AdminPanel2() {
               Admin <span className="ld-brand">Dashboard</span>
             </h1>
           </div>
-           <div className="ld-header-center">
-             <div className="ld-search-container">
-               <input 
-                 className="ld-search-input"
-                 type="text"
-                 placeholder={
-                   section === "users" 
-                     ? "Users have their own search below" 
-                     : section === "settings" || section === "learning" || section === "achievements-tests"
-                     ? "Search not available in this section"
-                     : "Search anything..."
-                 } 
-                value={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests" ? "" : search} 
+          <div className="ld-header-center">
+            <div className="ld-search-container">
+              <input
+                className="ld-search-input"
+                type="text"
+                placeholder={
+                  section === "users"
+                    ? "Users have their own search below"
+                    : section === "settings" || section === "learning" || section === "achievements-tests"
+                      ? "Search not available in this section"
+                      : "Search anything..."
+                }
+                value={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests" ? "" : search}
                 onChange={(e) => {
                   if (section !== "users" && section !== "settings" && section !== "learning" && section !== "achievements-tests") {
                     setSearch(e.target.value);
@@ -1259,9 +1329,9 @@ export default function AdminPanel2() {
                     ? { opacity: 0.5, cursor: "not-allowed" }
                     : {}
                 }
-               />
-               <button 
-                className="ld-search-btn" 
+              />
+              <button
+                className="ld-search-btn"
                 type="button"
                 disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"}
                 style={
@@ -1269,14 +1339,14 @@ export default function AdminPanel2() {
                     ? { opacity: 0.5, cursor: "not-allowed" }
                     : {}
                 }
-               >
-                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                   <circle cx="11" cy="11" r="8"></circle>
-                   <path d="m21 21-4.35-4.35"></path>
-                 </svg>
-               </button>
-             </div>
-           </div>
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
           <div className="ld-header-right">
             <div className="ld-profile-container">
               <button className="ld-profile-trigger">
@@ -1296,11 +1366,11 @@ export default function AdminPanel2() {
         {/* Content Area */}
         <div className="ld-content">
           {section === "dashboard" && (
-            <Dashboard 
-              users={users} 
-              profiles={profiles} 
-              onReinstate={handleReinstate} 
-              search={search} 
+            <Dashboard
+              users={users}
+              profiles={profiles}
+              onReinstate={handleReinstate}
+              search={search}
               onOpenInstructor={openInstructor}
               applications={applications}
               reports={reports}
@@ -1407,16 +1477,16 @@ export default function AdminPanel2() {
             <p className="admin-modal-message">
               Are you sure you want to permanently delete <strong>{deleteConfirmModal.userName}</strong>'s {deleteConfirmModal.userRole === 'instructor' ? 'teacher' : 'student'} account? This action cannot be undone and all data will be lost.
             </p>
-            
+
             <div className="admin-modal-actions">
-              <button 
-                className="admin-modal-btn admin-modal-btn-secondary" 
+              <button
+                className="admin-modal-btn admin-modal-btn-secondary"
                 onClick={() => setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}
               >
                 Cancel
               </button>
-              <button 
-                className="admin-modal-btn admin-modal-btn-danger" 
+              <button
+                className="admin-modal-btn admin-modal-btn-danger"
                 onClick={confirmDelete}
               >
                 Delete Account

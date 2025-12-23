@@ -73,6 +73,12 @@ export default function InstructorDashboard2() {
   const [suspensionModal, setSuspensionModal] = useState({ show: false, message: '', title: '' });
   const [curriculumData, setCurriculumData] = useState([]);
   const [curriculumLoading, setCurriculumLoading] = useState(true);
+  const [contentMetrics, setContentMetrics] = useState({
+    totalViews: 0,
+    totalLikes: 0,
+    totalUploads: 0
+  });
+  const [quizResults, setQuizResults] = useState([]);
 
   // Real Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -263,11 +269,85 @@ export default function InstructorDashboard2() {
     }
   }, [mongoToken]);
 
+  // Fetch instructor's content metrics
+  useEffect(() => {
+    const fetchContentMetrics = async () => {
+      if (!email) {
+        console.log('[Metrics] No email available yet');
+        return;
+      }
+
+      console.log('[Metrics] Fetching for email:', email);
+
+      try {
+        const Content = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(email)}/content`);
+        const Quiz = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(email)}/quizzes`);
+
+        let totalViews = 0;
+        let totalLikes = 0;
+        let totalUploads = 0;
+
+        if (Content.ok) {
+          const contentData = await Content.json();
+          const contents = contentData.data || [];
+          console.log('[Metrics] Content items:', contents.length, contents);
+          totalViews += contents.reduce((sum, item) => sum + (item.views || 0), 0);
+          totalLikes += contents.reduce((sum, item) => sum + (item.likes || 0), 0);
+          totalUploads += contents.length;
+        } else {
+          console.error('[Metrics] Content fetch failed:', Content.status);
+        }
+
+        if (Quiz.ok) {
+          const quizData = await Quiz.json();
+          const quizzes = quizData.data || [];
+          console.log('[Metrics] Quiz items:', quizzes.length, quizzes);
+          totalViews += quizzes.reduce((sum, item) => sum + (item.views || 0), 0);
+          totalLikes += quizzes.reduce((sum, item) => sum + (item.likes || 0), 0);
+          totalUploads += quizzes.length;
+        } else {
+          console.error('[Metrics] Quiz fetch failed:', Quiz.status);
+        }
+
+        console.log('[Metrics] Final totals - Views:', totalViews, 'Likes:', totalLikes, 'Uploads:', totalUploads);
+
+        setContentMetrics({
+          totalViews,
+          totalLikes,
+          totalUploads
+        });
+      } catch (error) {
+        console.error('[Metrics] Error fetching content metrics:', error);
+      }
+    };
+
+    fetchContentMetrics();
+  }, [email]);
+
+  // Fetch quiz results
+  useEffect(() => {
+    const fetchQuizResults = async () => {
+      if (!email) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(email)}/quiz-results`);
+        if (response.ok) {
+          const data = await response.json();
+          setQuizResults(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching quiz results:', error);
+      }
+    };
+
+    fetchQuizResults();
+  }, [email]);
+
   // Sample data for instructor dashboard
   const sampleMetrics = [
-    { label: "Content views", value: "2,315", change: "+11.01%" },
-    { label: "Likes given", value: "1,032", change: "+1.01%" },
-    { label: "Favorites given", value: "300", change: "+15.01%" },
+    { label: "Content views", value: contentMetrics.totalViews.toLocaleString(), change: "+11.01%" },
+    { label: "Likes given", value: contentMetrics.totalLikes.toLocaleString(), change: "+1.01%" },
+    { label: "Total Uploads", value: contentMetrics.totalUploads.toLocaleString(), change: "+15.01%" },
   ];
 
   // Function to mark notification as read
@@ -748,7 +828,10 @@ export default function InstructorDashboard2() {
                   e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
               >
-                <InstructorDailyChart />
+                <InstructorDailyChart
+                  totalViews={contentMetrics.totalViews}
+                  totalLikes={contentMetrics.totalLikes}
+                />
               </div>
             </div>
           </div>
@@ -832,7 +915,7 @@ export default function InstructorDashboard2() {
       <section className="ld-results-ranking-section">
         <div className="ld-results-ranking-grid">
           <div className="ld-quiz-results-wrapper">
-            <QuizResults data={sampleQuizResults} />
+            <QuizResults data={quizResults} />
           </div>
           <div className="ld-ranking-wrapper">
             {loadingRanking ? (

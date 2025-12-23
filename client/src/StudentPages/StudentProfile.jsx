@@ -19,7 +19,6 @@ const initialProfileState = {
   profilePic: "",
   joinedDate: null,
   stars: 0,
-  attendancePercent: 0,
   coursesCompleted: 0,
   coursesInProgress: 0,
   totalHours: 0,
@@ -103,6 +102,10 @@ export default function StudentProfile() {
     progressVisible: false,
   });
 
+
+
+
+
   // Fetch student data on mount
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -135,10 +138,65 @@ export default function StudentProfile() {
               setInitialProfile(updatedProfile);
             }
 
-            // TODO: Fetch achievements and activity from API when endpoints are available
-            // For now, set empty arrays
-            setRecentAchievements([]);
-            setRecentActivity([]);
+            // Fetch achievements and progress
+            try {
+              const progressResponse = await fetch(`${API_URL}/api/students/progress`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+
+              if (progressResponse.ok) {
+                const progressData = await progressResponse.json();
+                if (progressData.success && progressData.data) {
+                  const p = progressData.data;
+
+                  // Determine active course name
+                  let activeCourseName = "None";
+                  if (p.courseProgress && p.courseProgress.length > 0) {
+                    // Find first in_progress or the last started one
+                    const active = p.courseProgress.find(c => c.status === 'in_progress');
+                    if (active && active.course && active.course.title) {
+                      activeCourseName = active.course.title;
+                    } else if (p.coursesInProgress > 0) {
+                      // Fallback logic if status not explicitly 'in_progress' but count > 0
+                      // Just grab the latest accessed one
+                      const latest = p.courseProgress.sort((a, b) => new Date(b.lastAccessedAt) - new Date(a.lastAccessedAt))[0];
+                      if (latest && latest.course) activeCourseName = latest.course.title;
+                    }
+                  }
+
+                  setProfile(prev => ({
+                    ...prev,
+                    coursesCompleted: p.coursesCompleted || 0,
+                    coursesInProgress: activeCourseName === "None" ? 0 : activeCourseName,
+                    coursesInProgressCount: p.coursesInProgress || 0,
+                    currentStreak: p.currentStreak || 0,
+                    stars: p.achievements ? p.achievements.length * 10 : 0,
+                    totalHours: p.hoursStudied ? Math.round(p.hoursStudied * 10) / 10 : 0
+                  }));
+
+                  if (p.recentAchievementsDisplay) {
+                    setRecentAchievements(p.recentAchievementsDisplay);
+                  }
+
+                  if (p.recentActivity) {
+                    setRecentActivity(p.recentActivity);
+                  }
+
+                  // Map achievements for display
+                  if (p.achievements && p.achievements.length > 0) {
+                    // We need to map the backend achievement structure to frontend display
+                    // Backend: { achievement: ID, completedAt: Date }
+                    // We might need to fetch details if not populated, but for now let's assume simple count or Basic info
+                    // Actually progress endpoint returns 'achievements' array on student object usually has populated fields if we used populate?
+                    // Let's check studentAuthRoutes.js - looks like it returns student.achievements which has ID.
+                    // The student object from /auth/me might have them populated or we might need to rely on the count.
+                    // For 'Recent Achievements', let's just use the count for now to avoid complex mapping without full data.
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Error fetching progress:', err);
+            }
           }
         } catch (error) {
           console.error('Error fetching student data:', error);
@@ -351,15 +409,7 @@ export default function StudentProfile() {
                 <div className="sp-stat-label">Stars Earned</div>
               </div>
             </div>
-            <div className="sp-stat-card">
-              <div className="sp-stat-icon-wrapper target">
-                <Target size={24} />
-              </div>
-              <div className="sp-stat-content">
-                <div className="sp-stat-value">{profile.attendancePercent}%</div>
-                <div className="sp-stat-label">Attendance</div>
-              </div>
-            </div>
+
             <div className="sp-stat-card">
               <div className="sp-stat-icon-wrapper book">
                 <BookOpen size={24} />
@@ -437,7 +487,9 @@ export default function StudentProfile() {
                   </div>
                   <div className="sp-info-row">
                     <span className="sp-info-label">In Progress</span>
-                    <span className="sp-info-value">{profile.coursesInProgress}</span>
+                    <span className="sp-info-value" style={isNaN(profile.coursesInProgress) ? { fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' } : {}}>
+                      {profile.coursesInProgress}
+                    </span>
                   </div>
                   <div className="sp-info-row">
                     <span className="sp-info-label">Total Hours</span>
@@ -453,16 +505,20 @@ export default function StudentProfile() {
                 </div>
                 <div className="sp-card-body">
                   <div className="sp-achievements-list">
-                    {recentAchievements.map((ach) => (
-                      <div key={ach.id} className="sp-achievement-item">
-                        <div className="sp-achievement-icon">{ach.icon}</div>
-                        <div className="sp-achievement-details">
-                          <div className="sp-achievement-title">{ach.title}</div>
-                          <div className="sp-achievement-desc">{ach.desc}</div>
+                    {recentAchievements.length > 0 ? (
+                      recentAchievements.map((ach) => (
+                        <div key={ach.id} className="sp-achievement-item">
+                          <div className="sp-achievement-icon">{ach.icon || "🏆"}</div>
+                          <div className="sp-achievement-details">
+                            <div className="sp-achievement-title">{ach.title}</div>
+                            <div className="sp-achievement-desc">{ach.desc}</div>
+                          </div>
+                          <div className="sp-achievement-date">{ach.date}</div>
                         </div>
-                        <div className="sp-achievement-date">{ach.date}</div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: '#666', textAlign: 'center' }}>No achievements yet</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -474,20 +530,23 @@ export default function StudentProfile() {
                 </div>
                 <div className="sp-card-body">
                   <div className="sp-activity-list">
-                    {recentActivity.map((act) => (
-                      <div key={act.id} className="sp-activity-item">
-                        <div className="sp-activity-dot"></div>
-                        <div className="sp-activity-content">
-                          <div className="sp-activity-action">{act.action}</div>
-                          <div className="sp-activity-meta">
-                            {act.course && <span>{act.course}</span>}
-                            {act.achievement && <span>{act.achievement}</span>}
-                            {act.score && <span className="sp-score">{act.score}</span>}
+                    {recentActivity.length > 0 ? (
+                      recentActivity.map((act) => (
+                        <div key={act.id} className="sp-activity-item">
+                          <div className="sp-activity-dot"></div>
+                          <div className="sp-activity-content">
+                            <div className="sp-activity-action">{act.action}</div>
+                            <div className="sp-activity-meta">
+                              {act.course && <span>{act.course}</span>}
+                              {act.score && <span className="sp-score">{act.score}</span>}
+                            </div>
                           </div>
+                          <div className="sp-activity-time">{act.time}</div>
                         </div>
-                        <div className="sp-activity-time">{act.time}</div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div style={{ padding: '1rem', color: '#666', textAlign: 'center' }}>No recent activity</div>
+                    )}
                   </div>
                 </div>
               </div>

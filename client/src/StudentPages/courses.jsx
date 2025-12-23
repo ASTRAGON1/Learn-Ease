@@ -76,14 +76,13 @@ function ProgressRing({ progress, size = 60 }) {
 
 // Course Card Component - Completely Redesigned
 function CourseCard({ course, index, isActive, isLocked, navigate }) {
-  const totalLessons = course.Topics.reduce(
+  const totalLessons = course.totalLessons || course.Topics.reduce(
     (sum, topic) => sum + (topic.lessons?.length || 0),
     0
   );
   const topicsCount = course.Topics?.length || 0;
   const courseImage = getCourseImage(course.CoursesTitle);
-  // TODO: Get actual progress from API
-  const progress = isActive ? 0 : isLocked ? 0 : 0; // Will be fetched from API
+  const progress = course.progress || 0;
 
   return (
     <article className={`courses-card ${isLocked ? 'courses-card-locked' : ''}`}>
@@ -92,7 +91,7 @@ function CourseCard({ course, index, isActive, isLocked, navigate }) {
         <div className="courses-card-status">
           {isActive && <span className="courses-badge courses-badge-active">Active</span>}
           {isLocked && <span className="courses-badge courses-badge-locked">Locked</span>}
-          {!isActive && !isLocked && <span className="courses-badge courses-badge-completed">✓ Done</span>}
+          {course.status === "completed" && <span className="courses-badge courses-badge-completed">✓ Done</span>}
         </div>
       </div>
 
@@ -191,6 +190,11 @@ export default function Courses() {
   const [studentPath, setStudentPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [studentProgress, setStudentProgress] = useState({
+    completedCourses: [],
+    courseProgress: {}, // Map of course index/id to progress stats
+    currentCourseIndex: 0
+  });
 
   // Check if diagnostic quiz is completed
   useDiagnosticQuizCheck();
@@ -261,6 +265,7 @@ export default function Courses() {
                 GeneralPath: normalizedType,
                 pathTitle: path.name,
                 Courses: path.courses.map(course => ({
+                  id: course._id || course.id,
                   CoursesTitle: course.name,
                   Topics: course.topics.map(topic => ({
                     TopicsTitle: topic.name,
@@ -282,14 +287,117 @@ export default function Courses() {
     fetchPath();
   }, [studentPathType]);
 
-  // Get all courses
+  // Fetch student progress
+  useEffect(() => {
+    if (!studentPath) return;
+
+    const fetchProgress = async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/students/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            const backendProgress = data.data;
+            const backendCourses = backendProgress.courseProgress || [];
+
+            // Map backend progress to frontend indices
+            const completedIndices = [];
+            const newCourseProgress = {};
+            let maxCompletedIndex = -1;
+
+            studentPath.Courses.forEach((course, index) => {
+              // Find matching backend course record by ID
+              const courseRecord = backendCourses.find(c => {
+                const backendId = c.course && (c.course._id || c.course.id || c.course);
+                return String(backendId) === String(course.id);
+              });
+
+              if (courseRecord) {
+                if (courseRecord.status === 'completed') {
+                  completedIndices.push(index);
+                  if (index > maxCompletedIndex) {
+                    maxCompletedIndex = index;
+                  }
+                }
+
+                newCourseProgress[index] = {
+                  completedLessons: courseRecord.completedLessonsCount || 0,
+                  totalLessons: courseRecord.totalLessons || 0,
+                  status: courseRecord.status
+                };
+              }
+            });
+
+            // Determine current active course index
+            let nextIndex = 0;
+            if (completedIndices.length > 0) {
+              nextIndex = maxCompletedIndex + 1;
+            }
+            if (nextIndex >= studentPath.Courses.length) {
+              nextIndex = studentPath.Courses.length - 1;
+            }
+
+            setStudentProgress({
+              completedCourses: completedIndices,
+              courseProgress: newCourseProgress,
+              currentCourseIndex: nextIndex
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching progress:', error);
+      }
+    };
+    fetchProgress();
+  }, [studentPath]);
+
+  // Get all courses with progress
   const courses = useMemo(() => {
     if (!studentPath) return [];
-    return studentPath.Courses.map((course, index) => ({
-      ...course,
-      totalCourses: studentPath.Courses.length
-    }));
-  }, [studentPath]);
+
+    return studentPath.Courses.map((course, index) => {
+      // Calculate status and progress
+      let status = "locked";
+      let progress = 0;
+      let completedLessons = 0;
+      const staticTotalLessons = course.Topics.reduce((sum, topic) => sum + topic.lessons.length, 0);
+      let totalLessons = staticTotalLessons;
+
+      const courseProg = studentProgress.courseProgress[index];
+
+      if (studentProgress.completedCourses.includes(index)) {
+        status = "completed";
+        progress = 100;
+        completedLessons = totalLessons;
+      } else if (index === studentProgress.currentCourseIndex) {
+        status = "active";
+        if (courseProg) {
+          completedLessons = courseProg.completedLessons;
+          if (courseProg.totalLessons > 0) totalLessons = courseProg.totalLessons;
+        }
+        progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      } else if (index < studentProgress.currentCourseIndex) {
+        status = "completed";
+        progress = 100;
+        completedLessons = totalLessons;
+      }
+
+      return {
+        ...course,
+        totalCourses: studentPath.Courses.length,
+        status,
+        progress: Math.min(progress, 100),
+        completedLessons,
+        totalLessons
+      };
+    });
+  }, [studentPath, studentProgress]);
 
   // Filter courses by search term
   const filteredCourses = useMemo(() => {
@@ -299,13 +407,12 @@ export default function Courses() {
     );
   }, [courses, searchTerm]);
 
-  // Calculate stats - TODO: Fetch from API
+  // Calculate stats - Real data
   const stats = useMemo(() => {
     const total = courses.length;
-    // TODO: Fetch actual progress from API
-    const completed = 0;
-    const inProgress = 0;
-    const locked = total - completed - inProgress;
+    const completed = courses.filter(c => c.status === "completed").length;
+    const inProgress = courses.filter(c => c.status === "active").length;
+    const locked = courses.filter(c => c.status === "locked").length;
 
     return { total, completed, inProgress, locked };
   }, [courses]);
@@ -546,8 +653,8 @@ export default function Courses() {
                   key={index}
                   course={course}
                   index={index}
-                  isActive={index === 0}
-                  isLocked={index > 0}
+                  isActive={course.status === "active"}
+                  isLocked={course.status === "locked"}
                   navigate={navigate}
                 />
               ))}

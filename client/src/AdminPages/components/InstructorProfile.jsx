@@ -198,6 +198,22 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
     return combined;
   }, [deletedContentFromDB, deletedQuizzesFromDB]);
 
+  // Calculate total views and likes from all content
+  const totalViews = useMemo(() => {
+    return allContent.reduce((sum, item) => {
+      // Fetch views from the actual content objects
+      const content = [...contentFromDB, ...quizzesFromDB].find(c => c._id === item.id);
+      return sum + (content?.views || 0);
+    }, 0);
+  }, [allContent, contentFromDB, quizzesFromDB]);
+
+  const totalLikes = useMemo(() => {
+    return allContent.reduce((sum, item) => {
+      const content = [...contentFromDB, ...quizzesFromDB].find(c => c._id === item.id);
+      return sum + (content?.likes || 0);
+    }, 0);
+  }, [allContent, contentFromDB, quizzesFromDB]);
+
   return (
     <div className="admin-instructor-profile">
       {/* Header with Back Button */}
@@ -259,12 +275,16 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
           </div>
           <div className="admin-instructor-stats">
             <div className="admin-instructor-stat">
-              <div className="admin-instructor-stat-value">{inf.likes || 0}</div>
+              <div className="admin-instructor-stat-value">{totalLikes}</div>
               <div className="admin-instructor-stat-label">Likes</div>
             </div>
             <div className="admin-instructor-stat">
-              <div className="admin-instructor-stat-value">{uploadsCount}</div>
+              <div className="admin-instructor-stat-value">{allContent.length}</div>
               <div className="admin-instructor-stat-label">Uploads</div>
+            </div>
+            <div className="admin-instructor-stat">
+              <div className="admin-instructor-stat-value">{totalViews}</div>
+              <div className="admin-instructor-stat-label">Views</div>
             </div>
             {inf.followers !== undefined && (
               <div className="admin-instructor-stat">

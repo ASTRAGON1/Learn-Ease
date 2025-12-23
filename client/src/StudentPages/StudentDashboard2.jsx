@@ -38,7 +38,7 @@ const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
 export default function StudentDashboard2() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeQuizTab, setActiveQuizTab] = useState("all");
+  const [activeQuizTab, setActiveQuizTab] = useState("your_course");
   const [scrollDirection, setScrollDirection] = useState("down");
   const [lastScrollY, setLastScrollY] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -251,7 +251,7 @@ export default function StudentDashboard2() {
 
   // Student progress data (this should come from backend/API)
   // Structure: { currentCourseIndex, completedCourses: [], courseProgress: { courseIndex: { completedLessons, totalLessons } } }
-  const [studentProgress] = useState({
+  const [studentProgress, setStudentProgress] = useState({
     currentCourseIndex: 0, // Index of current course (0 = first course)
     completedCourses: [], // Array of completed course indices
     courseProgress: {} // No demo progress data
@@ -260,6 +260,7 @@ export default function StudentDashboard2() {
   // Fetch learning path from API
   useEffect(() => {
     const fetchPath = async () => {
+      if (!studentPathType) return;
       setLoading(true);
       try {
         const response = await fetch(`${API_URL}/api/admin/learning-paths`);
@@ -274,6 +275,7 @@ export default function StudentDashboard2() {
                 GeneralPath: normalizedType,
                 pathTitle: path.name,
                 Courses: path.courses.map(course => ({
+                  id: course.id, // Capture course ID for progress tracking
                   CoursesTitle: course.name,
                   Topics: course.topics.map(topic => ({
                     TopicsTitle: topic.name,
@@ -312,6 +314,87 @@ export default function StudentDashboard2() {
     return colors[index % colors.length];
   };
 
+  // Fetch student progress
+  useEffect(() => {
+    if (!studentPath) return;
+
+    const fetchStudentProgress = async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/students/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            const backendProgress = data.data;
+            const backendCourses = backendProgress.courseProgress || [];
+
+            // Map backend progress to frontend indices
+            const completedIndices = [];
+            const newCourseProgress = {};
+            let maxCompletedIndex = -1;
+
+            studentPath.Courses.forEach((course, index) => {
+              // Find matching backend course record by ID
+              // Note: backend uses 'course' field for ID, we captured 'id' in studentPath
+              const courseRecord = backendCourses.find(c => {
+                const backendId = c.course && (c.course._id || c.course.id || c.course);
+                return String(backendId) === String(course.id);
+              });
+
+              if (courseRecord) {
+                // Determine completion status
+                if (courseRecord.status === 'completed') {
+                  completedIndices.push(index);
+                  if (index > maxCompletedIndex) {
+                    maxCompletedIndex = index;
+                  }
+                }
+
+                // Store progress details
+                newCourseProgress[index] = {
+                  completedLessons: courseRecord.completedLessonsCount || 0,
+                  totalLessons: courseRecord.totalLessons || 0,
+                  status: courseRecord.status
+                };
+              }
+            });
+
+            // Determine current active course
+            // If we have completed courses, the next one is active.
+            // If all are completed, the last one might be shown or a success state.
+            // Default to 0 if none completed.
+            let nextIndex = 0;
+            if (completedIndices.length > 0) {
+              // Use logic: first non-completed course is active
+              // Or: maxCompletedIndex + 1
+              nextIndex = maxCompletedIndex + 1;
+            }
+
+            // Ensure we don't go out of bounds
+            if (nextIndex >= studentPath.Courses.length) {
+              nextIndex = studentPath.Courses.length - 1; // Or handle "all done"
+            }
+
+            setStudentProgress({
+              currentCourseIndex: nextIndex,
+              completedCourses: completedIndices,
+              courseProgress: newCourseProgress
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching student progress:', error);
+      }
+    };
+
+    fetchStudentProgress();
+  }, [studentPath]);
+
   // Transform curriculum courses to dashboard format
   const courses = useMemo(() => {
     if (!studentPath) return [];
@@ -323,30 +406,33 @@ export default function StudentDashboard2() {
         0
       );
 
-      // Determine course status
+      // Determine course status based on calculated progress
       let status = "locked";
       let progress = 0;
+
+      // Check explicit backend status first if available
+      const courseProg = studentProgress.courseProgress[index];
 
       if (studentProgress.completedCourses.includes(index)) {
         status = "completed";
         progress = 100;
       } else if (index === studentProgress.currentCourseIndex) {
         status = "active";
-        const courseProg = studentProgress.courseProgress[index] || { completedLessons: 0, totalLessons };
-        progress = Math.round((courseProg.completedLessons / totalLessons) * 100);
+        // Use backend progress if available, otherwise 0
+        const completed = courseProg ? courseProg.completedLessons : 0;
+        progress = Math.round((completed / totalLessons) * 100);
       } else if (index < studentProgress.currentCourseIndex) {
+        // Fallback for logic holes - if it's before current, it should be completed
         status = "completed";
         progress = 100;
       }
 
-      const courseProg = studentProgress.courseProgress[index] || { completedLessons: 0, totalLessons };
-
       return {
-        id: index + 1,
+        id: course.id, // Use actual ID
         title: course.CoursesTitle,
         courseNumber: index + 1,
         totalCourses: studentPath.Courses.length,
-        progress: courseProg.completedLessons,
+        progress: courseProg ? courseProg.completedLessons : 0, // Use actual count
         totalLessons: totalLessons,
         status: status,
         color: getCourseColor(index),
@@ -400,15 +486,18 @@ export default function StudentDashboard2() {
       if (!token) return;
 
       try {
-        // TODO: Replace with actual API endpoint when available
-        // const response = await fetch(`${API_URL}/api/quizzes/student`, {
-        //   headers: { 'Authorization': `Bearer ${token}` }
-        // });
-        // if (response.ok) {
-        //   const data = await response.json();
-        //   setQuizzes(data.quizzes || []);
-        // }
-        setQuizzes([]); // Empty array until API is ready
+        const response = await fetch(`${API_URL}/api/quizzes/student`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Normalize data structure if needed to match what was expected or adapt rendering
+          // The new API returns { quizzes: [...] }
+          // Each quiz has { id, quizTitle, courseTitle, status, resultStatus, score, ... }
+          setQuizzes(data.quizzes || []);
+        } else {
+          setQuizzes([]);
+        }
       } catch (error) {
         console.error('Error fetching quizzes:', error);
         setQuizzes([]);
@@ -419,9 +508,10 @@ export default function StudentDashboard2() {
   }, []);
 
   // Filter quizzes by status
-  const filteredQuizzes = activeQuizTab === "all"
-    ? quizzes
-    : quizzes.filter(q => q.status === activeQuizTab);
+  // Filter quizzes by status
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter(q => q.status === activeQuizTab);
+  }, [quizzes, activeQuizTab]);
 
   const handleLogout = () => {
     // Check if diagnostic quiz is in progress
@@ -444,7 +534,8 @@ export default function StudentDashboard2() {
 
   const getStatusLabel = (status) => {
     if (status === "upcoming") return "Upcoming";
-    if (status === "graded") return "Graded";
+    if (status === "graded") return "Graded/Paused";
+    if (status === "your_course") return "Available";
     return status;
   };
 
@@ -1030,10 +1121,10 @@ export default function StudentDashboard2() {
             {/* Quiz Tabs */}
             <div className="ld-quiz-tabs">
               <button
-                className={`ld-quiz-tab ${activeQuizTab === "all" ? "active" : ""}`}
-                onClick={() => setActiveQuizTab("all")}
+                className={`ld-quiz-tab ${activeQuizTab === "your_course" ? "active" : ""}`}
+                onClick={() => setActiveQuizTab("your_course")}
               >
-                All
+                Your Course
               </button>
               <button
                 className={`ld-quiz-tab ${activeQuizTab === "upcoming" ? "active" : ""}`}
@@ -1045,7 +1136,7 @@ export default function StudentDashboard2() {
                 className={`ld-quiz-tab ${activeQuizTab === "graded" ? "active" : ""}`}
                 onClick={() => setActiveQuizTab("graded")}
               >
-                Graded
+                Graded/Paused
               </button>
             </div>
 
@@ -1053,76 +1144,55 @@ export default function StudentDashboard2() {
             {filteredQuizzes.length > 0 ? (
               <div className="ld-quizzes-grid">
                 {filteredQuizzes.map((quiz) => (
-                  <div key={quiz.id} className="ld-quiz-card">
-                    <div className="ld-quiz-header">
-                      <span className={`ld-quiz-badge ld-quiz-${quiz.status}`}>
+                  <div key={quiz.id} className="ld-quiz-modern-card">
+                    <div className="ld-quiz-card-header">
+                      <span className={`ld-quiz-status-pill ${quiz.status}`}>
                         {quiz.status === "upcoming" && "⏳ "}
                         {quiz.status === "graded" && "✅ "}
+                        {quiz.status === "your_course" && "▶️ "}
                         {getStatusLabel(quiz.status)}
                       </span>
-                      {quiz.status === "graded" && quiz.scorePct != null && (
-                        <div className="ld-quiz-score">
-                          <div
-                            className="ld-quiz-score-ring"
-                            style={{
-                              background: `conic-gradient(#3ac77a ${Math.round((quiz.scorePct / 100) * 360)}deg, #e9e5ff 0deg)`
-                            }}
-                          >
-                            <span>{quiz.scorePct}%</span>
-                          </div>
+                    </div>
+
+                    <div className="ld-quiz-card-body">
+                      <h3 className="ld-quiz-card-title">{quiz.quizTitle}</h3>
+                      <div className="ld-quiz-lesson">Lesson: {quiz.lessonTitle}</div>
+
+                      <div className="ld-quiz-meta-row">
+                        <div className="ld-quiz-question-count">
+                          <span>{quiz.questions} Questions</span>
                         </div>
-                      )}
-                    </div>
-
-                    <h3 className="ld-quiz-title">{quiz.title}</h3>
-                    <div className="ld-quiz-meta">
-                      <div className="ld-quiz-meta-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                        </svg>
-                        <span>{quiz.courseName}</span>
-                      </div>
-                      <div className="ld-quiz-meta-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span>{quiz.instructor}</span>
-                      </div>
-                    </div>
-
-                    <div className="ld-quiz-details">
-                      <div className="ld-quiz-detail-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <span>{quiz.date}</span>
-                      </div>
-                      <div className="ld-quiz-detail-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <span>{quiz.duration}</span>
-                      </div>
-                      {quiz.grade && (
-                        <div className="ld-quiz-detail-item">
-                          <span className="ld-quiz-grade">Grade: {quiz.grade}</span>
+                        <div className={`ld-quiz-difficulty ${quiz.difficulty?.toLowerCase()}`}>
+                          {quiz.difficulty}
                         </div>
-                      )}
+                      </div>
                     </div>
 
-                    <div className="ld-quiz-actions">
-                      {quiz.status === "upcoming" && (
-                        <button className="ld-quiz-btn ld-quiz-btn-primary">
+                    <div style={{ marginTop: 'auto' }}>
+                      {quiz.status === "your_course" ? (
+                        <Link
+                          to={`/quiz/${quiz.id}`}
+                          className="ld-quiz-action-btn"
+                        >
                           Join Quiz
-                        </button>
-                      )}
-                      {quiz.status === "graded" && (
-                        <button className="ld-quiz-btn ld-quiz-btn-primary">
-                          View Report
+                        </Link>
+                      ) : quiz.status === "graded" ? (
+                        // Check if quiz is paused or completed
+                        quiz.resultStatus === 'paused' ? (
+                          <Link
+                            to={`/quiz/${quiz.id}`}
+                            className="ld-quiz-action-btn secondary"
+                          >
+                            Resume Quiz
+                          </Link>
+                        ) : (
+                          <div className="ld-quiz-grade-badge">
+                            Score: {quiz.score}%
+                          </div>
+                        )
+                      ) : (
+                        <button className="ld-quiz-action-btn secondary" disabled>
+                          Upcoming
                         </button>
                       )}
                     </div>

@@ -76,6 +76,16 @@ const quizSchema = new mongoose.Schema({
       default: []
     }
   }],
+  views: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  likes: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   releaseDate: {
     type: Date,
     default: Date.now

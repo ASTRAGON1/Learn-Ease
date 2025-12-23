@@ -48,18 +48,20 @@ function DevAuth() {
   return null;
 }
 
+import TimeTracker from "./components/TimeTracker";
+
 export default function App() {
   return (
     <Router>
+      <TimeTracker />
       <DevAuth />
       <Routes>
 
-        
         <Route path="/login" element={<AllPagesLogin />} />
         <Route path="/signup" element={<AllPagesSignup />} />
         <Route path="/student-dashboard-2" element={<StudentDashboard2 />} />
         <Route path="/diagnostic-quiz" element={<DiagnosticQuiz />} />
-        <Route path="/quiz" element={<QuizzApp />} />
+        <Route path="/quiz/:id" element={<QuizzApp />} />
         <Route path="/course/:id" element={<CoursePlayer />} />
         <Route path="/achievements" element={<AchievementPage />} />
         <Route path="/quiz-information" element={<QuizInformationPage />} />

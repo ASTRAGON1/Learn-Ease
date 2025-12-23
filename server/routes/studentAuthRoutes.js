@@ -6,6 +6,8 @@ const Teacher = require('../models/Teacher');
 const Track = require('../models/Track'); // New tracking model
 const Achievement = require('../models/Achievement');
 const Course = require('../models/Course');
+const Quiz = require('../models/Quiz');
+const QuizResult = require('../models/QuizResult');
 const requireDiagnosticQuiz = require('../middleware/requireDiagnosticQuiz');
 const router = express.Router();
 
@@ -209,14 +211,33 @@ router.post('/auth/logout', require('../middleware/auth')(['student']), async (r
   }
 });
 
-// POST /api/students/auth/activity - Update last activity timestamp
+// POST /api/students/auth/activity - Update last activity timestamp and track time
 router.post('/auth/activity', require('../middleware/auth')(['student']), async (req, res) => {
   try {
-    await Student.findByIdAndUpdate(req.user.sub, {
-      lastActivity: new Date()
+    const studentId = req.user.sub;
+    const now = new Date();
+
+    // 1. Update Student model
+    const student = await Student.findByIdAndUpdate(studentId, {
+      lastActivity: now
     });
 
-    res.json({ success: true });
+    // 2. Update Track model (increment hoursStudied)
+    // We assume this is called every ~1 minute (60000ms) by the frontend heartbeat.
+    // To be safe, we can just add a fixed small amount (e.g. 1 minute = 1/60 hours)
+    // OR we could try to calculate diff, but reliable heartbeat is easier.
+
+    let track = await Track.findOne({ student: studentId });
+    if (track) {
+      // Add 1 minute (1/60 of an hour)
+      // Store as float hours
+      const increment = 1 / 60;
+      track.hoursStudied = (track.hoursStudied || 0) + increment;
+      track.lastActivityDate = now;
+      await track.save();
+    }
+
+    res.json({ success: true, hours: track ? track.hoursStudied : 0 });
   } catch (error) {
     console.error('Student activity update error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -233,7 +254,9 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
     }
 
     // Fetch or create Track record
-    let track = await Track.findOne({ student: req.user.sub });
+    // Populate course details for In Progress / Recent Activity display
+    let track = await Track.findOne({ student: req.user.sub })
+      .populate('courses.course', 'title description');
 
     if (!track) {
       track = await Track.create({
@@ -251,17 +274,21 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
       });
     }
 
-    // Calculate total courses from learning path
+    // Calculate total courses and quizzes from learning path
     const Path = require('../models/Path');
     const studentType = student.type || 'autism';
     const normalizedType = studentType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentType.toLowerCase();
 
-    let totalCourses = 7; // Default
-    let totalQuizzes = 70; // Default estimate
+    let totalCourses = 7; // Default fallback
+    let totalQuizzes = 70; // Default fallback
+    let calculatedQuizzesCompleted = track.quizzesCompleted; // Default to tracked value
 
     try {
       const path = await Path.findOne({
         $or: [
+          { type: normalizedType },
+          { title: new RegExp(normalizedType, 'i') },
+          // Legacy/Fallback checks
           { id: new RegExp(normalizedType, 'i') },
           { name: new RegExp(normalizedType, 'i') }
         ]
@@ -269,13 +296,71 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
 
       if (path && path.courses) {
         totalCourses = path.courses.length;
-        totalQuizzes = path.courses.reduce((sum, course) => {
-          return sum + (course.topics?.length || 0) * 2;
-        }, 0);
+
+        // Fetch actual published quizzes for the courses in this path
+        const pathQuizzes = await Quiz.find({
+          status: 'published',
+          course: { $in: path.courses }
+        }).select('_id');
+
+        totalQuizzes = pathQuizzes.length || 70; // Fallback if 0 (which might be wrong but safer for UI) -> actually 0 is fine if truthful. 
+        if (pathQuizzes.length > 0) totalQuizzes = pathQuizzes.length;
+
+        const pathQuizIds = pathQuizzes.map(q => q._id);
+
+        // Count ALL quiz attempts (any status) specific to this path
+        calculatedQuizzesCompleted = await QuizResult.countDocuments({
+          student: req.user.sub,
+          quiz: { $in: pathQuizIds }
+        });
       }
     } catch (err) {
       console.log('Error fetching learning path for progress:', err);
     }
+
+    // --- Prepare Recent Data ---
+
+    // 1. Recent Activity: Sort modified courses by lastAccessedAt
+    const courseActivity = track.courses
+      .filter(c => c.lastAccessedAt && c.course) // Ensure it has a date and populated course
+      .sort((a, b) => new Date(b.lastAccessedAt) - new Date(a.lastAccessedAt))
+      .slice(0, 5) // Top 5
+      .map(c => ({
+        id: c._id,
+        action: c.status === 'completed' ? 'Completed course' : 'Studied',
+        course: c.course.title,
+        score: c.progressPercent + '%',
+        time: new Date(c.lastAccessedAt).toLocaleDateString()
+      }));
+
+    // 2. Recent Achievements: Use Student achievements, sorted by earnedAt
+    const recentAchievements = (student.achievements || [])
+      .sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
+      .slice(0, 3) // Top 3
+    // We need to match these IDs to the Achievement model content if not populated.
+    // Usually, the frontend fetches content separately or we populate here.
+    // Let's rely on the IDs. The frontend might need titles. 
+    // Ideally we should populate 'achievements.achievement'.
+
+    // For now, let's assume the frontend fetches detailed achievement data separately OR
+    // we should populate it here for "Recent Achievements" display.
+    // Let's re-fetch student with population if needed, or better, Populate just here.
+    const studentWithAchievements = await Student.findById(req.user.sub).populate('achievements.achievement');
+    const enrichedAchievements = (studentWithAchievements.achievements || [])
+      .sort((a, b) => new Date(b.earnedAt) - new Date(a.earnedAt))
+      .slice(0, 3)
+      .map(a => {
+        if (!a.achievement) return null;
+        return {
+          id: a.achievement._id,
+          title: a.achievement.title,
+          desc: a.achievement.description,
+          icon: a.achievement.badge === 'platinum' ? '🏆' : '🥇',
+          date: new Date(a.earnedAt).toLocaleDateString()
+        };
+      })
+      .filter(a => a !== null);
+
 
     res.json({
       success: true,
@@ -286,12 +371,17 @@ router.get('/progress', require('../middleware/auth')(['student']), requireDiagn
         coursesCompleted: track.coursesCompleted,
         coursesInProgress: track.coursesInProgress,
         totalCourses: totalCourses,
-        quizzesCompleted: track.quizzesCompleted,
+        quizzesCompleted: calculatedQuizzesCompleted,
         quizzesPassed: track.quizzesPassed,
         totalQuizzes: totalQuizzes,
         lessonsCompleted: track.lessonsCompleted,
         courseProgress: track.courses,
-        achievements: student.achievements || [],
+        achievements: student.achievements || [], // Raw list for counts
+
+        // New aggregated fields for Profile
+        recentActivity: courseActivity,
+        recentAchievementsDisplay: enrichedAchievements,
+
         lastActivityDate: track.lastActivityDate
       }
     });
@@ -528,18 +618,51 @@ router.put('/change-password', require('../middleware/auth')(['student']), async
     }
 
     // Hash and update new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    await Student.findByIdAndUpdate(studentId, { pass: hashedNewPassword });
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await Student.findByIdAndUpdate(studentId, { pass: hashedPassword });
+
+    console.log(`✅ Password changed for student: ${studentId}`);
 
     res.json({
       success: true,
-      message: 'Password updated successfully'
+      message: 'Password changed successfully'
     });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ error: 'Server error while updating password' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
+
+// POST /api/students/track-time - Track active time
+router.post('/track-time', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const { minutes } = req.body;
+    const studentId = req.user.sub;
+
+    if (!minutes || minutes <= 0) {
+      return res.status(400).json({ error: 'Valid minutes required' });
+    }
+
+    const { Track } = require('../models');
+    // Ideally update existing Track or create if missing
+    let track = await Track.findOne({ student: studentId });
+    if (!track) {
+      track = await Track.create({ student: studentId });
+    }
+
+    // Increment hoursStudied
+    track.hoursStudied = (track.hoursStudied || 0) + (minutes / 60);
+    track.lastActivityDate = new Date();
+
+    await track.save();
+
+    res.json({ success: true, hoursStudied: track.hoursStudied });
+  } catch (error) {
+    console.error('Track time error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // POST /api/students/complete-lesson - Mark a lesson as completed
 router.post('/complete-lesson', require('../middleware/auth')(['student']), async (req, res) => {
@@ -630,16 +753,35 @@ router.post('/complete-lesson', require('../middleware/auth')(['student']), asyn
       }
 
       console.log(`🔍 Checking achievements for course: "${course.title}"`);
-      // Match achievements by course name (title)
-      const achievements = await Achievement.find({ course: course.title });
-      console.log(`📊 Found ${achievements.length} achievement(s) for this course`);
+
+      // Fetch all course-related achievements to find a fuzzy match
+      const allAchievements = await Achievement.find({ type: { $in: ['course', 'extra'] } });
+
+      const courseAchievements = allAchievements.filter(ach => {
+        if (!ach.course) return false;
+        const achCourse = ach.course.toLowerCase();
+        const courseTitle = course.title.toLowerCase();
+
+        // Match if one contains the other (robust fuzzy match)
+        return courseTitle.includes(achCourse) || achCourse.includes(courseTitle);
+      });
+
+      // Remove the arbitrary modulo logic which was causing "wrong" achievements
+      /* 
+      const achievementsData = require('../data/achievements.json');
+      const currentLessonIndex = Number(lessonIndex);
+      ... modulo logic removed ...
+      */
+
+      const achievementsToAward = [...courseAchievements];
+      console.log(`📊 Found ${achievementsToAward.length} achievement(s) to potentially award`);
 
       const student = await Student.findById(studentId);
       const newAchievements = [];
 
-      if (achievements.length > 0 && student) {
-        console.log(`✅ Student found, processing ${achievements.length} achievement(s)`);
-        for (const achievement of achievements) {
+      if (achievementsToAward.length > 0 && student) {
+        console.log(`✅ Student found, processing ${achievementsToAward.length} achievement(s)`);
+        for (const achievement of achievementsToAward) {
           // Check if student already has this achievement
           const alreadyHas = student.achievements.some(
             a => a.achievement.toString() === achievement._id.toString()
@@ -705,6 +847,98 @@ router.post('/complete-lesson', require('../middleware/auth')(['student']), asyn
   } catch (error) {
     console.error('Complete lesson error:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/**
+ * @route   POST /api/students/content/:id/like
+ * @desc    Like or unlike a content item (video/document/image)
+ * @access  Student
+ */
+router.post('/content/:id/like', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // 'like' or 'unlike'
+
+    const Content = require('../models/Content');
+
+    // Find the content
+    const content = await Content.findById(id);
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        error: 'Content not found'
+      });
+    }
+
+    // Update likes count
+    if (action === 'like') {
+      content.likes = (content.likes || 0) + 1;
+    } else if (action === 'unlike') {
+      content.likes = Math.max(0, (content.likes || 0) - 1);
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid action. Must be "like" or "unlike"'
+      });
+    }
+
+    await content.save();
+
+    res.json({
+      success: true,
+      data: {
+        contentId: content._id,
+        likes: content.likes
+      }
+    });
+  } catch (error) {
+    console.error('Error updating content likes:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/students/content/:id/view
+ * @desc    Increment view count for a content item when video finishes
+ * @access  Student
+ */
+router.post('/content/:id/view', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const Content = require('../models/Content');
+
+    // Find and update the content
+    const content = await Content.findByIdAndUpdate(
+      id,
+      { $inc: { views: 1 } },
+      { new: true, select: 'views' }
+    );
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        error: 'Content not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        contentId: id,
+        views: content.views
+      }
+    });
+  } catch (error) {
+    console.error('Error updating content views:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 });
 

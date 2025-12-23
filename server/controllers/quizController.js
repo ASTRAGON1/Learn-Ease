@@ -1,4 +1,8 @@
 const Quiz = require('../models/Quiz');
+const QuizResult = require('../models/QuizResult');
+const Track = require('../models/Track');
+const Course = require('../models/Course');
+
 
 exports.getQuizzes = async (req, res) => {
   try {
@@ -125,14 +129,40 @@ exports.submitQuiz = async (req, res) => {
     // Using internal createNotification helper if available, else direct model create
     const { createNotification } = require('./notificationController');
 
-    // Create result record
+    // Create or update result record and update Track progress
     if (QuizResult) {
-      await QuizResult.create({
-        student: studentId,
-        quiz: quizId,
-        score: (score.correct / score.total) * 100,
-        answers: answers
-      });
+      const percentage = (score.correct / score.total) * 100;
+
+      await QuizResult.findOneAndUpdate(
+        { student: studentId, quiz: quizId },
+        {
+          student: studentId,
+          quiz: quizId,
+          grade: percentage,
+          answers: answers,
+          status: 'completed'
+        },
+        { upsert: true, new: true }
+      );
+
+      // Update Track model for stats
+      const Track = require('../models/Track');
+      let track = await Track.findOne({ student: studentId });
+      if (!track) {
+        track = await Track.create({ student: studentId });
+      }
+
+      // Increment quiz counts only if this quiz wasn't already passed? 
+      // For simplicity, we just increment completed. Ideally check unique completion.
+      // But Track schema just has counters.
+      track.quizzesCompleted = (track.quizzesCompleted || 0) + 1;
+
+      // const percentage = (score.correct / score.total) * 100; // Removed duplicate
+      if (percentage >= 60) { // Assuming 60% pass
+        track.quizzesPassed = (track.quizzesPassed || 0) + 1;
+      }
+
+      await track.save();
     }
 
     // Create notification for student
@@ -185,7 +215,7 @@ exports.getQuizById = async (req, res) => {
     const { id } = req.params;
 
     const quiz = await Quiz.findById(id)
-      .select('title difficulty questionsAndAnswers lesson topic course');
+      .select('title difficulty questionsAndAnswers lesson topic course status');
 
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
@@ -244,6 +274,102 @@ exports.saveQuizProgress = async (req, res) => {
   } catch (e) {
     console.error('saveQuizProgress error', e);
     return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.getQuizProgress = async (req, res) => {
+  try {
+    const QuizResult = require('../models/QuizResult');
+    const studentId = req.user.sub;
+    const { id: quizId } = req.params;
+
+    const result = await QuizResult.findOne({
+      student: studentId,
+      quiz: quizId
+    });
+
+    return res.status(200).json({ data: result });
+  } catch (e) {
+    console.error('getQuizProgress error', e);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.getStudentQuizzes = async (req, res) => {
+  try {
+    const studentId = req.user.sub;
+
+    // 1. Get Student Track to determine reached courses
+    const track = await Track.findOne({ student: studentId }).populate('courses.course');
+
+    let maxOrderReached = -1;
+    // Assume if no track, they are at start (maybe 0? or -1 means nothing visible). 
+    // Usually valid students have a track.
+    if (track && track.courses) {
+      track.courses.forEach(c => {
+        // Check if course is started/completed
+        // "in_progress" or "completed". seemingly "not_started" is default.
+        if (c.course && (c.status === 'in_progress' || c.status === 'completed')) {
+          if (c.course.order > maxOrderReached) {
+            maxOrderReached = c.course.order;
+          }
+        }
+      });
+    }
+
+    // 2. Fetch all published quizzes with course info
+    const quizzes = await Quiz.find({ status: 'published' })
+      .populate('course', 'title order')
+      .populate('lesson', 'title')
+      .lean();
+
+    // 3. Fetch existing results
+    const results = await QuizResult.find({ student: studentId }).lean();
+    const resultMap = new Map();
+    results.forEach(r => resultMap.set(r.quiz.toString(), r));
+
+    // 4. Categorize
+    const categorized = quizzes.map(q => {
+      const result = resultMap.get(q._id.toString());
+      const courseOrder = q.course ? q.course.order : 9999;
+
+      // Default category
+      let status = 'upcoming';
+
+      // Logic
+      if (result) {
+        status = 'graded'; // Represents "Graded / Paused" tab
+      } else if (courseOrder <= maxOrderReached) {
+        status = 'your_course';
+      } else {
+        status = 'upcoming';
+      }
+
+      // Prepare return object
+      return {
+        id: q._id,
+        quizTitle: q.title,
+        courseTitle: q.course ? q.course.title : 'Unknown Course',
+        lessonTitle: q.lesson ? q.lesson.title : 'General',
+        // fields for UI
+        status: status,
+        resultStatus: result ? result.status : null, // 'completed', 'in-progress'
+        score: result && result.grade !== null ? Math.round(result.grade) : null,
+        maxScore: 100, // Hardcoded max for now, or fetch from quiz if exists
+
+        // extra metadata
+        difficulty: q.difficulty,
+        questions: q.questionsAndAnswers ? q.questionsAndAnswers.length : 0,
+        date: q.createdAt, // or release date
+        instructor: 'Instructor' // Placeholder or populate teacher
+      };
+    });
+
+    return res.status(200).json({ quizzes: categorized });
+
+  } catch (e) {
+    console.error('getStudentQuizzes error', e);
+    return res.status(500).json({ error: 'Server error', message: e.message });
   }
 };
 

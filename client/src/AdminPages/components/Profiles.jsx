@@ -88,14 +88,6 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
             <div className="admin-profiles-stat-value">{totalInstructors}</div>
             <div className="admin-profiles-stat-label">Instructors</div>
           </div>
-          <div className="admin-profiles-stat-item">
-            <div className="admin-profiles-stat-value">{totalHours}</div>
-            <div className="admin-profiles-stat-label">Total Hours</div>
-          </div>
-          <div className="admin-profiles-stat-item">
-            <div className="admin-profiles-stat-value">{avgScore}%</div>
-            <div className="admin-profiles-stat-label">Avg Score</div>
-          </div>
         </div>
       </div>
 
@@ -143,7 +135,7 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                     const u = users.find((x) => x.id === sp.userId) || { name: sp.userId || "Unknown" };
                     const hours = sp.hours || 0;
                     const avgScore = sp.performance?.avgScore || 0;
-                    const completion = Math.round((sp.performance?.completionRate || 0) * 100);
+                    const completion = sp.performance?.completionRate || 0;
 
                     return (
                       <tr key={sp.userId}>
@@ -162,7 +154,7 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                               <circle cx="12" cy="12" r="10"></circle>
                               <polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
-                            {hours}h
+                            {hours}m
                           </div>
                         </td>
                         <td>
@@ -227,13 +219,12 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                   <tr>
                     <th>Name</th>
                     <th>Latest Upload</th>
-                    <th>Category</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredInstructorProfiles.map((ip) => {
                     const u = users.find((x) => x.id === ip.userId) || { name: ip.userId || "Unknown", category: "—" };
-                    const latestUpload = latestUploadFor(ip.userId);
+                    const latestUpload = ip.latestUpload || null;
 
                     return (
                       <tr
@@ -253,7 +244,7 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                         </td>
                         <td>
                           <div className="admin-profiles-upload">
-                            {latestUpload && latestUpload !== "—" ? (
+                            {latestUpload ? (
                               <>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -265,11 +256,6 @@ function Profiles({ profiles, users, search, onOpenInstructor, latestUploadFor }
                               <span className="admin-profiles-upload-empty">No uploads yet</span>
                             )}
                           </div>
-                        </td>
-                        <td>
-                          <span className="admin-profiles-category-badge">
-                            {u.category || "—"}
-                          </span>
                         </td>
                       </tr>
                     );

@@ -76,8 +76,8 @@ export default function AchievementPage() {
   }, [achievements]);
 
   // Filter achievements based on active tab
-  const filteredAchievements = activeTab === "all" 
-    ? achievements 
+  const filteredAchievements = activeTab === "all"
+    ? achievements
     : achievements.filter(a => a.type === activeTab);
 
   // Calculate statistics
@@ -103,7 +103,7 @@ export default function AchievementPage() {
   }, [achievements]);
 
   const getBadgeIcon = (badge) => {
-    switch(badge) {
+    switch (badge) {
       case "platinum": return <Medal className="achv-badge-icon" />;
       case "gold": return <Award className="achv-badge-icon" />;
       case "silver": return <Star className="achv-badge-icon" />;
@@ -112,7 +112,7 @@ export default function AchievementPage() {
   };
 
   const getBadgeColor = (badge) => {
-    switch(badge) {
+    switch (badge) {
       case "platinum": return "#cbd5e1";
       case "gold": return "#fbbf24";
       case "silver": return "#9ca3af";
@@ -133,9 +133,9 @@ export default function AchievementPage() {
 
   // Sidebar items
   const sidebarItems = [
-    { 
-      key: "dashboard", 
-      label: "Dashboard", 
+    {
+      key: "dashboard",
+      label: "Dashboard",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="7" height="7"></rect>
@@ -143,18 +143,18 @@ export default function AchievementPage() {
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-      ), 
-      to: "/student-dashboard-2" 
+      ),
+      to: "/student-dashboard-2"
     },
-    { 
-      key: "personalized", 
-      label: "Personalized Path", 
-      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/personalized" 
+    {
+      key: "personalized",
+      label: "Personalized Path",
+      icon: <img src={icPersonalizedPath} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/personalized"
     },
-    { 
-      key: "achievements", 
-      label: "Achievements", 
+    {
+      key: "achievements",
+      label: "Achievements",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
@@ -164,14 +164,14 @@ export default function AchievementPage() {
           <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
         </svg>
-      ), 
-      to: "/achievements" 
+      ),
+      to: "/achievements"
     },
-    { 
-      key: "courses", 
-      label: "Courses", 
-      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />, 
-      to: "/courses" 
+    {
+      key: "courses",
+      label: "Courses",
+      icon: <img src={icCourse} alt="" style={{ width: "24px", height: "24px" }} />,
+      to: "/courses"
     },
   ];
 
@@ -193,7 +193,7 @@ export default function AchievementPage() {
   return (
     <div className="achv-page">
       {/* Left Sidebar with Hover Animation */}
-      <aside 
+      <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
         onMouseEnter={handleSidebarEnter}
         onMouseLeave={handleSidebarLeave}
@@ -224,7 +224,7 @@ export default function AchievementPage() {
 
           {/* Logout Button */}
           <div className="ld-sidebar-footer">
-            <button 
+            <button
               className={`ld-sidebar-link ld-sidebar-logout ${activeKey === "logout" ? "active" : ""}`}
               onClick={handleLogout}
             >
@@ -271,9 +271,9 @@ export default function AchievementPage() {
               {recentAchievements.map((achievement) => (
                 <div key={achievement.id} className="achv-recent-card">
                   <div className="achv-recent-badge-wrapper">
-                    <div 
+                    <div
                       className="achv-recent-badge-icon"
-                      style={{ 
+                      style={{
                         background: `linear-gradient(135deg, ${getBadgeColor(achievement.badge)}40, ${getBadgeColor(achievement.badge)}20)`,
                         borderColor: getBadgeColor(achievement.badge)
                       }}
@@ -284,13 +284,11 @@ export default function AchievementPage() {
                   <div className="achv-recent-content">
                     <h3 className="achv-recent-card-title">{achievement.title}</h3>
                     <p className="achv-recent-card-course">{achievement.course}</p>
-                    {achievement.grade !== null && achievement.grade !== undefined && (
-                      <div className="achv-recent-grade">{achievement.grade}%</div>
-                    )}
+
                     {(achievement.earnedAt || achievement.completedAt) && (
                       <div className="achv-recent-date">
-                        {new Date(achievement.earnedAt || achievement.completedAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
+                        {new Date(achievement.earnedAt || achievement.completedAt).toLocaleDateString('en-US', {
+                          month: 'short',
                           day: 'numeric',
                           year: 'numeric'
                         })}
@@ -315,30 +313,12 @@ export default function AchievementPage() {
             </div>
           </div>
           <div className="achv-stat-card-new">
-            <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)" }}>
-              <Star />
-            </div>
-            <div className="achv-stat-content-new">
-              <div className="achv-stat-value-new">{stats.highGrades}</div>
-              <div className="achv-stat-label-new">High Grades (90+)</div>
-            </div>
-          </div>
-          <div className="achv-stat-card-new">
             <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)" }}>
               <Medal />
             </div>
             <div className="achv-stat-content-new">
               <div className="achv-stat-value-new">{stats.platinumBadges}</div>
               <div className="achv-stat-label-new">Platinum Badges</div>
-            </div>
-          </div>
-          <div className="achv-stat-card-new">
-            <div className="achv-stat-icon-new" style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)" }}>
-              <TrendingUp />
-            </div>
-            <div className="achv-stat-content-new">
-              <div className="achv-stat-value-new">{stats.averageGrade}%</div>
-              <div className="achv-stat-label-new">Average Grade</div>
             </div>
           </div>
         </section>
@@ -379,9 +359,9 @@ export default function AchievementPage() {
               {filteredAchievements.map((achievement) => (
                 <div key={achievement.id} className="achv-card">
                   <div className="achv-card-header">
-                    <div 
+                    <div
                       className="achv-badge-display"
-                      style={{ 
+                      style={{
                         background: `linear-gradient(135deg, ${getBadgeColor(achievement.badge)}20, ${getBadgeColor(achievement.badge)}10)`,
                         borderColor: getBadgeColor(achievement.badge)
                       }}
@@ -395,22 +375,17 @@ export default function AchievementPage() {
                     <p className="achv-card-course">{achievement.course}</p>
                     <p className="achv-card-description">{achievement.description}</p>
                     <div className="achv-card-footer">
-                      {achievement.grade !== null && achievement.grade !== undefined && (
-                        <div className="achv-grade-display">
-                          <span className="achv-grade-label">Final Grade</span>
-                          <span className="achv-grade-value">{achievement.grade}%</span>
-                        </div>
-                      )}
+
                       <div className="achv-badge-label">
                         {achievement.badge.charAt(0).toUpperCase() + achievement.badge.slice(1)} Badge
                       </div>
                     </div>
                     {(achievement.earnedAt || achievement.completedAt) && (
                       <div className="achv-date">
-                        Earned on {new Date(achievement.earnedAt || achievement.completedAt).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
+                        Earned on {new Date(achievement.earnedAt || achievement.completedAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
                         })}
                       </div>
                     )}
@@ -451,7 +426,7 @@ export default function AchievementPage() {
                       <span className="achv-progress-percent">{course.progress}%</span>
                     </div>
                     <div className="achv-progress-bar">
-                      <div 
+                      <div
                         className="achv-progress-fill"
                         style={{ width: `${course.progress}%` }}
                       ></div>

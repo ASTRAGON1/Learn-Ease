@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
 import "./quizPurple.css";
 
@@ -17,8 +17,10 @@ function computeScore(quiz, answers) {
 export default function QuizzApp() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id: paramQuizId } = useParams();
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [answers, setAnswers] = useState({}); // { qid: optionIndex }
   const [submitted, setSubmitted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -29,9 +31,9 @@ export default function QuizzApp() {
 
   // Fetch quiz data
   useEffect(() => {
-    const fetchQuiz = async () => {
+    const fetchQuizAndProgress = async () => {
       const token = window.sessionStorage.getItem('token');
-      const quizId = location.state?.quizId;
+      const quizId = paramQuizId || location.state?.quizId;
 
       if (!token) {
         navigate('/login');
@@ -39,29 +41,96 @@ export default function QuizzApp() {
       }
 
       try {
-        // TODO: Replace with actual API endpoint when available
-        // if (quizId) {
-        //   const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
-        //     headers: { 'Authorization': `Bearer ${token}` }
-        //   });
-        //   if (response.ok) {
-        //     const data = await response.json();
-        //     setQuiz(data.quiz);
-        //   }
-        // }
+        if (!quizId) throw new Error("No quiz ID provided");
 
-        // For now, show empty state
-        setQuiz(null);
+        // 1. Fetch Quiz
+        const quizRes = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!quizRes.ok) {
+          const errData = await quizRes.json();
+          throw new Error(errData.error || errData.message || "Failed to fetch quiz");
+        }
+        const quizData = await quizRes.json();
+        const loadedQuiz = quizData.data;
+
+        if (!loadedQuiz) throw new Error("Quiz data is missing");
+        if (!loadedQuiz.questionsAndAnswers) throw new Error("Quiz has no questions");
+
+        // Transform backend questions to frontend format
+        const questions = loadedQuiz.questionsAndAnswers.map((q, idx) => {
+          // Combine correct & wrong answers and shuffle
+          const allOptions = [q.correctAnswer, ...q.wrongAnswers];
+          // Simple shuffle (Fisher-Yates would be better but this is ok for now) or keep static if desired
+          // For now, let's just place correct answer at random index or keep 0 and shuffle in UI?
+          // Actually, best to shuffle here and find index.
+
+          // For stability in resume, we need a consistent seed or store the order?
+          // The backend doesn't store the shuffled order for a specific student unless we store it in QuizResult.
+          // For this iteration, let's keep it simple: randomized once per load BUT this messes up resume if indices change.
+          // Ideally, we should sort or have fixed order.
+          // Let's just sort them alphabetically for consistency across reloads? Or just append.
+          // If the user refreshes, strict shuffle might change correct index.
+          // Let's just append correct at the end and shuffle deterministically based on specific logic, or just don't shuffle for MVP stability.
+          // Let's put correct answer at index 0 for now? No that's too easy.
+          // Let's just shuffle and hope the user doesn't refresh too often expecting exact same order, OR store the seed.
+          // Actually, if we just use a consistent sort or pre-determined shuffle based on Q text hash...
+          // Let's just use a simple deterministic sort for now to ensure index stability for Resume.
+          const sortedOptions = allOptions.sort();
+          const answerIndex = sortedOptions.indexOf(q.correctAnswer);
+
+          return {
+            id: `q${idx}`, // index as ID
+            text: q.question,
+            options: sortedOptions,
+            answerIndex: answerIndex,
+            category: "General" // Backend doesn't have per-question category yet, defaulting.
+          };
+        });
+
+        const formattedQuiz = {
+          id: loadedQuiz._id,
+          title: loadedQuiz.title,
+          courseTitle: loadedQuiz.course ? (loadedQuiz.course.title || "Course") : "Course",
+          courseCode: "CODE", // Backend might not send code
+          instructorName: "Instructor", // Backend might not send instructor
+          questions: questions
+        };
+
+        setQuiz(formattedQuiz);
+
+        // 2. Fetch Progress (Resume)
+        const progressRes = await fetch(`${API_URL}/api/quizzes/${quizId}/progress`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (progressRes.ok) {
+          const progressData = await progressRes.json();
+          if (progressData.data && (progressData.data.status === 'in-progress' || progressData.data.status === 'paused')) {
+            // Restore answers and current question
+            // answers from backend might be Map or Object.
+            setAnswers(progressData.data.answers || {});
+            if (typeof progressData.data.currentQuestionIndex === 'number') {
+              setCurrentQuestion(progressData.data.currentQuestionIndex);
+            }
+          } else if (progressData.data && progressData.data.status === 'completed') {
+            setAnswers(progressData.data.answers || {});
+            setSubmitted(true);
+          }
+        }
+
       } catch (error) {
         console.error('Error fetching quiz:', error);
+        setError(error.message);
         setQuiz(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuiz();
-  }, [navigate, location.state]);
+    fetchQuizAndProgress();
+  }, [navigate, location.state, paramQuizId]);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [submitted]);
 
@@ -81,6 +150,31 @@ export default function QuizzApp() {
 
   function handleChange(qid, idx) {
     setAnswers((p) => ({ ...p, [qid]: idx }));
+  }
+
+  async function handlePause() {
+    if (!quiz) return;
+    const token = window.sessionStorage.getItem('token');
+
+    try {
+      await fetch(`${API_URL}/api/quizzes/progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          quizId: quiz.id,
+          status: 'paused', // Set explicitly to paused
+          answers: answers,
+          currentQuestionIndex: currentQuestion
+        })
+      });
+      navigate("/student-dashboard-2");
+    } catch (err) {
+      console.error("Error saving progress:", err);
+      alert("Failed to save progress");
+    }
   }
 
   function handleSubmit(e) {
@@ -146,11 +240,11 @@ export default function QuizzApp() {
     );
   }
 
-  if (!quiz) {
+  if (error || !quiz) {
     return (
       <div className="quizPurple-page">
         <div className="quizPurple-empty">
-          <p>No quiz available</p>
+          <p>{error || "No quiz available"}</p>
           <button onClick={() => navigate("/student-dashboard-2")}>Back to Dashboard</button>
         </div>
       </div>
@@ -162,8 +256,12 @@ export default function QuizzApp() {
       {/* Header */}
       <section className="quizPurple-container">
         <header className="quizPurple-header">
-          <button className="quizPurple-back-btn" onClick={handleBackToCourse}>
-            <span className="quizPurple-back-chev">‹</span> Dashboard
+          <button className="quizPurple-back-btn" onClick={handlePause}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            Pause & Exit
           </button>
           <div className="quizPurple-header-content">
             <div className="quizPurple-logo">QZ</div>
@@ -354,34 +452,58 @@ export default function QuizzApp() {
               );
             })}
 
-            {/* Results Summary */}
-            <div className="quizPurple-results">
-              <div className="quizPurple-score">
-                <div className="quizPurple-score-ring">
-                  <div className="quizPurple-score-num">{Math.round((score.correct / score.total) * 100)}%</div>
-                </div>
-                <div className="quizPurple-score-text">{score.correct} / {score.total} correct</div>
-              </div>
-              <div className="quizPurple-stats">
-                {Object.entries(byCat).map(([cat, v]) => (
-                  <div className="quizPurple-stat" key={cat}>
-                    <div className="quizPurple-stat-name">{cat}</div>
-                    <div className="quizPurple-stat-bar">
-                      <div className="quizPurple-stat-fill" style={{ width: `${Math.round((v.ok / v.total) * 100)}%` }} />
+            {/* Results Summary Card */}
+            <div className="quizPurple-results-card">
+              <div className="quizPurple-results-header">
+                <div className="quizPurple-score-container">
+                  <div className="quizPurple-score-circle">
+                    <svg viewBox="0 0 36 36" className="circular-chart">
+                      <path className="circle-bg"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path className="circle"
+                        strokeDasharray={`${Math.round((score.correct / score.total) * 100)}, 100`}
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="quizPurple-score-content">
+                      <span className="quizPurple-score-percentage">{Math.round((score.correct / score.total) * 100)}%</span>
+                      <span className="quizPurple-score-label">Score</span>
                     </div>
-                    <div className="quizPurple-stat-val">{v.ok}/{v.total}</div>
+                  </div>
+                </div>
+
+                <div className="quizPurple-results-text">
+                  <h2>Quiz Completed!</h2>
+                  <p>You got <span className="highlight">{score.correct}</span> out of <span className="highlight">{score.total}</span> questions correct.</p>
+                </div>
+              </div>
+
+              <div className="quizPurple-stats-grid">
+                {Object.entries(byCat).map(([cat, v]) => (
+                  <div className="quizPurple-stat-item" key={cat}>
+                    <span className="stat-label">{cat}</span>
+                    <div className="stat-bar-container">
+                      <div className="stat-bar" style={{ width: `${Math.round((v.ok / v.total) * 100)}%` }}></div>
+                    </div>
+                    <span className="stat-value">{v.ok}/{v.total}</span>
                   </div>
                 ))}
               </div>
-              <div className="quizPurple-actions center">
-                <div className="quizPurple-passed-badge">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+
+              <div className="quizPurple-results-footer">
+                <div className="quizPurple-passed-badge-large">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                   </svg>
-                  <span>Quiz Submitted - Marked as Passed</span>
+                  <span>PASSED</span>
                 </div>
-                <button type="button" className="btn btn-primary" onClick={handleBackToCourse}>
+                <button type="button" className="btn btn-primary btn-large" onClick={handleBackToCourse}>
                   Back to Course
                 </button>
               </div>
