@@ -724,6 +724,119 @@ router.get('/teacher/:email/quiz-results', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/teacher/:email/weekly-metrics
+ * @desc    Get daily metrics for the current week (Mon-Sun) for a teacher
+ * @access  Admin
+ */
+router.get('/teacher/:email/weekly-metrics', async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Find the teacher
+    const teacher = await Teacher.findOne({ email });
+    if (!teacher) {
+      return res.status(404).json({ success: false, error: 'Teacher not found' });
+    }
+
+    // Initialize weekly data structure
+    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const weeklyData = daysOfWeek.map(day => ({ day, views: 0, likes: 0 }));
+
+    // Fetch content and quizzes for this teacher
+    const Content = require('../models/Content');
+    const Quiz = require('../models/Quiz');
+
+    // Get all content and quizzes with their views/likes (ALL TIME)
+    const content = await Content.find({
+      teacher: teacher._id,
+      status: { $ne: 'deleted' }
+    }).select('views likes lastViewedAt lastLikedAt createdAt updatedAt');
+
+    const quizzes = await Quiz.find({
+      teacher: teacher._id,
+    }).select('views likes lastViewedAt lastLikedAt createdAt updatedAt');
+
+    console.log(`[Weekly Metrics] Found ${content.length} content items and ${quizzes.length} quizzes`);
+
+    // Debug: Log first content item to see actual data
+    if (content.length > 0) {
+      console.log('[Weekly Metrics] Sample content item:', JSON.stringify(content[0], null, 2));
+    }
+    if (quizzes.length > 0) {
+      console.log('[Weekly Metrics] Sample quiz item:', JSON.stringify(quizzes[0], null, 2));
+    }
+
+    const allItems = [...content, ...quizzes];
+
+    let totalViews = 0;
+    let totalLikes = 0;
+    let viewsDistributed = 0;
+    let likesDistributed = 0;
+
+    // First pass: distribute items with timestamps
+    allItems.forEach(item => {
+      totalViews += item.views || 0;
+      totalLikes += item.likes || 0;
+
+      // Use lastViewedAt if available, otherwise use updatedAt as fallback
+      const viewTimestamp = item.lastViewedAt || item.updatedAt || item.createdAt;
+      if (viewTimestamp && item.views > 0) {
+        const viewDay = new Date(viewTimestamp).getDay();
+        const dayIndex = viewDay === 0 ? 6 : viewDay - 1;
+        weeklyData[dayIndex].views += item.views;
+        viewsDistributed += item.views;
+      }
+
+      // Use lastLikedAt if available, otherwise use updatedAt as fallback
+      const likeTimestamp = item.lastLikedAt || item.updatedAt || item.createdAt;
+      if (likeTimestamp && item.likes > 0) {
+        const likeDay = new Date(likeTimestamp).getDay();
+        const dayIndex = likeDay === 0 ? 6 : likeDay - 1;
+        weeklyData[dayIndex].likes += item.likes;
+        likesDistributed += item.likes;
+      }
+    });
+
+    // Second pass: distribute remaining views/likes evenly if they weren't attributed to any day
+    const remainingViews = totalViews - viewsDistributed;
+    const remainingLikes = totalLikes - likesDistributed;
+
+    if (remainingViews > 0) {
+      // Distribute evenly across the week
+      const viewsPerDay = Math.floor(remainingViews / 7);
+      const extraViews = remainingViews % 7;
+
+      weeklyData.forEach((day, index) => {
+        day.views += viewsPerDay;
+        if (index < extraViews) day.views += 1; // Distribute remainder
+      });
+    }
+
+    if (remainingLikes > 0) {
+      // Distribute evenly across the week
+      const likesPerDay = Math.floor(remainingLikes / 7);
+      const extraLikes = remainingLikes % 7;
+
+      weeklyData.forEach((day, index) => {
+        day.likes += likesPerDay;
+        if (index < extraLikes) day.likes += 1; // Distribute remainder
+      });
+    }
+
+    console.log(`[Weekly Metrics] Total views: ${totalViews}, Total likes: ${totalLikes}`);
+    console.log(`[Weekly Metrics] Distributed: ${viewsDistributed} views, ${likesDistributed} likes`);
+    console.log(`[Weekly Metrics] Remaining (distributed evenly): ${remainingViews} views, ${remainingLikes} likes`);
+    console.log(`[Weekly Metrics] Final weekly data:`, weeklyData);
+
+    res.json({ success: true, data: weeklyData });
+  } catch (error) {
+    console.error('Error fetching weekly metrics:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+/**
  * @route   GET /api/admin/teacher/:email/deleted-content
  * @desc    Get all deleted content for a specific teacher by email (Admin only)
  * @access  Admin

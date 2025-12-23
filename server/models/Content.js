@@ -109,6 +109,14 @@ const contentSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  lastViewedAt: {
+    type: Date,
+    default: null
+  },
+  lastLikedAt: {
+    type: Date,
+    default: null
+  },
 
 }, {
   timestamps: true,

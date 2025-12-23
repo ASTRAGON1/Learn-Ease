@@ -79,6 +79,7 @@ export default function InstructorDashboard2() {
     totalUploads: 0
   });
   const [quizResults, setQuizResults] = useState([]);
+  const [weeklyMetrics, setWeeklyMetrics] = useState([]);
 
   // Real Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -343,11 +344,30 @@ export default function InstructorDashboard2() {
     fetchQuizResults();
   }, [email]);
 
+  // Fetch weekly metrics
+  useEffect(() => {
+    const fetchWeeklyMetrics = async () => {
+      if (!email) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(email)}/weekly-metrics`);
+        if (response.ok) {
+          const data = await response.json();
+          setWeeklyMetrics(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching weekly metrics:', error);
+      }
+    };
+
+    fetchWeeklyMetrics();
+  }, [email]);
+
   // Sample data for instructor dashboard
   const sampleMetrics = [
-    { label: "Content views", value: contentMetrics.totalViews.toLocaleString(), change: "+11.01%" },
-    { label: "Likes given", value: contentMetrics.totalLikes.toLocaleString(), change: "+1.01%" },
-    { label: "Total Uploads", value: contentMetrics.totalUploads.toLocaleString(), change: "+15.01%" },
+    { label: "Content views", value: contentMetrics.totalViews.toLocaleString() },
+    { label: "Likes given", value: contentMetrics.totalLikes.toLocaleString() },
+    { label: "Total Uploads", value: contentMetrics.totalUploads.toLocaleString() },
   ];
 
   // Function to mark notification as read
@@ -775,9 +795,6 @@ export default function InstructorDashboard2() {
             <div key={index} className="ld-metric-card">
               <span className="ld-metric-label">{metric.label}</span>
               <span className="ld-metric-value">{metric.value}</span>
-              <span className={`ld-metric-change ${metric.change.startsWith('+') ? 'positive' : 'negative'}`}>
-                {metric.change}
-              </span>
             </div>
           ))}
         </div>
@@ -829,8 +846,7 @@ export default function InstructorDashboard2() {
                 }}
               >
                 <InstructorDailyChart
-                  totalViews={contentMetrics.totalViews}
-                  totalLikes={contentMetrics.totalLikes}
+                  weeklyData={weeklyMetrics}
                 />
               </div>
             </div>

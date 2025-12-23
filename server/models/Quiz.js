@@ -86,6 +86,14 @@ const quizSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  lastViewedAt: {
+    type: Date,
+    default: null
+  },
+  lastLikedAt: {
+    type: Date,
+    default: null
+  },
   releaseDate: {
     type: Date,
     default: Date.now

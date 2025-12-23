@@ -2,21 +2,16 @@ import React from "react";
 import { BarChart } from "@mui/x-charts/BarChart";
 
 export default function InstructorDailyChart({
-  totalViews = 0,
-  totalLikes = 0,
+  weeklyData = [],
   tickPlacement = "middle",
   tickLabelPlacement = "middle",
 }) {
-  // Distribute the total views and likes across the week
-  // This creates a realistic-looking distribution
+  // Use real weekly data or default to empty week
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const distribution = [0.15, 0.18, 0.12, 0.20, 0.16, 0.10, 0.09]; // Percentages that sum to 1
 
-  const dataset = days.map((day, index) => ({
-    day,
-    views: Math.round(totalViews * distribution[index]),
-    likes: Math.round(totalLikes * distribution[index])
-  }));
+  const dataset = weeklyData.length > 0
+    ? weeklyData
+    : days.map(day => ({ day, views: 0, likes: 0 }));
 
   // Light grey color for all bars (matching admin style)
   const lightGrey = "#cbd5e1";

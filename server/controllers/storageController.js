@@ -156,7 +156,7 @@ exports.createContent = async (req, res) => {
       recipient: teacherId,
       recipientModel: 'Teacher',
       message: 'Your content got uploaded successfully',
-      type: 'uploaded'
+      type: 'upload'
     });
 
     return res.status(201).json({ data: doc });

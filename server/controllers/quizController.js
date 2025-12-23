@@ -96,6 +96,15 @@ exports.createQuiz = async (req, res) => {
       status: status || 'draft'
     });
 
+    // Create notification for the teacher
+    const { createNotification } = require('./notificationController');
+    await createNotification({
+      recipient: teacherId,
+      recipientModel: 'Teacher',
+      message: 'Your quiz got uploaded successfully',
+      type: 'upload'
+    });
+
     return res.status(201).json({ data: doc });
   } catch (e) {
     console.error('createQuiz error', e);

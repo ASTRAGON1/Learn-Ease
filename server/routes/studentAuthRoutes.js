@@ -871,11 +871,13 @@ router.post('/content/:id/like', async (req, res) => {
       });
     }
 
-    // Update likes count
+    // Update likes count and timestamp
     if (action === 'like') {
       content.likes = (content.likes || 0) + 1;
+      content.lastLikedAt = new Date();
     } else if (action === 'unlike') {
       content.likes = Math.max(0, (content.likes || 0) - 1);
+      // Don't update lastLikedAt on unlike
     } else {
       return res.status(400).json({
         success: false,
@@ -901,6 +903,7 @@ router.post('/content/:id/like', async (req, res) => {
   }
 });
 
+
 /**
  * @route   POST /api/students/content/:id/view
  * @desc    Increment view count for a content item when video finishes
@@ -915,8 +918,11 @@ router.post('/content/:id/view', async (req, res) => {
     // Find and update the content
     const content = await Content.findByIdAndUpdate(
       id,
-      { $inc: { views: 1 } },
-      { new: true, select: 'views' }
+      {
+        $inc: { views: 1 },
+        $set: { lastViewedAt: new Date() }
+      },
+      { new: true }
     );
 
     if (!content) {
@@ -941,6 +947,7 @@ router.post('/content/:id/view', async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;
 
