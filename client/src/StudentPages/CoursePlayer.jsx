@@ -306,7 +306,6 @@ export default function CoursePlayer() {
           const data = await response.json();
           if (data.data && data.data.type) {
             setStudentPathType(data.data.type);
-            console.log('✅ Student type:', data.data.type);
           }
         }
       } catch (error) {
@@ -339,10 +338,8 @@ export default function CoursePlayer() {
             });
 
             if (path) {
-              console.log(`✅ Found learning path:`, path.name);
               setLearningPath(path);
             } else {
-              console.warn(`⚠️ No learning path found for type: ${normalizedType}`);
             }
           }
         }
@@ -383,7 +380,6 @@ export default function CoursePlayer() {
         return;
       }
 
-      console.log(`✅ Loading course:`, course.name);
 
       // Set course data
       setCourseData({
@@ -421,7 +417,6 @@ export default function CoursePlayer() {
         );
 
         setLessons(allLessons);
-        console.log(`✅ Loaded ${allLessons.length} lessons from ${formattedTopics.length} topics`);
       } else {
         setTopics([]);
         setLessons([]);
@@ -442,7 +437,6 @@ export default function CoursePlayer() {
             const result = await response.json();
             if (result.data) {
               setQuizzes(result.data);
-              console.log('✅ Loaded quizzes:', result.data.length);
             }
           }
         } catch (error) {
@@ -467,7 +461,6 @@ export default function CoursePlayer() {
             const result = await response.json();
             if (result.data) {
               setVideos(result.data);
-              console.log('✅ Loaded videos:', result.data.length);
             }
           }
         } catch (error) {
@@ -494,7 +487,6 @@ export default function CoursePlayer() {
               // Filter only documents and images
               const docs = result.data.filter(item => item.contentType === 'document' || item.contentType === 'image');
               setMaterials(docs);
-              console.log('✅ Loaded materials:', docs.length);
             }
           }
         } catch (error) {

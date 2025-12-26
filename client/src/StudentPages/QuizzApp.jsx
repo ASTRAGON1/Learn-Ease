@@ -206,10 +206,9 @@ export default function QuizzApp() {
         },
         body: JSON.stringify({ answers, score })
       }).then(res => res.json())
-        .then(data => console.log('Quiz submission response:', data))
+        .then(data => data)
         .catch(err => console.error('Quiz submission error:', err));
       const finalScore = computeScore(quiz, answers);
-      console.log('Quiz submitted', { quizId: quiz.id, score: finalScore });
     }
   }, [submitted, quiz, answers]);
 

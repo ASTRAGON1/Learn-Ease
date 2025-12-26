@@ -14,10 +14,10 @@ export const uploadFile = (file, folder = 'documents', firebaseUid = null, onPro
     if (!file) {
       return reject(new Error('No file provided'));
     }
-    
+
     // Wait for Firebase Auth to be ready if needed
     let uid = firebaseUid || (auth.currentUser && auth.currentUser.uid);
-    
+
     if (!uid) {
       // Wait for auth state to initialize (up to 2 seconds)
       await new Promise((resolveAuth) => {
@@ -39,35 +39,32 @@ export const uploadFile = (file, folder = 'documents', firebaseUid = null, onPro
       });
       uid = firebaseUid || (auth.currentUser && auth.currentUser.uid);
     }
-    
+
     if (!uid) {
       return reject(new Error('Not authenticated (firebase uid)'));
     }
-    
+
     // Verify user has a valid token
     try {
       const currentUser = auth.currentUser;
       if (!currentUser || currentUser.uid !== uid) {
         return reject(new Error('Firebase authentication not valid'));
       }
-      
+
       // Force token refresh to ensure it's valid
       await currentUser.getIdToken(true);
     } catch (tokenError) {
       console.error('Firebase token error:', tokenError);
       return reject(new Error('Firebase authentication token invalid. Please log in again.'));
     }
-    
+
     const path = makePath(folder, uid, file);
-    console.log('Upload path:', path);
-    console.log('Original filename:', file.name);
-    console.log('Firebase UID:', uid);
-    
+
     const storageRef = ref(storage, path);
     const task = uploadBytesResumable(storageRef, file);
 
     task.on('state_changed',
-      snap => { if (onProgress) onProgress(Math.round((snap.bytesTransferred/snap.totalBytes)*100)); },
+      snap => { if (onProgress) onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)); },
       err => reject(err),
       async () => {
         try {
@@ -82,18 +79,15 @@ export const deleteFileByPath = async (path) => {
   if (!path) {
     throw new Error('Path is required for deletion');
   }
-  
-  console.log('Deleting file from Firebase Storage with path:', path);
+
   const storageRef = ref(storage, path);
-  
+
   try {
     await deleteObject(storageRef);
-    console.log('✅ Successfully deleted file:', path);
   } catch (error) {
     console.error('❌ Firebase Storage deletion error:', error);
     // If file doesn't exist, that's okay - it's already deleted
     if (error.code === 'storage/object-not-found') {
-      console.log('File not found in Firebase Storage (may have been already deleted):', path);
       return; // Don't throw error if file doesn't exist
     }
     throw error; // Re-throw other errors

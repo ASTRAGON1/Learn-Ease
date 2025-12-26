@@ -182,13 +182,6 @@ export default function HelpAndSupport2() {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const endpoint = section === "report" ? "/api/reports" : "/api/feedback";
 
-      console.log('Sending request to:', `${API_URL}${endpoint}`);
-      console.log('Request body:', {
-        userName: instructorFullName,
-        topic: topic,
-        description: text.trim()
-      });
-
       const requestBody = {
         userName: instructorFullName,
         topic: topic,
@@ -210,17 +203,11 @@ export default function HelpAndSupport2() {
         body: JSON.stringify(requestBody)
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
       let data;
       try {
         data = await response.json();
-        console.log('Response data:', data);
       } catch (jsonError) {
-        console.error('Error parsing JSON response:', jsonError);
         const textResponse = await response.text();
-        console.error('Response text:', textResponse);
         showToast("Server error. Please try again.", "error");
         setSending(false);
         return;

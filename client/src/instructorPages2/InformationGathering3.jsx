@@ -17,7 +17,7 @@ export default function InformationGathering3({ onSubmit, onBack }) {
   const handleSubmit = async () => {
     setSubmitting(true);
     setError('');
-    
+
     try {
       // Get MongoDB token using Firebase Auth
       const token = await getMongoDBToken();
@@ -42,7 +42,7 @@ export default function InformationGathering3({ onSubmit, onBack }) {
 
       const verifyData = await verifyResponse.json();
       const teacher = verifyData.data;
-      
+
       const areasOfExpertise = teacher.areasOfExpertise || [];
       const cv = teacher.cv || '';
 
@@ -66,8 +66,8 @@ export default function InformationGathering3({ onSubmit, onBack }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          informationGatheringComplete: true 
+        body: JSON.stringify({
+          informationGatheringComplete: true
         })
       });
 
@@ -94,7 +94,6 @@ export default function InformationGathering3({ onSubmit, onBack }) {
         // Check if application already exists (409 conflict)
         if (applicationResponse.status === 409) {
           // Application already exists, that's okay - continue
-          console.log('Application already exists');
         } else {
           const contentType = applicationResponse.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
@@ -107,7 +106,6 @@ export default function InformationGathering3({ onSubmit, onBack }) {
       } else {
         // Successfully created application
         const appData = await applicationResponse.json();
-        console.log('Application submitted successfully:', appData);
       }
 
       if (typeof onSubmit === 'function') {
@@ -148,11 +146,11 @@ export default function InformationGathering3({ onSubmit, onBack }) {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
-            
+
             if (teacher.fullName) {
               setFullName(teacher.fullName);
             }
-            
+
             if (teacher.email) {
               setEmail(teacher.email);
             } else if (firebaseUser.email) {

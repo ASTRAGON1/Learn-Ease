@@ -111,25 +111,18 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchApplications = async () => {
         try {
-          console.log('Fetching applications from API...');
           const res = await api.listInstructorApplications();
-          console.log('Applications API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} applications:`, res.data);
               setApplications(res.data);
             } else {
-              console.log('No applications data, setting empty array');
               setApplications([]);
             }
           } else {
-            console.warn('Failed to fetch applications:', res);
-            // Set empty array if API fails
             setApplications([]);
           }
         } catch (error) {
           console.error('Error fetching applications:', error);
-          // Set empty array on error
           setApplications([]);
         }
       };
@@ -149,19 +142,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchFeedback = async () => {
         try {
-          console.log('Fetching feedback from API...');
           const res = await api.listFeedback();
-          console.log('Feedback API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} feedback items:`, res.data);
               setFeedback(res.data);
             } else {
-              console.log('No feedback data, setting empty array');
               setFeedback([]);
             }
           } else {
-            console.warn('Failed to fetch feedback:', res);
             setFeedback([]);
           }
         } catch (error) {
@@ -184,32 +172,24 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchReports = async () => {
         try {
-          console.log('Fetching reports from API...');
           const res = await api.listReports();
-          console.log('Reports API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} reports:`, res.data);
-              // Map reports to include reporterId for user lookup
               const mappedReports = res.data.map(report => ({
                 ...report,
                 id: report._id || report.id,
-                reporterId: report.userName, // Use userName to find user
+                reporterId: report.userName,
                 createdAt: report.createdAt || report.created_at
               }));
               setReports(mappedReports);
             } else {
-              console.log('No reports data, setting empty array');
               setReports([]);
             }
           } else {
-            console.warn('Failed to fetch reports:', res);
-            // Keep demo data if API fails
             setReports(demoReports);
           }
         } catch (error) {
           console.error('Error fetching reports:', error);
-          // Keep demo data on error
           setReports(demoReports);
         }
       };
@@ -229,19 +209,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchUsers = async () => {
         try {
-          console.log('Fetching users from API...');
           const res = await api.listUsers();
-          console.log('Users API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} users:`, res.data);
               setUsers(res.data);
             } else {
-              console.log('No users data, setting empty array');
               setUsers([]);
             }
           } else {
-            console.warn('Failed to fetch users:', res);
             setUsers(demoPeople);
           }
         } catch (error) {
@@ -264,19 +239,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchLearningPaths = async () => {
         try {
-          console.log('Fetching learning paths from API...');
           const res = await api.getLearningPaths();
-          console.log('Learning paths API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} learning paths:`, res.data);
               setLearningPaths(res.data);
             } else {
-              console.log('No learning paths data, setting empty array');
               setLearningPaths([]);
             }
           } else {
-            console.warn('Failed to fetch learning paths:', res);
             setLearningPaths([]);
           }
         } catch (error) {
@@ -299,19 +269,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchAchievements = async () => {
         try {
-          console.log('Fetching achievements from API...');
           const res = await api.getAchievements();
-          console.log('Achievements API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} achievements:`, res.data);
               setAchievements(res.data);
             } else {
-              console.log('No achievements data, setting empty array');
               setAchievements([]);
             }
           } else {
-            console.warn('Failed to fetch achievements:', res);
             setAchievements([]);
           }
         } catch (error) {
@@ -334,19 +299,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchDiagnosticQuestions = async () => {
         try {
-          console.log('Fetching diagnostic questions from API...');
           const res = await api.getDiagnosticQuestions();
-          console.log('Diagnostic questions API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} diagnostic questions:`, res.data);
               setDiagnosticQuestions(res.data);
             } else {
-              console.log('No diagnostic questions data, setting empty array');
               setDiagnosticQuestions([]);
             }
           } else {
-            console.warn('Failed to fetch diagnostic questions:', res);
             setDiagnosticQuestions([]);
           }
         } catch (error) {
@@ -369,19 +329,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchStudentProfiles = async () => {
         try {
-          console.log('Fetching student profiles from API...');
           const res = await api.getStudentProfiles();
-          console.log('Student profiles API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} student profiles:`, res.data);
               setStudentProfiles(res.data);
             } else {
-              console.log('No student profiles data, setting empty array');
               setStudentProfiles([]);
             }
           } else {
-            console.warn('Failed to fetch student profiles:', res);
             setStudentProfiles([]);
           }
         } catch (error) {
@@ -404,19 +359,14 @@ export default function AdminPanel2() {
     if (isAuthed) {
       const fetchInstructorProfiles = async () => {
         try {
-          console.log('Fetching instructor profiles from API...');
           const res = await api.getInstructorProfiles();
-          console.log('Instructor profiles API response:', res);
           if (res.ok) {
             if (res.data && Array.isArray(res.data)) {
-              console.log(`Setting ${res.data.length} instructor profiles:`, res.data);
               setInstructorProfiles(res.data);
             } else {
-              console.log('No instructor profiles data, setting empty array');
               setInstructorProfiles([]);
             }
           } else {
-            console.warn('Failed to fetch instructor profiles:', res);
             setInstructorProfiles([]);
           }
         } catch (error) {

@@ -47,7 +47,6 @@ const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 // Try to login as teacher
 async function loginTeacher({ email, password }) {
   try {
-    console.log('Attempting teacher login with:', { email: email?.substring(0, 5) + '...' });
     const response = await fetch(`${API_URL}/api/teachers/auth/login`, {
       method: 'POST',
       headers: {
@@ -56,7 +55,6 @@ async function loginTeacher({ email, password }) {
       body: JSON.stringify({ email, password }),
     });
 
-    // Check if response is JSON before parsing
     const contentType = response.headers.get('content-type');
     let data;
 
@@ -69,9 +67,8 @@ async function loginTeacher({ email, password }) {
     }
 
     if (!response.ok) {
-      console.log('Teacher login failed:', { status: response.status, error: data.error });
       if (response.status === 404) {
-        return { ok: false, error: null }; // User not found, try student
+        return { ok: false, error: null };
       } else if (response.status === 401) {
         return { ok: false, error: 'Invalid email or password.' };
       } else {
@@ -79,7 +76,6 @@ async function loginTeacher({ email, password }) {
       }
     }
 
-    console.log('Teacher login successful');
     return {
       ok: true,
       userType: 'teacher',
@@ -102,7 +98,6 @@ async function loginTeacher({ email, password }) {
 // Try to login as student
 async function loginStudent({ email, password }) {
   try {
-    console.log('Attempting student login with:', { email: email?.substring(0, 5) + '...' });
     // Try student login endpoint - adjust endpoint if different
     const response = await fetch(`${API_URL}/api/students/auth/login`, {
       method: 'POST',
@@ -244,16 +239,10 @@ export default function Login() {
         return;
       }
 
-      // Debug logging
-      console.log('Login result:', {
-        ok: loginResult.ok,
-        userType: loginResult.userType,
-        email: loginResult.user?.email
-      });
+
 
       // Route based on user type: Teachers → instructor-dashboard-2, Students → student-dashboard-2
       if (loginResult.userType === 'teacher') {
-        console.log('Routing to instructor dashboard');
         // Sign in with Firebase - this is REQUIRED for instructors
         let firebaseUID = null;
         try {
@@ -312,10 +301,8 @@ export default function Login() {
             });
 
             if (!updateResponse.ok) {
-              console.log('Could not update firebaseUID (may already be set)');
             }
           } catch (updateError) {
-            console.log('Could not update firebaseUID (may already be set):', updateError);
             // Continue anyway - firebaseUID might already be set
           }
         } catch (firebaseError) {
@@ -432,7 +419,6 @@ export default function Login() {
         }
 
         // Quiz completed, navigate to student dashboard-2
-        console.log('Routing to student dashboard-2');
         navigate('/student-dashboard-2');
       }
     } catch (error) {
@@ -555,8 +541,6 @@ export default function Login() {
               type="button"
               className="all-login-google-btn"
               onClick={() => {
-                // Add Google login logic here
-                console.log("Login with Google");
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

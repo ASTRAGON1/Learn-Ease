@@ -20,7 +20,7 @@ async function createAdmin() {
 
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({ email: adminEmail });
-    
+
     if (existingAdmin) {
       console.log(`\n⚠️  Admin with email "${adminEmail}" already exists!`);
       console.log('If you want to update the password, delete the existing admin first.');

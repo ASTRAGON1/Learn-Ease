@@ -105,14 +105,14 @@ exports.bulkImportAchievements = async (req, res) => {
         const { id, grade, completedAt, ...dataToSave } = achievementData;
 
         // Validate required fields
-        if (!dataToSave.type || !dataToSave.title || !dataToSave.course || 
-            !dataToSave.badge || !dataToSave.description || !dataToSave.category) {
+        if (!dataToSave.type || !dataToSave.title || !dataToSave.course ||
+          !dataToSave.badge || !dataToSave.description || !dataToSave.category) {
           throw new Error('Missing required fields: type, title, course, badge, description, category');
         }
 
         // Check if achievement with same title already exists
         const existing = await Achievement.findOne({ title: dataToSave.title });
-        
+
         if (existing) {
           // Update existing achievement
           await Achievement.findByIdAndUpdate(existing._id, dataToSave, { new: true, runValidators: true });
@@ -138,8 +138,8 @@ exports.bulkImportAchievements = async (req, res) => {
     console.log('✅ Bulk import completed:', message);
     console.log('📊 Total achievements in DB:', await Achievement.countDocuments());
 
-    res.json({ 
-      ok: true, 
+    res.json({
+      ok: true,
       count: successCount,
       message,
       errors: errorCount > 0 ? errors : undefined

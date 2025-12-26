@@ -70,11 +70,10 @@ export default function InformationGathering2({ onNext, onBack }) {
       // Upload CV to Firebase Storage in cv/{userId}/{fileName} path
       const { uploadFile } = await import('../utils/uploadFile');
       let cvUrl = '';
-      
+
       try {
         const uploadResult = await uploadFile(file, 'cv', firebaseUser.uid);
         cvUrl = uploadResult.url;
-        console.log('CV uploaded to Firebase Storage:', cvUrl);
       } catch (uploadError) {
         console.error('Error uploading CV to Firebase:', uploadError);
         throw new Error('Failed to upload CV. Please try again.');
@@ -87,7 +86,7 @@ export default function InformationGathering2({ onNext, onBack }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           cv: cvUrl, // Store the Firebase Storage URL
           bio: notes.trim() || '' // Store notes in bio field
         })
@@ -96,13 +95,13 @@ export default function InformationGathering2({ onNext, onBack }) {
       // Check if response is JSON before parsing
       const contentType = response.headers.get('content-type');
       let data;
-      
+
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
         const text = await response.text();
         console.error('Non-JSON response:', text);
-        
+
         if (response.status === 401) {
           throw new Error('Invalid or expired token. Please log in again.');
         } else {
@@ -166,11 +165,11 @@ export default function InformationGathering2({ onNext, onBack }) {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
-            
+
             if (teacher.fullName) {
               setFullName(teacher.fullName);
             }
-            
+
             if (teacher.email) {
               setEmail(teacher.email);
             } else if (firebaseUser.email) {

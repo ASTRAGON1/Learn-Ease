@@ -182,12 +182,6 @@ export default function AIQuiz2() {
                 }))
               }))
             }));
-            console.log('📚 Fetched curriculum data:', transformed);
-            console.log('📚 Number of paths:', transformed.length);
-            if (transformed.length > 0) {
-              console.log('📚 First path:', transformed[0]);
-              console.log('📚 First path courses:', transformed[0].Courses);
-            }
             setCurriculumData(transformed);
           }
         } else {
@@ -203,17 +197,13 @@ export default function AIQuiz2() {
   // Get current path based on category
   const currentPath = useMemo(() => {
     const pathKey = category === "Autism" ? "autism" : "downSyndrome";
-    console.log('🔍 Looking for path with key:', pathKey);
-    console.log('🔍 Available curriculum data:', curriculumData);
     const found = curriculumData.find(p => p.GeneralPath === pathKey);
-    console.log('🔍 Found path:', found);
     return found;
   }, [category, curriculumData]);
 
   // Get available courses for current category
   const availableCourses = useMemo(() => {
     const courses = currentPath?.Courses || [];
-    console.log('📖 Available courses for', category, ':', courses);
     return courses;
   }, [currentPath, category]);
 

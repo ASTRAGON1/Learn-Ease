@@ -1,16 +1,14 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
-import Logo2 from "../assets/fullLogo.png";
-import illus from "../assets/illustration.png";
 import "./landPage.css";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup }) {
+export default function LandingPage() {
   const stars = (n) => "★".repeat(Math.max(0, n)) + "☆".repeat(Math.max(0, 5 - n));
   const [reviews, setReviews] = useState([]);
   const [stats, setStats] = useState({ students: 0, teachers: 0 });
-  
+
   // Fetch visible feedbacks from API (only admin-approved feedbacks)
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -62,11 +60,8 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
   const [newsEmail, setNewsEmail] = useState("");
   const [newsMsg, setNewsMsg] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const revTrackRef = useRef(null);
   const year = useMemo(() => new Date().getFullYear(), []);
 
-  const onRevPrev = () => revTrackRef.current?.scrollBy({ left: -320, behavior: "smooth" });
-  const onRevNext = () => revTrackRef.current?.scrollBy({ left: 320, behavior: "smooth" });
   const toggleFaq = (i) => setFaqOpen(prev => ({ ...prev, [i]: !prev[i] }));
   const faqItems = [
     { q: "How does the AI personalize learning?", a: "It adapts tasks by difficulty, supports (visual/auditory prompts), and pacing based on progress and attention patterns." },
@@ -78,7 +73,6 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
     { q: "How do I sign up my child?", a: "Click on the 'Sign Up' button at the top right, then fill in your child's details. It's easy and takes only a few minutes." },
     { q: "What devices can I use?", a: "You can use a browser for now, but we are planning to add more devices in the future" },
     { q: "Are the classes live or recorded?", a: "Currently, all our classes are pre-recorded to give students the flexibility to learn at their own pace. However, we're working on introducing live video classes in future updates to enhance interactivity and engagement." },
-
   ];
   const handleNewsSubmit = (e) => {
     e.preventDefault();
@@ -86,10 +80,6 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
     if (!valid) { setNewsMsg("Please enter a valid email."); return; }
     setNewsMsg("Subscribed! Check your inbox for confirmation.");
     setNewsEmail("");
-  };
-
-  const becomeInstructor = () => {
-    if (onSignup) onSignup(); else window.location.href = "/InstructorSignUp1";
   };
 
   return (
@@ -100,7 +90,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
           <a href="#home" className="landPage-brand" onClick={() => setMobileMenuOpen(false)}>
             <img src={Logo} alt="Platform logo" />
           </a>
-          <button 
+          <button
             className="landPage-mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
@@ -169,7 +159,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               We're an inclusive learning platform built with specialists. Our mission is to empower teachers and families to deliver consistent, joyful learning experiences for students with autism and Down syndrome.
             </p>
           </div>
-          
+
           <div className="landPage-who-features">
             <div className="landPage-who-feature-card">
               <div className="landPage-who-feature-icon">
@@ -183,7 +173,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               <h3>Special-Education Focus</h3>
               <p>Structured routines, visual schedules, PECS-style prompts, and behavioral supports designed by experts in special education.</p>
             </div>
-            
+
             <div className="landPage-who-feature-card">
               <div className="landPage-who-feature-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -195,7 +185,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               <h3>AI Personalization</h3>
               <p>Adaptive activities and pacing based on student attention, sensory needs, and mastery levels for truly personalized learning.</p>
             </div>
-            
+
             <div className="landPage-who-feature-card">
               <div className="landPage-who-feature-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -206,7 +196,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               <h3>Family-Centered</h3>
               <p>Simple progress reports, goal tracking, and seamless communication between teachers and families for complete transparency.</p>
             </div>
-            
+
             <div className="landPage-who-feature-card">
               <div className="landPage-who-feature-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -217,8 +207,8 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               </div>
               <h3>Expert-Built</h3>
               <p>Co-designed with specialists, therapists, and families to ensure every feature meets real-world needs and best practices.</p>
-              </div>
             </div>
+          </div>
         </div>
       </section>
 
@@ -323,7 +313,7 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
             </div>
           ))}
         </div>
-</section>
+      </section>
 
 
       {/* NEWSLETTER */}
@@ -337,7 +327,6 @@ export default function LandingPage({ logoSrc = "/assets/fullLogo.png", onSignup
               </p>
             </div>
 
-            {/* changed class + added control classes */}
             <form className="landPage-news-form" onSubmit={handleNewsSubmit}>
               <input
                 className="landPage-news-input"

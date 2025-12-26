@@ -11,7 +11,6 @@ import icResources from "../assets/resources.png";
 import icProfile from "../assets/Profile.png";
 import testPath from "../assets/testPath.png";
 import community from "../assets/community.png";
-import teachPic from "../assets/teachPic.png";
 import performanceIcon from "../assets/performance.png";
 import feedbackSupport from "../assets/feedback&support.png";
 import InstructorDailyChart from "../components/InstructorDailyChart";
@@ -274,11 +273,8 @@ export default function InstructorDashboard2() {
   useEffect(() => {
     const fetchContentMetrics = async () => {
       if (!email) {
-        console.log('[Metrics] No email available yet');
         return;
       }
-
-      console.log('[Metrics] Fetching for email:', email);
 
       try {
         const Content = await fetch(`${API_URL}/api/admin/teacher/${encodeURIComponent(email)}/content`);
@@ -291,7 +287,6 @@ export default function InstructorDashboard2() {
         if (Content.ok) {
           const contentData = await Content.json();
           const contents = contentData.data || [];
-          console.log('[Metrics] Content items:', contents.length, contents);
           totalViews += contents.reduce((sum, item) => sum + (item.views || 0), 0);
           totalLikes += contents.reduce((sum, item) => sum + (item.likes || 0), 0);
           totalUploads += contents.length;
@@ -302,15 +297,12 @@ export default function InstructorDashboard2() {
         if (Quiz.ok) {
           const quizData = await Quiz.json();
           const quizzes = quizData.data || [];
-          console.log('[Metrics] Quiz items:', quizzes.length, quizzes);
           totalViews += quizzes.reduce((sum, item) => sum + (item.views || 0), 0);
           totalLikes += quizzes.reduce((sum, item) => sum + (item.likes || 0), 0);
           totalUploads += quizzes.length;
         } else {
           console.error('[Metrics] Quiz fetch failed:', Quiz.status);
         }
-
-        console.log('[Metrics] Final totals - Views:', totalViews, 'Likes:', totalLikes, 'Uploads:', totalUploads);
 
         setContentMetrics({
           totalViews,
@@ -725,7 +717,10 @@ export default function InstructorDashboard2() {
             </p>
           </div>
           <Link to="/teachingCenter-2" className="ld-resource-card">
-            <img src={teachPic} alt="How to teach" className="ld-resource-icon" />
+            <svg className="ld-resource-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
             <h5 className="ld-resource-title">How to teach in LearnEase</h5>
             <p className="ld-resource-desc">
               Learn how to use our platform to get the best results and satisfy the students.

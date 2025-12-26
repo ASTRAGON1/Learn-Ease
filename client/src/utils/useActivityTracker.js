@@ -9,16 +9,14 @@ import activityTracker from './activityTracker';
 export function useActivityTracker(role, isAuthenticated = true) {
   useEffect(() => {
     if (isAuthenticated && role) {
-      console.log(`[useActivityTracker] Starting activity tracker for ${role}`);
       activityTracker.start(role);
-      
+
       return () => {
-        console.log(`[useActivityTracker] Stopping activity tracker`);
         activityTracker.stop();
       };
     }
   }, [role, isAuthenticated]);
-  
+
   return {
     logout: (shouldNavigate = true) => activityTracker.logout(shouldNavigate)
   };

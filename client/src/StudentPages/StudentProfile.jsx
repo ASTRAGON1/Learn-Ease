@@ -294,8 +294,6 @@ export default function StudentProfile() {
 
       // Convert to base64 and upload to MongoDB
       // This works for all users regardless of Firebase authentication
-      console.log('📤 Converting image to base64 for upload...');
-
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Image = reader.result;
@@ -312,13 +310,11 @@ export default function StudentProfile() {
         });
 
         if (response.ok) {
-          console.log('✅ Profile picture updated successfully');
           setProfile((p) => ({ ...p, profilePic: base64Image }));
           setInitialProfile((p) => ({ ...p, profilePic: base64Image }));
           alert('Profile picture updated successfully!');
         } else {
           const errorData = await response.json().catch(() => ({}));
-          console.error('Failed to update profile picture:', errorData);
           alert('Failed to update profile picture. Please try again.');
           // Revert to original picture
           setProfile((p) => ({ ...p, profilePic: initialProfile.profilePic }));

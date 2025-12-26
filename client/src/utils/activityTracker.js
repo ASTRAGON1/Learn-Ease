@@ -15,27 +15,25 @@ class ActivityTracker {
   // Start tracking user activity
   start(role) {
     if (this.isTracking) return;
-    
+
     this.userRole = role; // 'student' or 'teacher'
     this.isTracking = true;
     this.lastActivity = Date.now();
-    
-    console.log(`[ActivityTracker] Started tracking for ${role}`);
-    
+
     // Update activity immediately
     this.updateActivity();
-    
+
     // Set up periodic activity updates
     this.activityInterval = setInterval(() => {
       this.updateActivity();
     }, this.UPDATE_INTERVAL);
-    
+
     // Set up inactivity detection
     this.resetInactivityTimer();
-    
+
     // Listen for user interactions to reset inactivity timer
     this.setupEventListeners();
-    
+
     // Handle page unload/close
     this.setupUnloadHandler();
   }
@@ -43,40 +41,37 @@ class ActivityTracker {
   // Stop tracking
   stop() {
     if (!this.isTracking) return;
-    
-    console.log('[ActivityTracker] Stopped tracking');
-    
+
     this.isTracking = false;
-    
+
     if (this.activityInterval) {
       clearInterval(this.activityInterval);
       this.activityInterval = null;
     }
-    
+
     if (this.inactivityTimeout) {
       clearTimeout(this.inactivityTimeout);
       this.inactivityTimeout = null;
     }
-    
+
     this.removeEventListeners();
   }
 
   // Update activity on the server
   async updateActivity() {
     if (!this.isTracking || !this.userRole) return;
-    
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.log('[ActivityTracker] No token found, stopping tracker');
         this.stop();
         return;
       }
-      
-      const endpoint = this.userRole === 'student' 
+
+      const endpoint = this.userRole === 'student'
         ? '/api/students/auth/activity'
         : '/api/teachers/auth/activity';
-      
+
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
@@ -84,15 +79,13 @@ class ActivityTracker {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
-        console.warn('[ActivityTracker] Failed to update activity:', response.status);
         // If unauthorized, stop tracking
         if (response.status === 401 || response.status === 403) {
           this.stop();
         }
       } else {
-        console.log('[ActivityTracker] Activity updated');
       }
     } catch (error) {
       console.error('[ActivityTracker] Error updating activity:', error);
@@ -102,20 +95,18 @@ class ActivityTracker {
   // Log out the user
   async logout(shouldNavigate = true) {
     if (!this.userRole) return;
-    
-    console.log('[ActivityTracker] Logging out user');
-    
+
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const endpoint = this.userRole === 'student' 
+        const endpoint = this.userRole === 'student'
           ? '/api/students/auth/logout'
           : '/api/teachers/auth/logout';
-        
+
         // Use sendBeacon for reliable logout on page unload
         const data = new Blob([JSON.stringify({})], { type: 'application/json' });
         navigator.sendBeacon(`${API_URL}${endpoint}?token=${encodeURIComponent(token)}`, data);
-        
+
         // Also try regular fetch
         fetch(`${API_URL}${endpoint}`, {
           method: 'POST',
@@ -123,17 +114,17 @@ class ActivityTracker {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
-        }).catch(() => {}); // Ignore errors
+        }).catch(() => { }); // Ignore errors
       }
     } catch (error) {
       console.error('[ActivityTracker] Error during logout:', error);
     } finally {
       this.stop();
-      
+
       if (shouldNavigate) {
         // Clear local storage
         localStorage.removeItem('token');
-        
+
         // Redirect to login
         window.location.href = '/all-login';
       }
@@ -145,11 +136,10 @@ class ActivityTracker {
     if (this.inactivityTimeout) {
       clearTimeout(this.inactivityTimeout);
     }
-    
+
     this.lastActivity = Date.now();
-    
+
     this.inactivityTimeout = setTimeout(() => {
-      console.log('[ActivityTracker] User inactive, logging out');
       this.logout(true);
     }, this.INACTIVITY_THRESHOLD);
   }
@@ -159,7 +149,7 @@ class ActivityTracker {
     this.activityHandler = () => {
       this.resetInactivityTimer();
     };
-    
+
     // Listen for user interactions
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     events.forEach(event => {
@@ -183,7 +173,7 @@ class ActivityTracker {
       // Call logout without navigation
       this.logout(false);
     };
-    
+
     window.addEventListener('beforeunload', this.unloadHandler);
     window.addEventListener('pagehide', this.unloadHandler);
   }

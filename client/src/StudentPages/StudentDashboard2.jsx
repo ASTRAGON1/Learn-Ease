@@ -229,7 +229,6 @@ export default function StudentDashboard2() {
             // Set student type from diagnostic test results
             if (student.type) {
               setStudentPathType(student.type);
-              console.log('✅ Student type from diagnostic test:', student.type);
             }
           } else if (response.status === 403) {
             // Quiz required - redirect to diagnostic quiz
@@ -570,7 +569,6 @@ export default function StudentDashboard2() {
 
   const handleChatbotClick = () => {
     // You can navigate to a chatbot page or open a modal here
-    console.log("Chatbot clicked");
     // Example: navigate("/chatbot") or setChatOpen(true)
   };
 

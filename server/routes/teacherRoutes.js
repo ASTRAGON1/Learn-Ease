@@ -12,7 +12,7 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
     const mongoose = require('mongoose');
     const userId = req.user.sub;
     console.log('PATCH /api/teachers/me - User ID:', userId, 'Type:', typeof userId);
-    
+
     // Convert to ObjectId if it's a string
     let teacherId;
     try {
@@ -21,10 +21,10 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
       console.error('Invalid ObjectId format:', userId);
       return res.status(400).json({ error: 'Invalid user ID format' });
     }
-    
+
     const allowed = ['fullName', 'cv', 'profilePic', 'bio', 'headline', 'country', 'website', 'areasOfExpertise', 'informationGatheringComplete', 'firebaseUID'];
     const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
-    
+
     // Validate areasOfExpertise if provided
     if (update.areasOfExpertise) {
       if (!Array.isArray(update.areasOfExpertise)) {
@@ -42,7 +42,7 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
 
     // CV is now stored as filename, so no size validation needed
     // If you want to store actual files later, use cloud storage (S3, Firebase Storage, etc.)
-    
+
     // Check if teacher exists first - try both as ObjectId and as string
     let teacherExists = await Teacher.findById(teacherId);
     if (!teacherExists) {
@@ -56,10 +56,10 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
       console.log('Sample teachers in DB:', allTeachers);
       return res.status(404).json({ error: 'Teacher not found. Please log out and log in again.' });
     }
-    
+
     // Use updateOne to avoid full document validation issues
     const updateResult = await Teacher.updateOne({ _id: teacherId }, { $set: update });
-    
+
     if (updateResult.matchedCount === 0) {
       // Try with string ID
       const updateResult2 = await Teacher.updateOne({ _id: userId }, { $set: update });
@@ -68,7 +68,7 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
         return res.status(404).json({ error: 'Teacher not found. Please log out and log in again.' });
       }
     }
-    
+
     // Fetch updated document
     let out = await Teacher.findById(teacherId).select('-password');
     if (!out) {
@@ -78,7 +78,7 @@ router.patch('/me', auth(['teacher']), async (req, res) => {
       console.error('Could not fetch updated teacher with ID:', userId);
       return res.status(404).json({ error: 'Teacher not found. Please log out and log in again.' });
     }
-    
+
     res.json({ data: out });
   } catch (error) {
     console.error('Error updating teacher profile:', error);
@@ -133,7 +133,7 @@ router.patch('/me/password', auth(['teacher']), async (req, res) => {
     // Check if teacher has a password in MongoDB
     // If they have a password, verify it. If not, they might be Firebase-only, which is okay.
     let shouldUpdateMongoDB = false;
-    
+
     if (teacher.password) {
       // Teacher has MongoDB password, verify current password
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, teacher.password);
@@ -150,10 +150,10 @@ router.patch('/me/password', auth(['teacher']), async (req, res) => {
     // Hash new password and update MongoDB
     if (shouldUpdateMongoDB) {
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-      
+
       // Update password in MongoDB
       const updateResult = await Teacher.updateOne({ _id: teacherId }, { $set: { password: hashedNewPassword } });
-      
+
       if (updateResult.matchedCount === 0) {
         const updateResult2 = await Teacher.updateOne({ _id: userId }, { $set: { password: hashedNewPassword } });
         if (updateResult2.matchedCount === 0) {
@@ -174,7 +174,7 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
   try {
     const mongoose = require('mongoose');
     const userId = req.user.sub;
-    
+
     // Convert to ObjectId if it's a string
     let teacherId;
     try {
@@ -182,7 +182,7 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
     } catch (e) {
       return res.status(400).json({ error: 'Invalid user ID format' });
     }
-    
+
     // Find teacher to get firebaseUID before deletion
     let teacher = await Teacher.findById(teacherId);
     if (!teacher) {
@@ -191,12 +191,12 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
     if (!teacher) {
       return res.status(404).json({ error: 'Teacher not found' });
     }
-    
+
     const firebaseUID = teacher.firebaseUID || null;
-    
+
     // Delete teacher from MongoDB
     const deleteResult = await Teacher.deleteOne({ _id: teacherId });
-    
+
     if (deleteResult.deletedCount === 0) {
       // Try with string ID
       const deleteResult2 = await Teacher.deleteOne({ _id: userId });
@@ -204,9 +204,9 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
         return res.status(404).json({ error: 'Teacher not found' });
       }
     }
-    
+
     console.log('✅ Teacher deleted from MongoDB:', userId);
-    
+
     // Delete from Firebase Authentication
     if (firebaseUID) {
       const firebaseDeleted = await deleteFirebaseUser(firebaseUID);
@@ -216,8 +216,8 @@ router.delete('/me', auth(['teacher']), async (req, res) => {
         console.warn('⚠️  Firebase deletion skipped or failed for:', firebaseUID);
       }
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Account deleted successfully from both MongoDB and Firebase',
       success: true
     });
@@ -232,7 +232,7 @@ router.get('/ranking', async (req, res) => {
   try {
     // Get all active teachers that have Firebase UID (verified accounts)
     // Only include teachers that have both MongoDB account and Firebase account
-    const allTeachers = await Teacher.find({ 
+    const allTeachers = await Teacher.find({
       userStatus: 'active',
       firebaseUID: { $exists: true, $ne: null } // Only teachers with Firebase accounts
     })

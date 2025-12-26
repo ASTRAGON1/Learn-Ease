@@ -297,7 +297,6 @@ export default function Signup() {
             url: verificationUrl,
             handleCodeInApp: false
           });
-          console.log(`Verification email sent successfully to ${userType}`);
         } catch (emailError) {
           console.error('Error sending verification email:', emailError);
           // Don't fail the registration if email sending fails - user can request resend later
@@ -577,8 +576,6 @@ export default function Signup() {
               type="button"
               className="all-signup-google-btn"
               onClick={() => {
-                // Add Google sign-in logic here
-                console.log("Sign up with Google");
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

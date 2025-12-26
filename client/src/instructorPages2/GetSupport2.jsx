@@ -217,7 +217,6 @@ export default function GetSupport2() {
         setIsAILoading(false);
       } catch (streamError) {
         // Fallback to non-streaming
-        console.log('Streaming failed, using non-streaming fallback:', streamError);
 
         const response = await fetch(`${API_URL}/api/ai/chat/non-streaming`, {
           method: 'POST',

@@ -498,16 +498,13 @@ const api = {
   // Removed toggleAchievementStatus - achievements no longer have isActive field
   bulkImportAchievements: async (achievements) => {
     try {
-      console.log('📥 Bulk importing achievements:', achievements.length, 'items');
       const response = await fetch(`${API_URL}/api/admin/achievements/bulk-import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ achievements })
       });
-      console.log('📊 Response status:', response.status);
 
       const result = await response.json();
-      console.log('📊 Response data:', result);
 
       if (!response.ok) {
         return { success: false, error: result.error || 'Failed to import achievements' };
@@ -604,15 +601,12 @@ const api = {
   },
   bulkImportDiagnosticQuestions: async (questions) => {
     try {
-      console.log('Bulk importing questions:', questions.length, 'questions');
       const response = await fetch(`${API_URL}/api/admin/diagnostic-questions/bulk-import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions })
       });
-      console.log('Bulk import response status:', response.status);
       const result = await response.json();
-      console.log('Bulk import result:', result);
 
       if (!response.ok) {
         return { success: false, error: result.error || 'Failed to import questions' };

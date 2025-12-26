@@ -274,7 +274,6 @@ export default function Courses() {
                 }))
               });
             } else {
-              console.warn('No learning path found for type:', normalizedType);
             }
           }
         }

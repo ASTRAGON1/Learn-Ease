@@ -276,12 +276,6 @@ export default function InstructorUpload2() {
                 }))
               }))
             }));
-            console.log('📚 Fetched curriculum data:', transformed);
-            console.log('📚 Number of paths:', transformed.length);
-            if (transformed.length > 0) {
-              console.log('📚 First path:', transformed[0]);
-              console.log('📚 First path courses:', transformed[0].Courses);
-            }
             setCurriculumData(transformed);
           }
         } else {
@@ -297,17 +291,13 @@ export default function InstructorUpload2() {
   // Get current path based on category
   const currentPath = useMemo(() => {
     const pathKey = category === "Autism" ? "autism" : "downSyndrome";
-    console.log('🔍 Looking for path with key:', pathKey);
-    console.log('🔍 Available curriculum data:', curriculumData);
     const found = curriculumData.find(p => p.GeneralPath === pathKey);
-    console.log('🔍 Found path:', found);
     return found;
   }, [category, curriculumData]);
 
   // Get available courses for current category
   const availableCourses = useMemo(() => {
     const courses = currentPath?.Courses || [];
-    console.log('📖 Available courses for', category, ':', courses);
     return courses;
   }, [currentPath, category]);
 
@@ -537,7 +527,6 @@ export default function InstructorUpload2() {
 
       // Warn if selected type doesn't match actual file type
       if (actualFileType !== fileType) {
-        console.warn(`File type mismatch: Selected "${fileType}" but file is "${actualFileType}". Using "${actualFileType}".`);
         showToast(`File type auto-corrected from "${fileType}" to "${actualFileType}" based on file content.`, "error");
       }
 
@@ -552,14 +541,6 @@ export default function InstructorUpload2() {
       if (!storageFolder) {
         throw new Error('Invalid file type selected');
       }
-
-      console.log('File upload details:', {
-        selectedType: fileType,
-        actualType: actualFileType,
-        mimeType: fileMimeType,
-        folder: storageFolder,
-        fileName: file.name
-      });
 
       const uploadResult = await uploadFile(
         file,
@@ -578,10 +559,6 @@ export default function InstructorUpload2() {
 
       // Use the actual detected file type for MongoDB, not the user's selection
       const mongoType = actualFileType || fileType;
-
-      // Debug: Log the IDs being sent
-      console.log('Selected IDs for content:', getSelectedIds);
-      console.log('Course:', course, 'Topic:', topic, 'Lesson:', lesson);
 
       const response = await fetch(`${API_URL}/api/content`, {
         method: 'POST',
@@ -1166,7 +1143,6 @@ export default function InstructorUpload2() {
   }, [showFileTypeList]);
 
   const handleChatbotClick = () => {
-    console.log("Chatbot clicked");
   };
 
   // Sidebar items
@@ -1765,7 +1741,7 @@ export default function InstructorUpload2() {
                       <div className="ld-upload-content-title">{row.title}</div>
                       <div className="ld-upload-pill">{row.category}</div>
                       <div className={`ld-upload-status-pill ${row.status === "Published" ? "ld-upload-status-green" :
-                          row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
+                        row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
                         }`}>
                         {row.status}
                       </div>
@@ -1880,7 +1856,7 @@ export default function InstructorUpload2() {
                       <div className="ld-upload-content-title">{row.title}</div>
                       <div className="ld-upload-pill">{row.category}</div>
                       <div className={`ld-upload-status-pill ${row.status === "Published" ? "ld-upload-status-green" :
-                          row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
+                        row.status === "Draft" ? "ld-upload-status-red" : "ld-upload-status-yellow"
                         }`}>
                         {row.status}
                       </div>

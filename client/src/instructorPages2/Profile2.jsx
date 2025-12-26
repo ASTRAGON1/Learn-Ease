@@ -257,7 +257,6 @@ export default function Profile2() {
             try {
               await deleteFileByPath(profilePicStoragePath);
             } catch (e) {
-              console.log('Could not delete old profile picture:', e);
             }
           }
 
@@ -859,8 +858,6 @@ export default function Profile2() {
                         if (!response.ok) {
                           throw new Error(data.error || 'Failed to delete account');
                         }
-
-                        console.log('✅ Account deleted successfully:', data.message);
 
                         // Sign out from Firebase on the client side
                         try {
