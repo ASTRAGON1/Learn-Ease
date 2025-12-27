@@ -142,9 +142,9 @@ export default function LandingPage() {
               </div>
             </div>
             <ul className="landPage-checklist landPage-mt-12">
-              <li><span className="landPage-icon">✔</span>IEP-friendly goals & visual supports</li>
-              <li><span className="landPage-icon">✔</span>Sensory-aware activities & schedules</li>
-              <li><span className="landPage-icon">✔</span>Parent dashboard & simple reports</li>
+              <li><span className="landPage-icon">✔</span>AI-powered quiz generation & personalization</li>
+              <li><span className="landPage-icon">✔</span>Diagnostic assessment & personalized paths</li>
+              <li><span className="landPage-icon">✔</span>Progress tracking & achievement system</li>
             </ul>
           </div>
         </div>

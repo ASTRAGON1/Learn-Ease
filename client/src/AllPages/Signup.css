@@ -24,7 +24,7 @@
   justify-content: center;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: var(--all-bg);
-  background-image: url('../assets/back.png');
+  background-image: url('../assets/background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -590,4 +590,3 @@
     flex-direction: column;
   }
 }
-
