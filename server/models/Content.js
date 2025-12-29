@@ -48,6 +48,11 @@ const contentSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  duration: {
+    type: Number, // In minutes
+    min: 0,
+    required: false
+  },
   difficulty: {
     type: String,
     enum: {

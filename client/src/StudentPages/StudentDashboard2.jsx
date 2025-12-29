@@ -268,8 +268,20 @@ export default function StudentDashboard2() {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
-            const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(studentPathType.toLowerCase())));
+            // Normalize student type to match DB enum (autism or downSyndrome)
+            let normalizedType = studentPathType;
+            if (studentPathType.toLowerCase().includes('down') && studentPathType.toLowerCase().includes('syndrome')) {
+              normalizedType = 'downSyndrome';
+            } else if (studentPathType.toLowerCase().includes('autism')) {
+              normalizedType = 'autism';
+            }
+
+            // Find matching path by type (preferred) or name fallback
+            const path = result.data.find(p =>
+              (p.type && p.type === normalizedType) ||
+              (p.name && p.name.toLowerCase().includes(studentPathType.toLowerCase())) ||
+              (p.id && p.id.includes(normalizedType))
+            );
             if (path) {
               // Transform to expected format
               setStudentPath({

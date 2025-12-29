@@ -32,7 +32,7 @@ export default function DiagnosticQuiz() {
         const response = await fetch(`${API_URL}/api/diagnostic-quiz/status`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.data.completed) {
@@ -162,18 +162,18 @@ export default function DiagnosticQuiz() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Clear the quiz-in-progress flag since it's now completed
         sessionStorage.removeItem('diagnosticQuizInProgress');
-        
+
         // Navigate to dashboard with success message
-        navigate('/student-dashboard-2', { 
+        navigate('/student-dashboard-2', {
           replace: true,
-          state: { 
+          state: {
             diagnosticComplete: true,
             studentType: data.data.studentType,
             message: 'You finally finished your first step! You will get a personalized path made just for you. 🎉'
-          } 
+          }
         });
       } else {
         const errorData = await response.json();
@@ -246,11 +246,11 @@ export default function DiagnosticQuiz() {
             <div className="dq-modal-icon">⚠️</div>
             <h3 className="dq-modal-title">Cannot Logout During Quiz</h3>
             <p className="dq-modal-message">
-              You must complete the diagnostic quiz at least once before you can logout. 
+              You must complete the diagnostic quiz at least once before you can logout.
               This helps us create your personalized learning path.
             </p>
-            <button 
-              className="dq-btn dq-btn-primary" 
+            <button
+              className="dq-btn dq-btn-primary"
               onClick={() => setShowLogoutWarning(false)}
             >
               Continue Quiz
@@ -288,7 +288,7 @@ export default function DiagnosticQuiz() {
 
         <div className="dq-questions">
           {currentQuestions.map((question, qIndex) => (
-            <div key={question.id} className="dq-question-card">
+            <div key={question._id || question.id || qIndex} className="dq-question-card">
               <div className="dq-question-number">Question {qIndex + 1} of {currentQuestions.length}</div>
               <h3 className="dq-question-text">{question.question}</h3>
               <div className="dq-options">
@@ -320,7 +320,7 @@ export default function DiagnosticQuiz() {
           >
             Previous
           </button>
-          
+
           {currentSection < 3 ? (
             <button
               className="dq-btn dq-btn-primary"

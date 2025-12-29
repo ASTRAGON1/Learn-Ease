@@ -33,6 +33,21 @@ const studentPathSchema = new mongoose.Schema({
             default: Date.now
         }
     }],
+    personalizedRecommendations: [{
+        content: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Content',
+            required: true
+        },
+        reason: {
+            type: String,
+            trim: true
+        },
+        generatedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     status: {
         type: String,
         enum: ['in-progress', 'completed'],

@@ -6,6 +6,7 @@ const Content = require('../models/Content');
 const StudentPath = require('../models/StudentPath');
 const fs = require('fs');
 const path = require('path');
+const OpenAI = require('openai');
 
 // Helper function to get questions (from DB or JSON file)
 function getQuestionsData() {
@@ -436,6 +437,73 @@ exports.submitQuiz = async (req, res) => {
       } else {
         console.warn(`⚠️ No default Path found for type: ${studentType}. Please create a Path in the Admin Panel.`);
       }
+
+      // --- AI Personalization Step ---
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          console.log('🤖 Starting AI personalization analysis...');
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+          // 1. Fetch available video content to recommend from
+          const availableVideos = await Content.find({
+            status: 'published',
+            contentType: 'video'
+          }).select('title description duration difficulty topic').limit(50); // Limit to 50 to avoid token limits
+
+          if (availableVideos.length > 0) {
+            // 2. Build Prompt
+            const prompt = `Student Profile:
+- Condition: ${studentType} (Score: Autism ${autismScore}, Down Syndrome ${downSyndromeScore})
+- Diagnostic Accuracy: ${(accuracy * 100).toFixed(0)}%
+- Section 1 Answers (Preferences): ${JSON.stringify(section1)}
+- Section 3 Answers (Behavioral): ${JSON.stringify(section3)}
+
+Available Videos:
+${availableVideos.map((v, i) => `${i + 1}. Title: ${v.title}, Duration: ${v.duration || 'N/A'}m, Diff: ${v.difficulty}, Topic: ${v.topic}`).join('\n')}
+
+Task: Select the top 3 most suitable videos for this student to start with.
+Consider their condition, accuracy score (lower accuracy = easier content), and preferences implied by their answers.
+Return ONLY a JSON array of the indices (1-based) of the selected videos. Example: [1, 5, 2]`;
+
+            // 3. Call OpenAI
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                { role: "system", content: "You are an expert special education curriculum planner. Return only a JSON array of indices." },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.3
+            });
+
+            // 4. Parse Response
+            const responseText = completion.choices[0].message.content.trim();
+            const indices = JSON.parse(responseText.match(/\[.*\]/s)?.[0] || "[]");
+
+            if (indices.length > 0) {
+              const recommendedContent = indices.map(idx => {
+                const video = availableVideos[idx - 1]; // Convert 1-based to 0-based
+                if (!video) return null;
+                return {
+                  content: video._id,
+                  reason: `Recommended based on your ${studentType} learning profile`,
+                  generatedAt: new Date()
+                };
+              }).filter(Boolean);
+
+              // 5. Update StudentPath with recommendations
+              await StudentPath.findOneAndUpdate(
+                { student: studentId },
+                { $set: { personalizedRecommendations: recommendedContent } }
+              );
+              console.log(`✅ Saved ${recommendedContent.length} personalized recommendations.`);
+            }
+          }
+        } catch (aiError) {
+          console.error("❌ Error generating AI recommendations:", aiError);
+          // Non-blocking error
+        }
+      }
+
     } catch (pathError) {
       console.error("❌ Error generating StudentPath:", pathError);
       // We don't block the response, but log the error
