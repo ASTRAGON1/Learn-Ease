@@ -18,15 +18,39 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 // Shared function to build conversation messages
-function buildConversationMessages(message, conversationHistory = []) {
-  const systemPrompt = `You are a specialized AI assistant for LearnEase, an educational platform designed specifically for students with autism and Down syndrome.
+function buildConversationMessages(message, conversationHistory = [], userContext = {}) {
+  let systemPrompt = `You are "EaseBot", a super friendly and cheerful learning buddy! 🌟
+You are NOT a formal assistant or robot. You are a fun, supportive friend who loves to help students learn.
 
-PLATFORM OVERVIEW:
-- LearnEase is a specialized educational platform co-designed with specialists and families
-- Focuses on structured, clear, and sensory-aware learning activities
-- Supports two main learning paths: "autism" and "downSyndrome"
-- Platform emphasizes visual/auditory prompts, adaptive difficulty, and personalized pacing
+IMPORTANT:
+- NEVER say "As an AI" or "I am an assistant".
+- Talk like a cheerful teacher or friend.
+- Be super warm and encouraging! 🎈
+- Keep it short and sweet.
 
+PLATFORM: LearnEase (for students with autism and Down syndrome).`;
+
+  if (userContext.name) {
+    systemPrompt += `\n\nCURRENT STUDENT: ${userContext.name}`;
+  }
+  if (userContext.condition) {
+    systemPrompt += `\n\nMY FRIEND: I am talking to ${userContext.name || 'my friend'}.
+CONDITION: ${userContext.condition}`;
+    systemPrompt += `\n\nRULES FOR BEING A SUPER HAPPY BUDDY:
+1. TALK LESS: Short and sweet!
+2. SUPER HAPPY ENERGY: Be very excited! Use exclamation marks! 🎈
+3. USE VISUALS: Use standard emojis (🌈, ⭐, 🎉, 🚀) to make it look fun!
+4. ADAPTATION:`;
+
+    const conditionElement = userContext.condition.toLowerCase();
+    if (conditionElement.includes('autism')) {
+      systemPrompt += `\n- BUDDY TIPS (Autism): Be clear and direct, but friendly! No confusing sayings. Use numbers if listing things (1️⃣, 2️⃣). Example: "First we do this! Then we do that! 🌟"`;
+    } else if (conditionElement.includes('down')) {
+      systemPrompt += `\n- BUDDY TIPS (Down Syndrome): Simple words. Short sentences. High energy! Lots of praise! Example: "You are doing great! 🎉 Let's try again! 🚀"`;
+    }
+  }
+
+  systemPrompt += `\n
 USER ROLES:
 1. INSTRUCTORS/TEACHERS:
    - Create and upload educational content (videos, documents, images)
@@ -137,7 +161,7 @@ Remember: You are helping users navigate and use LearnEase effectively. Stay foc
 // POST /api/ai/chat - Chat with AI (streaming)
 router.post('/chat', async (req, res) => {
   try {
-    const { message, conversationHistory = [] } = req.body;
+    const { message, conversationHistory = [], userContext = {} } = req.body;
 
     if (!message || !message.trim()) {
       return res.status(400).json({
@@ -185,7 +209,7 @@ router.post('/chat', async (req, res) => {
 
   } catch (error) {
     console.error('Error in AI chat:', error);
-    
+
     // If response hasn't been sent yet, send error
     if (!res.headersSent) {
       return res.status(500).json({
@@ -193,7 +217,7 @@ router.post('/chat', async (req, res) => {
         error: error.message || 'Failed to get AI response. Please try again.'
       });
     }
-    
+
     // If streaming has started, send error in stream
     res.write(`data: ${JSON.stringify({ error: 'Failed to get AI response. Please try again.' })}\n\n`);
     res.end();
@@ -284,7 +308,7 @@ router.post('/quiz/generate-wrong-answers', async (req, res) => {
     if (lesson) contextInfo.push(`Lesson: ${lesson}`);
     if (difficulty) contextInfo.push(`Difficulty Level: ${difficulty}`);
     const contextString = contextInfo.length > 0 ? `\n\nContext: ${contextInfo.join(', ')}` : '';
-    
+
     // Build difficulty-specific instructions for AI
     let difficultyInstructions = '';
     if (difficulty === 'Easy') {
@@ -607,7 +631,7 @@ router.get('/daily-tip', async (req, res) => {
 
   try {
     const todayKey = getTodayKey();
-    
+
     // Check if we already have a tip for today
     if (dailyTipCache[todayKey]) {
       return res.json({
@@ -646,9 +670,9 @@ Format: Just the tip text, no quotes, no "Tip:" prefix, maximum 10 words.`
       max_tokens: 30
     });
 
-    let tip = completion.choices[0]?.message?.content?.trim() || 
+    let tip = completion.choices[0]?.message?.content?.trim() ||
       "Use visual schedules to help students stay organized and focused.";
-    
+
     // Ensure tip is 10 words or less
     const words = tip.split(/\s+/).filter(w => w.length > 0);
     if (words.length > 10) {

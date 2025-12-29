@@ -6,6 +6,7 @@ import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
 import icPersonalizedPath from "../assets/Path.svg";
+import ChatAssistant from "./components/ChatAssistant"; // Import Chat Assistant
 
 
 const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
@@ -58,6 +59,7 @@ export default function StudentDashboard2() {
   // Notification System state
   const [notifications, setNotifications] = useState([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false); // Chat state
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -568,8 +570,7 @@ export default function StudentDashboard2() {
   }, [lastScrollY]);
 
   const handleChatbotClick = () => {
-    // You can navigate to a chatbot page or open a modal here
-    // Example: navigate("/chatbot") or setChatOpen(true)
+    setChatOpen(!chatOpen);
   };
 
   // Determine active route
@@ -1283,6 +1284,17 @@ export default function StudentDashboard2() {
         </div>
         <div className="ai-chatbot-pulse"></div>
       </div>
+
+
+      {/* Chat Assistant Component */}
+      <ChatAssistant
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        userContext={{
+          name: studentName,
+          condition: studentPathType // 'autism' or 'downSyndrome'
+        }}
+      />
     </div >
 
   );

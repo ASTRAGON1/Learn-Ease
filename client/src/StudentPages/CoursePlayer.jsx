@@ -141,18 +141,13 @@ export default function CoursePlayer() {
   };
 
   const getLessonAchievements = (lesson) => {
-    if (!lesson) return [];
-    // Distribute achievements across lessons
-    const lessonIndex = lessons.findIndex(l => l.id === lesson.id);
-    if (lessonIndex === -1) return [];
+    if (!lesson || !lesson.achievement) return [];
 
-    // Use modulo to cycle through achievements if there are more lessons than achievements
-    const achievementIndex = lessonIndex % achievementsData.length;
-    const achievement = achievementsData[achievementIndex];
+    const achievement = lesson.achievement;
 
     // Return formatted achievement (ensure properties match what UI expects)
     return [{
-      id: achievement._id?.$oid || achievement.id,
+      id: achievement._id || achievement.id,
       title: achievement.title,
       description: achievement.description,
       icon: achievement.badge === 'platinum' ? 'trophy' : (achievement.badge === 'gold' ? 'star' : 'award'),
@@ -411,8 +406,10 @@ export default function CoursePlayer() {
             topic: topic.name,
             duration: "15 min",
             completed: false,
+            customId: lesson._id || lesson.id,
             materials: (typeof lesson === 'object' && lesson.materials) ? lesson.materials : [],
-            quizzes: (typeof lesson === 'object' && lesson.quizzes) ? lesson.quizzes : []
+            quizzes: (typeof lesson === 'object' && lesson.quizzes) ? lesson.quizzes : [],
+            achievement: (typeof lesson === 'object' && lesson.achievement) ? lesson.achievement : null
           }))
         );
 
@@ -586,6 +583,54 @@ export default function CoursePlayer() {
       }
     } catch (error) {
       console.error('Error completing lesson:', error);
+    }
+  };
+
+  const handleRetakeLesson = async (lessonGlobalIndex) => {
+    const token = window.sessionStorage.getItem('token');
+    if (!token || !courseData?.id) return;
+
+    // Confirm with user
+    const confirmRetake = window.confirm(
+      'Are you sure you want to retake this lesson? This will reset your progress and lock all subsequent lessons.'
+    );
+
+    if (!confirmRetake) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/students/retake-lesson`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          courseId: courseData.id,
+          lessonIndex: lessonGlobalIndex
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Update the completed lessons count
+          setCompletedLessonsCount(result.completedLessonsCount);
+
+          // Expand the lesson being retaken
+          setExpandedLessons(new Set([lessons[lessonGlobalIndex].id]));
+
+          // Show success message
+          alert(result.message || 'Lesson reset successfully. You can now retake it!');
+        } else {
+          alert(result.message || 'Could not retake lesson');
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to retake lesson');
+      }
+    } catch (error) {
+      console.error('Error retaking lesson:', error);
+      alert('An error occurred while retaking the lesson');
     }
   };
 
@@ -842,12 +887,14 @@ export default function CoursePlayer() {
                     >
                       Quiz
                     </button>
-                    <button
-                      className={`cp-tab ${activeTab === "achievements" ? "active" : ""}`}
-                      onClick={() => setActiveTab("achievements")}
-                    >
-                      Achievement
-                    </button>
+                    {lessonAchievementsList.length > 0 && (
+                      <button
+                        className={`cp-tab ${activeTab === "achievements" ? "active" : ""}`}
+                        onClick={() => setActiveTab("achievements")}
+                      >
+                        Achievement
+                      </button>
+                    )}
                   </div>
 
                   {/* Tab Content */}
@@ -985,42 +1032,67 @@ export default function CoursePlayer() {
                         </div>
 
                         <div className="cp-achievements-grid">
-                          {lessonAchievementsList.map((achievement, index) => (
-                            <div key={achievement.id} className="cp-achievement-card-modern" style={{ animationDelay: `${index * 0.1}s` }}>
-                              <div className="cp-achievement-card-glow"></div>
-                              <div className="cp-achievement-icon-container">
-                                <div className="cp-achievement-icon-bg">
-                                  <div className="cp-achievement-icon-pulse"></div>
-                                  <span className="cp-achievement-icon-emoji">
-                                    {achievement.icon === "trophy" && "🏆"}
-                                    {achievement.icon === "award" && "🎖️"}
-                                    {achievement.icon === "star" && "⭐"}
-                                    {achievement.icon === "medal" && "🥇"}
-                                    {achievement.icon === "ribbon" && "🎗️"}
-                                    {!achievement.icon && "🏅"}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="cp-achievement-card-body">
-                                <h4 className="cp-achievement-title-modern">{achievement.title}</h4>
-                                <p className="cp-achievement-description-modern">{achievement.description}</p>
-                                <div className="cp-achievement-footer">
-                                  <div className="cp-achievement-points-badge">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                    </svg>
-                                    <span>+{achievement.points} Points</span>
-                                  </div>
-                                  <div className="cp-achievement-status">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                    </svg>
-                                    Locked
+                          {lessonAchievementsList.map((achievement, index) => {
+                            // Check if this lesson is completed
+                            // currentLesson object is available.
+                            // completedLessonsCount is the number of lessons finished.
+                            // If this achievement belongs to the current lesson:
+                            // The loop here iterates lessonAchievementsList, which is JUST for the current lesson.
+                            // So we just need to check if the current lesson is completed.
+                            // Implementation: find index of currentLesson in lessons array.
+                            // If index < completedLessonsCount -> Unlocked.
+                            const currentLessonIndex = lessons.findIndex(l => l.id === currentLesson?.id);
+                            const isUnlocked = currentLessonIndex < completedLessonsCount;
+
+                            return (
+                              <div key={achievement.id} className="cp-achievement-card-modern" style={{ animationDelay: `${index * 0.1}s` }}>
+                                <div className="cp-achievement-card-glow"></div>
+                                <div className="cp-achievement-icon-container">
+                                  <div className="cp-achievement-icon-bg">
+                                    <div className="cp-achievement-icon-pulse"></div>
+                                    <span className="cp-achievement-icon-emoji">
+                                      {achievement.icon === "trophy" && "🏆"}
+                                      {achievement.icon === "award" && "🎖️"}
+                                      {achievement.icon === "star" && "⭐"}
+                                      {achievement.icon === "medal" && "🥇"}
+                                      {achievement.icon === "ribbon" && "🎗️"}
+                                      {!achievement.icon && "🏅"}
+                                    </span>
                                   </div>
                                 </div>
+                                <div className="cp-achievement-card-body">
+                                  <h4 className="cp-achievement-title-modern">{achievement.title}</h4>
+                                  <p className="cp-achievement-description-modern">{achievement.description}</p>
+                                  <div className="cp-achievement-footer">
+                                    <div className="cp-achievement-points-badge">
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                      </svg>
+                                      <span>+{achievement.points} Points</span>
+                                    </div>
+                                    <div className={`cp-achievement-status ${isUnlocked ? 'unlocked' : ''}`}>
+                                      {isUnlocked ? (
+                                        <>
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                          </svg>
+                                          Earned
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                            <rect x="8" y="10" width="8" height="6" rx="1"></rect>
+                                          </svg>
+                                          Locked
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
 
                         {lessonAchievementsList.length === 0 && (
@@ -1160,11 +1232,23 @@ export default function CoursePlayer() {
                             )}
 
                             {isExpanded && isCompleted && (
-                              <div style={{ padding: '0 16px 16px', color: '#16a34a', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M20 6L9 17l-5-5"></path>
-                                </svg>
-                                Completed
+                              <div style={{ padding: '0 16px 16px' }}>
+                                <div style={{ color: '#16a34a', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M20 6L9 17l-5-5"></path>
+                                  </svg>
+                                  Completed
+                                </div>
+                                <button
+                                  className="cp-retake-btn"
+                                  onClick={() => handleRetakeLesson(index)}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M1 4v6h6"></path>
+                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                  </svg>
+                                  Retake Lesson
+                                </button>
                               </div>
                             )}
 

@@ -951,14 +951,15 @@ router.get('/learning-paths', async (req, res) => {
                   topicId: topic._id,
                   courseId: course._id,
                   pathId: path._id
-                }).sort({ order: 1 });
+                }).sort({ order: 1 }).populate('achievementId');
 
                 return {
                   id: topic._id,
                   name: topic.title,
                   lessons: lessons.map(l => ({
                     id: l._id,
-                    name: l.title
+                    name: l.title,
+                    achievement: l.achievementId // Populated achievement data
                   }))
                 };
               })

@@ -22,6 +22,10 @@ const lessonSchema = new mongoose.Schema({
     ref: 'Path',
     required: [true, 'Path reference is required']
   },
+  achievementId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Achievement'
+  },
   order: {
     type: Number,
     default: 0
@@ -40,6 +44,7 @@ lessonSchema.index({ topicId: 1 });
 lessonSchema.index({ courseId: 1 });
 lessonSchema.index({ pathId: 1 });
 lessonSchema.index({ order: 1 });
+lessonSchema.index({ achievementId: 1 });
 
 const Lesson = mongoose.model('Lesson', lessonSchema);
 

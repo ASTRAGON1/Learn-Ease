@@ -673,6 +673,70 @@ router.post('/track-time', require('../middleware/auth')(['student']), async (re
 });
 
 
+// POST /api/students/retake-lesson - Reset progress to retake a lesson
+router.post('/retake-lesson', require('../middleware/auth')(['student']), async (req, res) => {
+  try {
+    const { courseId, lessonIndex } = req.body;
+    const studentId = req.user.sub;
+
+    if (!courseId || lessonIndex === undefined) {
+      return res.status(400).json({ error: 'Missing courseId or lessonIndex' });
+    }
+
+    // Find Track record
+    let track = await Track.findOne({ student: studentId });
+    if (!track) {
+      return res.status(404).json({ error: 'No progress found for this student' });
+    }
+
+    // Find course progress
+    let courseProgressIndex = track.courses.findIndex(c => c.course.toString() === courseId);
+
+    if (courseProgressIndex === -1) {
+      return res.status(404).json({ error: 'Course progress not found' });
+    }
+
+    const courseProgress = track.courses[courseProgressIndex];
+
+    // Check if the lesson is actually completed (can only retake completed lessons)
+    if (lessonIndex >= courseProgress.completedLessonsCount) {
+      return res.status(400).json({ error: 'Cannot retake a lesson that is not yet completed' });
+    }
+
+    // Reset progress to the specified lesson
+    courseProgress.completedLessonsCount = lessonIndex;
+
+    // Update progress percent
+    if (courseProgress.totalLessons && courseProgress.totalLessons > 0) {
+      courseProgress.progressPercent = Math.round((courseProgress.completedLessonsCount / courseProgress.totalLessons) * 100);
+    }
+
+    // If course was completed, change status back to in_progress
+    if (courseProgress.status === 'completed') {
+      courseProgress.status = 'in_progress';
+      track.coursesCompleted = Math.max(0, track.coursesCompleted - 1);
+      track.coursesInProgress += 1;
+    }
+
+    courseProgress.lastAccessedAt = new Date();
+
+    await track.save();
+
+    console.log(`🔄 Student ${studentId} is retaking lesson ${lessonIndex} in course ${courseId}`);
+
+    return res.json({
+      success: true,
+      completedLessonsCount: courseProgress.completedLessonsCount,
+      progressPercent: courseProgress.progressPercent,
+      message: 'Lesson reset successfully. You can now retake this lesson.'
+    });
+
+  } catch (error) {
+    console.error('Retake lesson error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // POST /api/students/complete-lesson - Mark a lesson as completed
 router.post('/complete-lesson', require('../middleware/auth')(['student']), async (req, res) => {
   try {
@@ -761,29 +825,56 @@ router.post('/complete-lesson', require('../middleware/auth')(['student']), asyn
         });
       }
 
-      console.log(`🔍 Checking achievements for course: "${course.title}"`);
+      // Award achievements specific to THIS lesson
+      // Lookup the actual Lesson document to see if it has an achievement assigned
+      // lessonIndex is 0-based from frontend, order is 1-based usually, or we just sort by order and pick index
+      const Lesson = require('../models/Lesson');
+      const lessonDoc = await Lesson.findOne({ courseId: courseId }).sort({ order: 1 }).skip(lessonIndex);
 
-      // Fetch all course-related achievements to find a fuzzy match
-      const allAchievements = await Achievement.find({ type: { $in: ['course', 'extra'] } });
+      const achievementsToAward = [];
 
-      const courseAchievements = allAchievements.filter(ach => {
-        if (!ach.course) return false;
-        const achCourse = ach.course.toLowerCase();
-        const courseTitle = course.title.toLowerCase();
+      if (lessonDoc && lessonDoc.achievementId) {
+        // Explicitly assigned achievement found
+        const ach = await Achievement.findById(lessonDoc.achievementId);
+        if (ach) {
+          console.log(`🎯 Found explicit achievement for lesson: ${ach.title}`);
+          achievementsToAward.push(ach);
+        }
+      } else {
+        // Fallback to old 'milestone' logic if no direct assignment
+        // Fetch all course-related achievements to find a fuzzy match
+        const allAchievements = await Achievement.find({ type: { $in: ['course', 'extra'] } });
 
-        // Match if one contains the other (robust fuzzy match)
-        return courseTitle.includes(achCourse) || achCourse.includes(courseTitle);
-      });
+        const courseAchievements = allAchievements.filter(ach => {
+          if (!ach.course) return false;
+          const achCourse = ach.course.toLowerCase();
+          const courseTitle = course.title.toLowerCase();
 
-      // Remove the arbitrary modulo logic which was causing "wrong" achievements
-      /* 
-      const achievementsData = require('../data/achievements.json');
-      const currentLessonIndex = Number(lessonIndex);
-      ... modulo logic removed ...
-      */
+          // Match if one contains the other (robust fuzzy match)
+          return courseTitle.includes(achCourse) || achCourse.includes(courseTitle);
+        });
 
-      const achievementsToAward = [...courseAchievements];
-      console.log(`📊 Found ${achievementsToAward.length} achievement(s) to potentially award`);
+        if (courseAchievements.length > 0) {
+          // Calculate which achievement to award based on lesson progress
+          // Award one achievement every 2-3 lessons (depending on total lessons)
+          const totalLessons = courseProgress.totalLessons || 10;
+          const achievementsPerCourse = Math.min(courseAchievements.length, 3); // Max 3 achievements per course
+          const lessonsPerAchievement = Math.ceil(totalLessons / achievementsPerCourse);
+
+          // Check if current lesson is an achievement milestone
+          const currentLessonNumber = courseProgress.completedLessonsCount;
+          const achievementIndex = Math.floor((currentLessonNumber - 1) / lessonsPerAchievement);
+
+          // Award achievement if we've reached a milestone and haven't awarded this one yet
+          if (achievementIndex < courseAchievements.length) {
+            const achievementToAward = courseAchievements[achievementIndex];
+            achievementsToAward.push(achievementToAward);
+            console.log(`📊 Lesson ${currentLessonNumber}: Awarding achievement milestone ${achievementIndex + 1}/${courseAchievements.length}`);
+          }
+        }
+      }
+
+      console.log(`📊 Found ${achievementsToAward.length} achievement(s) to potentially award for this lesson`);
 
       const student = await Student.findById(studentId);
       const newAchievements = [];
@@ -803,12 +894,7 @@ router.post('/complete-lesson', require('../middleware/auth')(['student']), asyn
               completedAt: new Date(),
               earnedAt: new Date()
             });
-            newAchievements.push({
-              id: achievement._id,
-              title: achievement.title,
-              description: achievement.description,
-              badge: achievement.badge
-            });
+            await student.save();
 
             // Send notification
             const Notification = require('../models/Notification');
@@ -820,21 +906,29 @@ router.post('/complete-lesson', require('../middleware/auth')(['student']), asyn
             });
           } else {
             console.log(`⏭️  Student already has achievement: ${achievement.title}`);
+            // User requested to "get an achievement" whenever they mark as complete.
+            // So we will return it in the response so the UI shows the popup,
+            // even if we don't save a duplicate to DB.
           }
+
+          // ALWAYS return it to frontend to trigger popup/animation
+          newAchievements.push({
+            id: achievement._id,
+            title: achievement.title,
+            description: achievement.description,
+            badge: achievement.badge
+          });
         }
 
         if (newAchievements.length > 0) {
-          await student.save();
-          console.log(`✅ Awarded ${newAchievements.length} achievement(s) to student ${studentId}`);
+          // await student.save(); // Already saved inside loop if unique
+          console.log(`✅ Returning ${newAchievements.length} achievement(s) to frontend`);
         } else {
-          console.log(`ℹ️  No new achievements to award (student already has all)`);
+          console.log(`ℹ️  No achievements to return`);
         }
       } else {
-        if (achievements.length === 0) {
-          console.log(`⚠️  No achievements found for course: "${course.title}"`);
-        }
-        if (!student) {
-          console.log(`❌ Student not found: ${studentId}`);
+        if (achievementsToAward.length === 0) {
+          // Debug log
         }
       }
 
