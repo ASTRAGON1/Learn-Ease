@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 connectDB();
 
 // Routes
-const testRoutes = require('./routes/testRoutes');
+
 const teacherAuthRoutes = require('./routes/teacherAuthRoutes');
 const studentAuthRoutes = require('./routes/studentAuthRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
@@ -37,7 +37,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // API routes
-app.use('/api/test', testRoutes);
+
 app.use('/api/teachers', teacherAuthRoutes);
 app.use('/api/students', studentAuthRoutes);
 app.use('/api/teachers', teacherRoutes);

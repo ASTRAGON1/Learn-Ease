@@ -132,47 +132,37 @@ exports.submitQuiz = async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
-    // Save result (using QuizResult model if available, or just log for now if you prefer but user asked for persistent notifications so we assume persistent results too)
-    // Assuming QuizResult is imported locally or we use require
-    const { QuizResult, Notification } = require('../models');
-    // Using internal createNotification helper if available, else direct model create
     const { createNotification } = require('./notificationController');
 
     // Create or update result record and update Track progress
-    if (QuizResult) {
-      const percentage = (score.correct / score.total) * 100;
+    const percentage = (score.correct / score.total) * 100;
 
-      await QuizResult.findOneAndUpdate(
-        { student: studentId, quiz: quizId },
-        {
-          student: studentId,
-          quiz: quizId,
-          grade: percentage,
-          answers: answers,
-          status: 'completed'
-        },
-        { upsert: true, new: true }
-      );
+    await QuizResult.findOneAndUpdate(
+      { student: studentId, quiz: quizId },
+      {
+        student: studentId,
+        quiz: quizId,
+        grade: percentage,
+        answers: answers,
+        status: 'completed'
+      },
+      { upsert: true, new: true }
+    );
 
-      // Update Track model for stats
-      const Track = require('../models/Track');
-      let track = await Track.findOne({ student: studentId });
-      if (!track) {
-        track = await Track.create({ student: studentId });
-      }
-
-      // Increment quiz counts only if this quiz wasn't already passed? 
-      // For simplicity, we just increment completed. Ideally check unique completion.
-      // But Track schema just has counters.
-      track.quizzesCompleted = (track.quizzesCompleted || 0) + 1;
-
-      // const percentage = (score.correct / score.total) * 100; // Removed duplicate
-      if (percentage >= 60) { // Assuming 60% pass
-        track.quizzesPassed = (track.quizzesPassed || 0) + 1;
-      }
-
-      await track.save();
+    // Update Track model for stats
+    const Track = require('../models/Track');
+    let track = await Track.findOne({ student: studentId });
+    if (!track) {
+      track = await Track.create({ student: studentId });
     }
+
+    track.quizzesCompleted = (track.quizzesCompleted || 0) + 1;
+
+    if (percentage >= 60) {
+      track.quizzesPassed = (track.quizzesPassed || 0) + 1;
+    }
+
+    await track.save();
 
     // Create notification for student
     await createNotification({
@@ -379,5 +369,45 @@ exports.getStudentQuizzes = async (req, res) => {
   } catch (e) {
     console.error('getStudentQuizzes error', e);
     return res.status(500).json({ error: 'Server error', message: e.message });
+  }
+};
+
+exports.updateQuiz = async (req, res) => {
+  try {
+    const allowed = ['title', 'status', 'category', 'topic', 'lesson', 'course', 'difficulty', 'previousStatus'];
+    const update = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => allowed.includes(k))
+    );
+
+    const updated = await Quiz.findOneAndUpdate(
+      { _id: req.params.id, teacher: req.user.sub },
+      update,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Quiz not found or not yours' });
+    }
+    res.json({ data: updated });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to update quiz' });
+  }
+};
+
+exports.deleteQuiz = async (req, res) => {
+  try {
+    const quiz = await Quiz.findOne({ _id: req.params.id, teacher: req.user.sub });
+
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found or not yours' });
+    }
+
+    // Delete from MongoDB
+    await Quiz.deleteOne({ _id: req.params.id, teacher: req.user.sub });
+
+    res.json({ message: 'Quiz deleted successfully' });
+  } catch (e) {
+    console.error('Error deleting quiz:', e);
+    res.status(500).json({ error: 'Failed to delete quiz', message: e.message });
   }
 };

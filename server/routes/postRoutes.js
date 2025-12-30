@@ -1,298 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Post = require('../models/Post');
-const Teacher = require('../models/Teacher');
+const postController = require('../controllers/postController');
 
 // GET /api/posts - Get all posts (with pagination and filters)
-router.get('/', async (req, res) => {
-  try {
-    const { page = 1, limit = 10, category, tag, search } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Build query
-    const query = {};
-    if (category) query.category = category;
-    if (tag) query.tags = { $in: [tag] };
-    if (search) {
-      query.$or = [
-        { content: { $regex: search, $options: 'i' } },
-        { authorName: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Get posts (pinned first, then by date)
-    const posts = await Post.find(query)
-      .sort({ isPinned: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
-
-    // Get total count for pagination
-    const total = await Post.countDocuments(query);
-
-    res.json({
-      data: posts,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching posts:', error);
-    res.status(500).json({ error: 'Server error while fetching posts' });
-  }
-});
+router.get('/', postController.getPosts);
 
 // GET /api/posts/trending - Get trending posts
-router.get('/trending', async (req, res) => {
-  try {
-    // Get posts with most likes in the last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const posts = await Post.find({
-      createdAt: { $gte: sevenDaysAgo }
-    })
-      .sort({ 'likes.length': -1, createdAt: -1 })
-      .limit(10)
-      .lean();
-
-    res.json({ data: posts });
-  } catch (error) {
-    console.error('Error fetching trending posts:', error);
-    res.status(500).json({ error: 'Server error while fetching trending posts' });
-  }
-});
+router.get('/trending', postController.getTrendingPosts);
 
 // GET /api/posts/:id - Get single post
-router.get('/:id', async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id).lean();
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    // Increment views
-    await Post.updateOne({ _id: req.params.id }, { $inc: { views: 1 } });
-
-    res.json({ data: post });
-  } catch (error) {
-    console.error('Error fetching post:', error);
-    res.status(500).json({ error: 'Server error while fetching post' });
-  }
-});
+router.get('/:id', postController.getPost);
 
 // POST /api/posts - Create a new post
-router.post('/', auth(['teacher']), async (req, res) => {
-  try {
-    const { content, image, tags, category } = req.body;
-    const teacherId = req.user.sub;
-
-    if (!content || !content.trim()) {
-      return res.status(400).json({ error: 'Post content is required' });
-    }
-
-    // Get teacher info
-    const teacher = await Teacher.findById(teacherId).select('fullName profilePic');
-    if (!teacher) {
-      return res.status(404).json({ error: 'Teacher not found' });
-    }
-
-    // Process tags
-    const processedTags = tags && Array.isArray(tags) 
-      ? tags.filter(tag => tag && tag.trim()).map(tag => tag.trim().toLowerCase())
-      : [];
-
-    const post = await Post.create({
-      author: teacherId,
-      authorName: teacher.fullName,
-      authorProfilePic: teacher.profilePic || '',
-      content: content.trim(),
-      image: image || '',
-      tags: processedTags,
-      category: category || 'general'
-    });
-
-    res.status(201).json({ data: post });
-  } catch (error) {
-    console.error('Error creating post:', error);
-    res.status(500).json({ error: 'Server error while creating post' });
-  }
-});
+router.post('/', auth(['teacher']), postController.createPost);
 
 // POST /api/posts/:id/like - Like/unlike a post
-router.post('/:id/like', auth(['teacher']), async (req, res) => {
-  try {
-    const postId = req.params.id;
-    const teacherId = req.user.sub;
-
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const likeIndex = post.likes.findIndex(
-      id => id.toString() === teacherId.toString()
-    );
-
-    if (likeIndex > -1) {
-      // Unlike
-      post.likes.splice(likeIndex, 1);
-    } else {
-      // Like
-      post.likes.push(teacherId);
-    }
-
-    await post.save();
-
-    res.json({ 
-      data: {
-        likes: post.likes.length,
-        isLiked: likeIndex === -1
-      }
-    });
-  } catch (error) {
-    console.error('Error toggling like:', error);
-    res.status(500).json({ error: 'Server error while toggling like' });
-  }
-});
+router.post('/:id/like', auth(['teacher']), postController.likePost);
 
 // POST /api/posts/:id/comment - Add a comment to a post
-router.post('/:id/comment', auth(['teacher']), async (req, res) => {
-  try {
-    const { content } = req.body;
-    const postId = req.params.id;
-    const teacherId = req.user.sub;
-
-    if (!content || !content.trim()) {
-      return res.status(400).json({ error: 'Comment content is required' });
-    }
-
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    // Get teacher info
-    const teacher = await Teacher.findById(teacherId).select('fullName profilePic');
-    if (!teacher) {
-      return res.status(404).json({ error: 'Teacher not found' });
-    }
-
-    const comment = {
-      author: teacherId,
-      authorName: teacher.fullName,
-      authorProfilePic: teacher.profilePic || '',
-      content: content.trim(),
-      likes: []
-    };
-
-    post.comments.push(comment);
-    await post.save();
-
-    res.status(201).json({ data: post.comments[post.comments.length - 1] });
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    res.status(500).json({ error: 'Server error while adding comment' });
-  }
-});
+router.post('/:id/comment', auth(['teacher']), postController.addComment);
 
 // POST /api/posts/:postId/comment/:commentId/like - Like/unlike a comment
-router.post('/:postId/comment/:commentId/like', auth(['teacher']), async (req, res) => {
-  try {
-    const { postId, commentId } = req.params;
-    const teacherId = req.user.sub;
-
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const comment = post.comments.id(commentId);
-    if (!comment) {
-      return res.status(404).json({ error: 'Comment not found' });
-    }
-
-    const likeIndex = comment.likes.findIndex(
-      id => id.toString() === teacherId.toString()
-    );
-
-    if (likeIndex > -1) {
-      comment.likes.splice(likeIndex, 1);
-    } else {
-      comment.likes.push(teacherId);
-    }
-
-    await post.save();
-
-    res.json({ 
-      data: {
-        likes: comment.likes.length,
-        isLiked: likeIndex === -1
-      }
-    });
-  } catch (error) {
-    console.error('Error toggling comment like:', error);
-    res.status(500).json({ error: 'Server error while toggling comment like' });
-  }
-});
+router.post('/:postId/comment/:commentId/like', auth(['teacher']), postController.likeComment);
 
 // DELETE /api/posts/:id - Delete a post
-router.delete('/:id', auth(['teacher']), async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    // Check if user is the author
-    if (post.author.toString() !== req.user.sub.toString()) {
-      return res.status(403).json({ error: 'You can only delete your own posts' });
-    }
-
-    await Post.deleteOne({ _id: req.params.id });
-
-    res.json({ message: 'Post deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting post:', error);
-    res.status(500).json({ error: 'Server error while deleting post' });
-  }
-});
+router.delete('/:id', auth(['teacher']), postController.deletePost);
 
 // DELETE /api/posts/:postId/comment/:commentId - Delete a comment
-router.delete('/:postId/comment/:commentId', auth(['teacher']), async (req, res) => {
-  try {
-    const { postId, commentId } = req.params;
-    const teacherId = req.user.sub;
-
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    const comment = post.comments.id(commentId);
-    if (!comment) {
-      return res.status(404).json({ error: 'Comment not found' });
-    }
-
-    // Check if user is the comment author
-    if (comment.author.toString() !== teacherId.toString()) {
-      return res.status(403).json({ error: 'You can only delete your own comments' });
-    }
-
-    comment.deleteOne();
-    await post.save();
-
-    res.json({ message: 'Comment deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting comment:', error);
-    res.status(500).json({ error: 'Server error while deleting comment' });
-  }
-});
+router.delete('/:postId/comment/:commentId', auth(['teacher']), postController.deleteComment);
 
 module.exports = router;
-
