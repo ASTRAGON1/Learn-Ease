@@ -98,23 +98,23 @@ export default function InstructorCommunity2() {
       !q
         ? instructors
         : instructors.filter(
-            (i) =>
-              i.name.toLowerCase().includes(q.toLowerCase()) ||
-              i.area.toLowerCase().includes(q.toLowerCase())
-          ),
+          (i) =>
+            i.name.toLowerCase().includes(q.toLowerCase()) ||
+            i.area.toLowerCase().includes(q.toLowerCase())
+        ),
     [q, instructors]
   );
 
   const initials = (name) =>
-    name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+    name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   // Check Firebase Auth and get MongoDB token
   useEffect(() => {
     let isMounted = true;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
-      
+
       if (!firebaseUser) {
         setLoading(false);
         navigate('/all-login');
@@ -148,20 +148,20 @@ export default function InstructorCommunity2() {
         if (response.ok) {
           const data = await response.json();
           const teacher = data.data || data;
-          
+
           if (teacher._id) {
             setCurrentUserId(teacher._id.toString());
           }
-          
+
           if (teacher.fullName) {
             const firstName = teacher.fullName.split(' ')[0];
             setInstructorName(firstName);
           }
-          
+
           if (teacher.email) {
             setEmail(teacher.email);
           }
-          
+
           if (teacher.userStatus) {
             setUserStatus(teacher.userStatus);
             // Redirect if suspended or pending
@@ -177,7 +177,7 @@ export default function InstructorCommunity2() {
             }
           }
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -207,7 +207,7 @@ export default function InstructorCommunity2() {
 
   // Function to mark notification as read
   const markAsRead = (id) => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(notif => notif.id === id ? { ...notif, read: true } : notif)
     );
   };
@@ -227,7 +227,7 @@ export default function InstructorCommunity2() {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (minutes < 1) return "Just now";
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
@@ -261,7 +261,7 @@ export default function InstructorCommunity2() {
     if (post && post.author.id !== "you") {
       addNotification("comment", `${post.author.name} commented on your post`);
     }
-    setPosts(p => p.map(x => x.id === id ? { ...x, comments:[...x.comments, { by:instructorName || "You", text }] } : x));
+    setPosts(p => p.map(x => x.id === id ? { ...x, comments: [...x.comments, { by: instructorName || "You", text }] } : x));
   };
   const toggleSave = (id) =>
     setPosts(p => p.map(x => x.id === id ? { ...x, saved: !x.saved } : x));
@@ -278,7 +278,7 @@ export default function InstructorCommunity2() {
   const createGroup = () => {
     if (!newGroup.trim()) return;
     setGroups(g => [
-      { id:`g${g.length+10}`, name:newGroup.trim(), members:1, joined:true },
+      { id: `g${g.length + 10}`, name: newGroup.trim(), members: 1, joined: true },
       ...g
     ]);
     setNewGroup("");
@@ -319,8 +319,8 @@ export default function InstructorCommunity2() {
   };
 
   if (loading) {
-  return (
-    <div className="ld-page">
+    return (
+      <div className="ld-page">
         <div className="ld-main" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
           <div>Loading...</div>
         </div>
@@ -342,9 +342,9 @@ export default function InstructorCommunity2() {
           </div>
           <div className="ld-header-center">
             <div className="ld-search-container">
-              <input 
-                type="text" 
-                placeholder="Search posts, people, groups…" 
+              <input
+                type="text"
+                placeholder="Search posts, people, groups…"
                 className="ld-search-input"
               />
             </div>
@@ -364,7 +364,7 @@ export default function InstructorCommunity2() {
                 <div className="ld-notification-popover-header">
                   <h4>Notifications {unreadCount > 0 && `(${unreadCount})`}</h4>
                   {notifications.length > 0 && (
-                    <button 
+                    <button
                       className="ld-notification-clear-btn"
                       onClick={() => setNotifications([])}
                       title="Clear all"
@@ -378,9 +378,9 @@ export default function InstructorCommunity2() {
                     <div className="ld-notification-empty">No notifications</div>
                   ) : (
                     notifications.map((notif) => (
-                      <div 
-                        key={notif.id} 
-                        className={`ld-notification-popover-item ${notif.read ? 'read' : ''}`} 
+                      <div
+                        key={notif.id}
+                        className={`ld-notification-popover-item ${notif.read ? 'read' : ''}`}
                         data-type={notif.type}
                         onClick={() => markAsRead(notif.id)}
                       >
@@ -428,7 +428,7 @@ export default function InstructorCommunity2() {
                           <div className="ld-notification-popover-time">{notif.time}</div>
                         </div>
                         {!notif.read && <div className="ld-notification-unread-dot"></div>}
-          <button
+                        <button
                           className="ld-notification-delete-btn"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -460,15 +460,15 @@ export default function InstructorCommunity2() {
             <aside className="ic-left">
               <nav className="ic-nav">
                 {[
-                  ["feed","Home Feed","🏠"],
-                  ["instructors","Instructors","👥"],
-                  ["groups","Groups","👪"],
-                  ["saved","Saved","⭐"], // local only (alias feed filter)
-                ].map(([key,label,icon])=>(
+                  ["feed", "Home Feed", "🏠"],
+                  ["instructors", "Instructors", "👥"],
+                  ["groups", "Groups", "👪"],
+                  ["saved", "Saved", "⭐"], // local only (alias feed filter)
+                ].map(([key, label, icon]) => (
                   <button
                     key={key}
-                    className={`ic-nav-btn ${tab===key ? "active":""}`}
-                    onClick={()=>setTab(key==="saved" ? "feed" : key)}
+                    className={`ic-nav-btn ${tab === key ? "active" : ""}`}
+                    onClick={() => setTab(key === "saved" ? "feed" : key)}
                   >
                     <span className="ic-nav-icon">{icon}</span>
                     <span>{label}</span>
@@ -485,7 +485,7 @@ export default function InstructorCommunity2() {
                 <ul>
                   <li><Link to="/HelpAndSupport-2">Help & Support</Link></li>
                   <li><Link to="/GetSupport-2">Contact Admin</Link></li>
-                  <li><a href="#!" onClick={(e)=>e.preventDefault()}>Creator Guidelines</a></li>
+                  <li><a href="#!" onClick={(e) => e.preventDefault()}>Creator Guidelines</a></li>
                 </ul>
               </div>
             </aside>
@@ -493,29 +493,29 @@ export default function InstructorCommunity2() {
             {/* CENTER MAIN */}
             <main className="ic-center">
               <div className="ic-tabs">
-                {["feed","groups","instructors"].map(t=>(
+                {["feed", "groups", "instructors"].map(t => (
                   <button
                     key={t}
-                    className={`ic-tab ${tab===t ? "active":""}`}
-                    onClick={()=>setTab(t)}
+                    className={`ic-tab ${tab === t ? "active" : ""}`}
+                    onClick={() => setTab(t)}
                   >
-                    {t==="feed" ? "Feed" : t==="groups" ? "Groups" : "Instructors"}
+                    {t === "feed" ? "Feed" : t === "groups" ? "Groups" : "Instructors"}
                   </button>
                 ))}
               </div>
 
-              {tab==="feed" && (
+              {tab === "feed" && (
                 <>
                   <Composer onPost={createPost} />
 
                   <div className="ic-filters">
                     <div className="ic-chips">
-                      <button className={`ic-chip ${!filterTag ? "active":""}`} onClick={()=>setFilterTag("")}>All</button>
-                      {TAGS.map(t=>(
+                      <button className={`ic-chip ${!filterTag ? "active" : ""}`} onClick={() => setFilterTag("")}>All</button>
+                      {TAGS.map(t => (
                         <button
                           key={t}
-                          className={`ic-chip ${filterTag===t ? "active":""}`}
-                          onClick={()=>setFilterTag(t)}
+                          className={`ic-chip ${filterTag === t ? "active" : ""}`}
+                          onClick={() => setFilterTag(t)}
                         >
                           #{t}
                         </button>
@@ -524,33 +524,33 @@ export default function InstructorCommunity2() {
                   </div>
 
                   <div className="ic-post-list">
-                    {visiblePosts.map(p=>(
+                    {visiblePosts.map(p => (
                       <PostCard
                         key={p.id}
                         post={p}
                         initials={initials}
-                        onLike={()=>toggleLike(p.id)}
-                        onComment={(txt)=>addComment(p.id, txt)}
-                        onSave={()=>toggleSave(p.id)}
-                        onOpenProfile={()=>openProfile(p.author)}
+                        onLike={() => toggleLike(p.id)}
+                        onComment={(txt) => addComment(p.id, txt)}
+                        onSave={() => toggleSave(p.id)}
+                        onOpenProfile={() => openProfile(p.author)}
                       />
                     ))}
-                    {visiblePosts.length===0 && (
+                    {visiblePosts.length === 0 && (
                       <div className="ic-empty">No posts for "{filterTag}".</div>
                     )}
                   </div>
                 </>
               )}
 
-              {tab==="groups" && (
+              {tab === "groups" && (
                 <>
                   <div className="ic-between">
                     <h3>Groups</h3>
-                    <button className="ic-primary-btn" onClick={()=>setShowCreate(true)}>+ Create group</button>
+                    <button className="ic-primary-btn" onClick={() => setShowCreate(true)}>+ Create group</button>
                   </div>
 
                   <div className="ic-group-list">
-                    {groups.map(g=>(
+                    {groups.map(g => (
                       <div className="ic-group" key={g.id}>
                         <div className="ic-group-left">
                           <div className="ic-avatar">{g.name[0]}</div>
@@ -560,28 +560,28 @@ export default function InstructorCommunity2() {
                           </div>
                         </div>
                         <button
-                          className={`ic-pill ${g.joined ? "outline":"fill"}`}
-                          onClick={()=>toggleJoin(g.id)}
+                          className={`ic-pill ${g.joined ? "outline" : "fill"}`}
+                          onClick={() => toggleJoin(g.id)}
                         >
-                          {g.joined? "Joined":"Join"}
+                          {g.joined ? "Joined" : "Join"}
                         </button>
                       </div>
                     ))}
                   </div>
 
                   {showCreate && (
-                    <Modal title="Create a group" onClose={()=>setShowCreate(false)}>
+                    <Modal title="Create a group" onClose={() => setShowCreate(false)}>
                       <div className="ic-field">
                         <label>Group name</label>
                         <input
                           className="ic-input"
                           placeholder="ex. Literacy K–1"
                           value={newGroup}
-                          onChange={(e)=>setNewGroup(e.target.value)}
+                          onChange={(e) => setNewGroup(e.target.value)}
                         />
                       </div>
                       <div className="ic-foot">
-                        <button className="ic-secondary-btn" onClick={()=>setShowCreate(false)}>Cancel</button>
+                        <button className="ic-secondary-btn" onClick={() => setShowCreate(false)}>Cancel</button>
                         <button className="ic-primary-btn" onClick={createGroup}>Create</button>
                       </div>
                     </Modal>
@@ -589,21 +589,21 @@ export default function InstructorCommunity2() {
                 </>
               )}
 
-              {tab==="instructors" && (
+              {tab === "instructors" && (
                 <>
                   <div className="ic-search-row">
                     <input
                       className="ic-input"
                       placeholder="Search instructors or areas…"
                       value={q}
-                      onChange={(e)=>setQ(e.target.value)}
+                      onChange={(e) => setQ(e.target.value)}
                     />
                   </div>
 
                   <div className="ic-ins-list">
-                    {filteredInstructors.map(i=>(
+                    {filteredInstructors.map(i => (
                       <div className="ic-ins-card" key={i.id}>
-                        <div className="ic-ins-left" onClick={()=>setProfileUser(i)}>
+                        <div className="ic-ins-left" onClick={() => setProfileUser(i)}>
                           <div className="ic-avatar">{initials(i.name)}</div>
                           <div>
                             <div className="ic-name">{i.name}</div>
@@ -613,10 +613,10 @@ export default function InstructorCommunity2() {
                         <div className="ic-ins-right">
                           <div className="ic-muted">{i.followers} followers</div>
                           <button
-                            className={`ic-pill ${i.following? "outline":"fill"}`}
-                            onClick={()=>toggleFollow(i.id)}
+                            className={`ic-pill ${i.following ? "outline" : "fill"}`}
+                            onClick={() => toggleFollow(i.id)}
                           >
-                            {i.following? "Following":"Follow"}
+                            {i.following ? "Following" : "Follow"}
                           </button>
                         </div>
                       </div>
@@ -631,11 +631,11 @@ export default function InstructorCommunity2() {
               <div className="ic-side-card">
                 <h4>Trending tags</h4>
                 <div className="ic-chips">
-                  {["Tips","Question","Resource","Announcements","Events"].map(t=>(
+                  {["Tips", "Question", "Resource", "Announcements", "Events"].map(t => (
                     <button
                       key={t}
-                      className={`ic-chip ic-chip-sm ${filterTag===t ? "active":""}`}
-                      onClick={()=>setFilterTag(s=>s===t? "":t)}
+                      className={`ic-chip ic-chip-sm ${filterTag === t ? "active" : ""}`}
+                      onClick={() => setFilterTag(s => s === t ? "" : t)}
                     >
                       #{t}
                     </button>
@@ -646,8 +646,8 @@ export default function InstructorCommunity2() {
               <div className="ic-side-card">
                 <h4>Who to follow</h4>
                 <ul className="ic-who">
-                  {instructors.slice(0,3).map(p=>(
-                    <li key={p.id} onClick={()=>setProfileUser(p)}>
+                  {instructors.slice(0, 3).map(p => (
+                    <li key={p.id} onClick={() => setProfileUser(p)}>
                       <div className="ic-avatar">{initials(p.name)}</div>
                       <div>
                         <div className="ic-name">{p.name}</div>
@@ -674,7 +674,7 @@ export default function InstructorCommunity2() {
       {profileUser && (
         <ProfileDrawer
           user={profileUser}
-          onClose={()=>setProfileUser(null)}
+          onClose={() => setProfileUser(null)}
         />
       )}
     </div>
@@ -683,7 +683,7 @@ export default function InstructorCommunity2() {
 
 /* ---------------- Subcomponents ---------------- */
 
-function Composer({ onPost, compact=false }) {
+function Composer({ onPost, compact = false }) {
   const [text, setText] = useState("");
   const [tag, setTag] = useState("Tips");
 
@@ -695,16 +695,16 @@ function Composer({ onPost, compact=false }) {
   };
 
   return (
-    <div className={`ic-composer ${compact? "compact":""}`}>
+    <div className={`ic-composer ${compact ? "compact" : ""}`}>
       <textarea
         className="ic-ta"
-        placeholder={compact? "Share a quick tip…":"Share a tip, question, or win…"}
+        placeholder={compact ? "Share a quick tip…" : "Share a tip, question, or win…"}
         value={text}
-        onChange={(e)=>setText(e.target.value)}
+        onChange={(e) => setText(e.target.value)}
       />
       <div className="ic-composer-foot">
-        <select className="ic-input ic-select" value={tag} onChange={(e)=>setTag(e.target.value)}>
-          {TAGS.map(t=>(<option key={t}>{t}</option>))}
+        <select className="ic-input ic-select" value={tag} onChange={(e) => setTag(e.target.value)}>
+          {TAGS.map(t => (<option key={t}>{t}</option>))}
         </select>
         <button className="ic-primary-btn" onClick={submit}>Post</button>
       </div>
@@ -736,11 +736,11 @@ function PostCard({ post, initials, onLike, onComment, onSave, onOpenProfile }) 
           <div className="ic-muted">{post.ts} · #{post.tag}</div>
         </div>
         <div className="ic-h-right">
-          <button className="ic-ghost" onClick={()=>setMenu(v=>!v)}>⋯</button>
+          <button className="ic-ghost" onClick={() => setMenu(v => !v)}>⋯</button>
           {menu && (
-            <div className="ic-menu" onMouseLeave={()=>setMenu(false)}>
-              <button onClick={onSave}>{post.saved? "Unsave":"Save"}</button>
-              <button className="ic-warn" onClick={()=>alert("Reported (demo)")}>Report</button>
+            <div className="ic-menu" onMouseLeave={() => setMenu(false)}>
+              <button onClick={onSave}>{post.saved ? "Unsave" : "Save"}</button>
+              <button className="ic-warn" onClick={() => alert("Reported (demo)")}>Report</button>
             </div>
           )}
         </div>
@@ -750,13 +750,13 @@ function PostCard({ post, initials, onLike, onComment, onSave, onOpenProfile }) 
 
       <div className="ic-actions">
         <button className="ic-pill ic-pill-outline" onClick={onLike}>👍 {post.likes}</button>
-        <button className="ic-pill ic-pill-outline" onClick={()=>setOpen(v=>!v)}>💬 {post.comments.length}</button>
-        <span className={`ic-save ${post.saved? "on":""}`} onClick={onSave}>⭐</span>
+        <button className="ic-pill ic-pill-outline" onClick={() => setOpen(v => !v)}>💬 {post.comments.length}</button>
+        <span className={`ic-save ${post.saved ? "on" : ""}`} onClick={onSave}>⭐</span>
       </div>
 
       {open && (
         <div className="ic-comments">
-          {post.comments.map((m,i)=>(
+          {post.comments.map((m, i) => (
             <div key={i} className="ic-comment">
               <strong>{m.by}</strong> {m.text}
             </div>
@@ -766,8 +766,8 @@ function PostCard({ post, initials, onLike, onComment, onSave, onOpenProfile }) 
               className="ic-input"
               placeholder="Write a comment…"
               value={c}
-              onChange={(e)=>setC(e.target.value)}
-              onKeyDown={(e)=>e.key==="Enter" && submit()}
+              onChange={(e) => setC(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
             />
             <button className="ic-primary-btn" onClick={submit}>Send</button>
           </div>
@@ -780,7 +780,7 @@ function PostCard({ post, initials, onLike, onComment, onSave, onOpenProfile }) 
 function Modal({ title, children, onClose }) {
   return (
     <div className="ic-modal-backdrop" onClick={onClose}>
-      <div className="ic-modal" onClick={(e)=>e.stopPropagation()}>
+      <div className="ic-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ic-modal-head">
           <h3>{title}</h3>
           <button className="ic-x" onClick={onClose}>×</button>
@@ -794,12 +794,12 @@ function Modal({ title, children, onClose }) {
 /** Profile Drawer — Content tab is intentionally empty for backend to fill later */
 function ProfileDrawer({ user, onClose }) {
   const [tab, setTab] = useState("content"); // content | about
-  const initials = user.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const initials = user.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const [following, setFollowing] = useState(!!user.following);
 
   return (
     <div className="ic-drawer-backdrop" onClick={onClose}>
-      <div className="ic-drawer" onClick={(e)=>e.stopPropagation()}>
+      <div className="ic-drawer" onClick={(e) => e.stopPropagation()}>
         <div className="ic-cover" />
         <button className="ic-x ic-x-abs" onClick={onClose}>×</button>
 
@@ -815,28 +815,28 @@ function ProfileDrawer({ user, onClose }) {
             </div>
           </div>
           <div className="ic-drawer-actions">
-            <button className="ic-secondary-btn" onClick={()=>alert("Message (demo)")}>Message</button>
+            <button className="ic-secondary-btn" onClick={() => alert("Message (demo)")}>Message</button>
             <button
-              className={`ic-pill ${following? "outline":"fill"}`}
-              onClick={()=>setFollowing(v=>!v)}
+              className={`ic-pill ${following ? "outline" : "fill"}`}
+              onClick={() => setFollowing(v => !v)}
             >
-              {following? "Following":"Follow"}
-          </button>
+              {following ? "Following" : "Follow"}
+            </button>
           </div>
         </div>
 
         <div className="ic-drawer-tabs">
-          <button className={`ic-drawer-tab ${tab==="content"?"active":""}`} onClick={()=>setTab("content")}>Content</button>
-          <button className={`ic-drawer-tab ${tab==="about"?"active":""}`} onClick={()=>setTab("about")}>About</button>
+          <button className={`ic-drawer-tab ${tab === "content" ? "active" : ""}`} onClick={() => setTab("content")}>Content</button>
+          <button className={`ic-drawer-tab ${tab === "about" ? "active" : ""}`} onClick={() => setTab("about")}>About</button>
         </div>
 
         <div className="ic-drawer-body">
-          {tab==="content" && (
+          {tab === "content" && (
             <div className="ic-content-grid">
               <div className="ic-empty ic-empty-large">No content yet. (Will be filled by backend)</div>
             </div>
           )}
-          {tab==="about" && (
+          {tab === "about" && (
             <div className="ic-about">
               <p>{user.about || "Instructor on LearnEase."}</p>
               <ul className="ic-bullets">

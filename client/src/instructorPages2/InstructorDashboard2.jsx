@@ -717,10 +717,7 @@ export default function InstructorDashboard2() {
             </p>
           </div>
           <Link to="/teachingCenter-2" className="ld-resource-card">
-            <svg className="ld-resource-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
+            <img src={testPath} alt="How to teach" className="ld-resource-icon" />
             <h5 className="ld-resource-title">How to teach in LearnEase</h5>
             <p className="ld-resource-desc">
               Learn how to use our platform to get the best results and satisfy the students.

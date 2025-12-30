@@ -63,11 +63,11 @@ export default function InformationGathering1({ onNext, onLogout }) {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             const teacher = data.data || data;
-            
+
             if (teacher.fullName) {
               setFullName(teacher.fullName);
             }
-            
+
             if (teacher.email) {
               setEmail(teacher.email);
             } else if (firebaseUser.email) {
@@ -130,7 +130,7 @@ export default function InformationGathering1({ onNext, onLogout }) {
 
       // Prepare areas of expertise array
       // Replace "Others" with the custom text if provided
-      const areasOfExpertise = selected.map(area => 
+      const areasOfExpertise = selected.map(area =>
         area === 'Others' && otherText.trim() ? otherText.trim() : area
       );
 
@@ -147,14 +147,14 @@ export default function InformationGathering1({ onNext, onLogout }) {
       // Check if response is JSON before parsing
       const contentType = response.headers.get('content-type');
       let data;
-      
+
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
         // If not JSON, get text to see what we got
         const text = await response.text();
         console.error('Non-JSON response:', text);
-        
+
         if (response.status === 401) {
           throw new Error('Invalid or expired token. Please log in again.');
         } else if (response.status === 404) {
@@ -181,7 +181,7 @@ export default function InformationGathering1({ onNext, onLogout }) {
       navigate('/InformationGathering-2');
     } catch (err) {
       console.error('Error saving areas of expertise:', err);
-      
+
       // More specific error messages
       if (err.message.includes('token') || err.message.includes('Authentication') || err.message.includes('401')) {
         setError('Your session has expired. Please log in again.');
@@ -223,7 +223,7 @@ export default function InformationGathering1({ onNext, onLogout }) {
           <div className="ig1-modal" onClick={(e) => e.stopPropagation()}>
             <h2 className="ig1-modal-title">Confirm Logout</h2>
             <p className="ig1-modal-message">
-              Your account has already been created. If you log out now, you will need to 
+              Your account has already been created. If you log out now, you will need to
               <strong> log in</strong> when you return, not sign up from the beginning.
             </p>
             <p className="ig1-modal-warning">
@@ -251,9 +251,9 @@ export default function InformationGathering1({ onNext, onLogout }) {
       <div className="ig1-card">
         <div className="ig1-header">
           <h1 className="ig1-title">Select Your Expertise</h1>
-          <button 
+          <button
             type="button"
-            className="ig1-logout" 
+            className="ig1-logout"
             onClick={handleLogout}
           >
             <span>‹</span> Log out
@@ -282,7 +282,7 @@ export default function InformationGathering1({ onNext, onLogout }) {
             {selected.map(t => (
               <span key={t} className="ig1-tag">
                 {t === 'Others' && otherText ? otherText : t}
-                <button 
+                <button
                   type="button"
                   onClick={() => {
                     toggle(t);
@@ -316,8 +316,8 @@ export default function InformationGathering1({ onNext, onLogout }) {
           {OPTIONS.map(opt => {
             const isDisabled = !selected.includes(opt) && selected.length >= 4 && opt !== 'Others';
             return (
-              <label 
-                key={opt} 
+              <label
+                key={opt}
                 className="ig1-option"
                 onClick={(e) => {
                   // Only handle clicks on the label itself, not the checkbox

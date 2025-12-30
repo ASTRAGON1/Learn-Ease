@@ -5,9 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "create-admin": "node scripts/createAdmin.js",
-    "seed-curriculum": "node scripts/seedCurriculum.js"
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.1",
+    "node-fetch": "^3.3.2",
     "openai": "^6.10.0"
   },
   "devDependencies": {
