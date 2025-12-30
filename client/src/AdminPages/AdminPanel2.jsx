@@ -1,7 +1,9 @@
 // AdminPanel2.jsx - New Admin Panel using Instructor Dashboard Design
-import React, { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import "./AdminPanel2.css";
+
+// Hooks
+import useAdminPanel from "./hooks/useAdminPanel";
 
 // Components
 import AdminLogin2 from "./components/AdminLogin2";
@@ -16,1063 +18,12 @@ import InstructorProfile from "./components/InstructorProfile";
 import Settings from "./components/Settings";
 import AchievementsAndTests from "./components/AchievementsAndTests";
 
-// Utils
-import api from "./utils/api";
-import { demoApplications, demoReports, demoFeedback, demoPeople } from "./utils/constants";
-
 // Icons
 import fullLogo from "../assets/OrangeLogo.png";
 import smallLogo from "../assets/OrangeIconLogo.png";
 
 export default function AdminPanel2() {
-  const navigate = useNavigate();
-  const [isAuthed, setIsAuthed] = useState(() => !!localStorage.getItem("le_admin_token"));
-  const [adminName, setAdminName] = useState(localStorage.getItem("le_admin_name") || "Admin");
-  const [section, setSection] = useState("dashboard");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-
-  // Login state
-  const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: "",
-  });
-  const [loginBusy, setLoginBusy] = useState(false);
-  const [loginError, setLoginError] = useState("");
-
-  // Data state
-  const [applications, setApplications] = useState([]);
-  const [users, setUsers] = useState(demoPeople);
-  const [reports, setReports] = useState(demoReports);
-  const [feedback, setFeedback] = useState([]);
-  const [modLog, setModLog] = useState([]); // {id, userId, type, name, reason, at}
-  const [learningPaths, setLearningPaths] = useState([]);
-  const [achievements, setAchievements] = useState([]);
-  const [diagnosticQuestions, setDiagnosticQuestions] = useState([]);
-  const [selectedInstructorId, setSelectedInstructorId] = useState(null);
-  const [studentProfiles, setStudentProfiles] = useState([]); // Real student stats
-  const [instructorProfiles, setInstructorProfiles] = useState([]); // Real instructor uploads
-
-  const [search, setSearch] = useState(""); // Global search for all components except Users
-  const [userSearch, setUserSearch] = useState(""); // Separate search for Users component
-  const [userFilters, setUserFilters] = useState({
-    role: "all",
-    status: "all",
-  });
-
-  // Delete confirmation modal state
-  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
-    show: false,
-    userId: null,
-    userName: '',
-    userRole: ''
-  });
-
-  // Toast notification state
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-
-  const profiles = useMemo(() => ({
-    students: studentProfiles.length > 0 ? studentProfiles : users
-      .filter(u => u.role === "student")
-      .map(u => ({
-        userId: u.id,
-        hours: 0,
-        performance: { avgScore: 0, completionRate: 0 },
-      })),
-    instructors: instructorProfiles.length > 0 ? instructorProfiles : users
-      .filter(u => u.role === "instructor")
-      .map(u => ({
-        userId: u.id,
-        latestUpload: null
-      })),
-  }), [users, studentProfiles, instructorProfiles]);
-
-  // Check authentication on mount
-  useEffect(() => {
-    const token = localStorage.getItem("le_admin_token");
-    const name = localStorage.getItem("le_admin_name");
-    if (token) {
-      setIsAuthed(true);
-      if (name) {
-        setAdminName(name);
-      }
-    }
-  }, []);
-
-  // Update localStorage when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      localStorage.setItem("le_admin_token", "admin_authenticated");
-      localStorage.setItem("le_admin_name", adminName);
-    }
-  }, [isAuthed, adminName]);
-
-  // Fetch applications on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchApplications = async () => {
-        try {
-          const res = await api.listInstructorApplications();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setApplications(res.data);
-            } else {
-              setApplications([]);
-            }
-          } else {
-            setApplications([]);
-          }
-        } catch (error) {
-          console.error('Error fetching applications:', error);
-          setApplications([]);
-        }
-      };
-      fetchApplications();
-
-      // Refresh applications every 30 seconds
-      const interval = setInterval(fetchApplications, 30000);
-      return () => clearInterval(interval);
-    } else {
-      // Reset to empty when not authenticated
-      setApplications([]);
-    }
-  }, [isAuthed]);
-
-  // Fetch feedback on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchFeedback = async () => {
-        try {
-          const res = await api.listFeedback();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setFeedback(res.data);
-            } else {
-              setFeedback([]);
-            }
-          } else {
-            setFeedback([]);
-          }
-        } catch (error) {
-          console.error('Error fetching feedback:', error);
-          setFeedback([]);
-        }
-      };
-      fetchFeedback();
-
-      // Refresh feedback every 30 seconds
-      const interval = setInterval(fetchFeedback, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setFeedback([]);
-    }
-  }, [isAuthed]);
-
-  // Fetch reports on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchReports = async () => {
-        try {
-          const res = await api.listReports();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              const mappedReports = res.data.map(report => ({
-                ...report,
-                id: report._id || report.id,
-                reporterId: report.userName,
-                createdAt: report.createdAt || report.created_at
-              }));
-              setReports(mappedReports);
-            } else {
-              setReports([]);
-            }
-          } else {
-            setReports(demoReports);
-          }
-        } catch (error) {
-          console.error('Error fetching reports:', error);
-          setReports(demoReports);
-        }
-      };
-      fetchReports();
-
-      // Refresh reports every 30 seconds
-      const interval = setInterval(fetchReports, 30000);
-      return () => clearInterval(interval);
-    } else {
-      // Reset to demo data when not authenticated
-      setReports(demoReports);
-    }
-  }, [isAuthed]);
-
-  // Fetch users (students and teachers) on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchUsers = async () => {
-        try {
-          const res = await api.listUsers();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setUsers(res.data);
-            } else {
-              setUsers([]);
-            }
-          } else {
-            setUsers(demoPeople);
-          }
-        } catch (error) {
-          console.error('Error fetching users:', error);
-          setUsers(demoPeople);
-        }
-      };
-      fetchUsers();
-
-      // Refresh users every 30 seconds
-      const interval = setInterval(fetchUsers, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setUsers(demoPeople);
-    }
-  }, [isAuthed]);
-
-  // Fetch learning paths on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchLearningPaths = async () => {
-        try {
-          const res = await api.getLearningPaths();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setLearningPaths(res.data);
-            } else {
-              setLearningPaths([]);
-            }
-          } else {
-            setLearningPaths([]);
-          }
-        } catch (error) {
-          console.error('Error fetching learning paths:', error);
-          setLearningPaths([]);
-        }
-      };
-      fetchLearningPaths();
-
-      // Refresh learning paths every 30 seconds
-      const interval = setInterval(fetchLearningPaths, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setLearningPaths([]);
-    }
-  }, [isAuthed]);
-
-  // Fetch achievements on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchAchievements = async () => {
-        try {
-          const res = await api.getAchievements();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setAchievements(res.data);
-            } else {
-              setAchievements([]);
-            }
-          } else {
-            setAchievements([]);
-          }
-        } catch (error) {
-          console.error('Error fetching achievements:', error);
-          setAchievements([]);
-        }
-      };
-      fetchAchievements();
-
-      // Refresh achievements every 30 seconds
-      const interval = setInterval(fetchAchievements, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setAchievements([]);
-    }
-  }, [isAuthed]);
-
-  // Fetch diagnostic questions on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchDiagnosticQuestions = async () => {
-        try {
-          const res = await api.getDiagnosticQuestions();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setDiagnosticQuestions(res.data);
-            } else {
-              setDiagnosticQuestions([]);
-            }
-          } else {
-            setDiagnosticQuestions([]);
-          }
-        } catch (error) {
-          console.error('Error fetching diagnostic questions:', error);
-          setDiagnosticQuestions([]);
-        }
-      };
-      fetchDiagnosticQuestions();
-
-      // Refresh diagnostic questions every 30 seconds
-      const interval = setInterval(fetchDiagnosticQuestions, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setDiagnosticQuestions([]);
-    }
-  }, [isAuthed]);
-
-  // Fetch student profiles on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchStudentProfiles = async () => {
-        try {
-          const res = await api.getStudentProfiles();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setStudentProfiles(res.data);
-            } else {
-              setStudentProfiles([]);
-            }
-          } else {
-            setStudentProfiles([]);
-          }
-        } catch (error) {
-          console.error('Error fetching student profiles:', error);
-          setStudentProfiles([]);
-        }
-      };
-      fetchStudentProfiles();
-
-      // Refresh student profiles every 30 seconds
-      const interval = setInterval(fetchStudentProfiles, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setStudentProfiles([]);
-    }
-  }, [isAuthed]);
-
-  // Fetch instructor profiles on mount and when authenticated
-  useEffect(() => {
-    if (isAuthed) {
-      const fetchInstructorProfiles = async () => {
-        try {
-          const res = await api.getInstructorProfiles();
-          if (res.ok) {
-            if (res.data && Array.isArray(res.data)) {
-              setInstructorProfiles(res.data);
-            } else {
-              setInstructorProfiles([]);
-            }
-          } else {
-            setInstructorProfiles([]);
-          }
-        } catch (error) {
-          console.error('Error fetching instructor profiles:', error);
-          setInstructorProfiles([]);
-        }
-      };
-      fetchInstructorProfiles();
-
-      // Refresh instructor profiles every 30 seconds
-      const interval = setInterval(fetchInstructorProfiles, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setInstructorProfiles([]);
-    }
-  }, [isAuthed]);
-
-  // Helper functions
-  function latestUploadFor(userId) {
-    try {
-      const u = users.find(x => x.id === userId);
-      const up = u?.instructor?.uploads;
-      if (!up) return "—";
-      const lastVideo = up.videos && Array.isArray(up.videos) && up.videos.length ? up.videos[up.videos.length - 1] : undefined;
-      const lastFile = up.files && Array.isArray(up.files) && up.files.length ? up.files[up.files.length - 1] : undefined;
-      return lastVideo || lastFile || "—";
-    } catch (error) {
-      console.error("Error getting latest upload:", error);
-      return "—";
-    }
-  }
-
-  function deleteInstructorUpload(userId, type, idx, reason) {
-    try {
-      let removedName = "";
-
-      setUsers(prev =>
-        prev.map(u => {
-          if (u.id !== userId) return u;
-
-          const prevInf = u.instructor || { uploads: { videos: [], files: [], quizzes: [] } };
-          const prevUploads = prevInf.uploads || { videos: [], files: [], quizzes: [] };
-          const arr = Array.isArray(prevUploads[type]) ? [...prevUploads[type]] : [];
-          if (idx < 0 || idx >= arr.length) return u;
-
-          const removed = arr.splice(idx, 1)[0];
-          removedName = String(removed ?? "");
-
-          return {
-            ...u,
-            instructor: {
-              ...prevInf,
-              uploads: { ...prevUploads, [type]: arr },
-            },
-          };
-        })
-      );
-
-      setModLog(prev => [
-        {
-          id: `ml-${Date.now()}`,
-          userId,
-          type,
-          name: removedName,
-          reason: reason || "",
-          at: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
-    } catch (error) {
-      console.error("Error deleting instructor upload:", error);
-      alert("An error occurred while deleting the upload");
-    }
-  }
-
-  // API handlers
-  async function doLogin(e) {
-    e.preventDefault();
-    setLoginError("");
-    setLoginBusy(true);
-    try {
-      const res = await api.adminLogin(loginForm.email, loginForm.password);
-      if (!res?.ok) { setLoginError("Invalid credentials"); return; }
-      setAdminName(res.adminName || "Admin");
-      setIsAuthed(true);
-      setSection("dashboard");
-    } catch {
-      setLoginError("Login failed");
-    } finally {
-      setLoginBusy(false);
-    }
-  }
-
-  async function decideApplication(id, decision) {
-    try {
-      // For decline, get reason first
-      let reason = '';
-      if (decision === "decline") {
-        reason = prompt("Reason for decline?");
-        if (reason === null) return;
-      }
-
-      const res = await api.decideApplication(id, decision, reason);
-      if (!res.ok) {
-        alert(res.error || "Failed to process application");
-        return;
-      }
-
-      // Update local state
-      if (decision === "decline") {
-        setApplications(prev =>
-          prev.map(a =>
-            a.id === id ? {
-              ...a,
-              status: "declined",
-              declinedReason: reason,
-              declinedAt: new Date().toISOString().slice(0, 10)
-            } : a
-          )
-        );
-        alert("Application declined.");
-        return;
-      }
-
-      // If accepted, update status
-      setApplications(prev =>
-        prev.map(a => (a.id === id ? { ...a, status: "accepted" } : a))
-      );
-
-      const app = applications.find(a => a.id === id);
-      if (!app) return;
-      if (users.some(u => u.name === app.name && u.role === "instructor")) return;
-
-      const defaultSkills =
-        app.category === "Autism"
-          ? ["Autism", "ABA", "Speech Therapy"]
-          : ["Down Syndrome", "Early Intervention"];
-
-      const newUser = {
-        id: `u-${Date.now()}`,
-        name: app.name,
-        role: "instructor",
-        category: app.category,
-        online: false,
-        status: "active",
-        joinedAt: new Date().toISOString().slice(0, 10),
-        headline: "",
-        location: "",
-        bio: app.description || "",
-        description: app.description || "",
-        instructor: {
-          uploads: { videos: [], files: [], quizzes: [] },
-          cvUrl: app.cvUrl || "",
-          likes: 0,
-          followers: 0,
-          rating: 0,
-          skills: defaultSkills,
-          contactEmail: app.email || "",
-        },
-      };
-
-      setUsers(prev => [newUser, ...prev]);
-      alert("Application accepted. Instructor can now upload content and generate quizzes.");
-    } catch (error) {
-      console.error("Error processing application:", error);
-      alert("An error occurred while processing the application");
-    }
-  }
-
-  function onReopenApplication(id) {
-    setApplications(prev =>
-      prev.map(a =>
-        a.id === id
-          ? { ...a, status: "pending", declinedReason: undefined, declinedAt: undefined }
-          : a
-      )
-    );
-  }
-
-  async function toggleFeedback(id, visible) {
-    try {
-      const res = await api.setFeedbackVisibility(id, visible);
-      if (!res.ok) {
-        alert(res.error || "Failed to update feedback visibility");
-        return;
-      }
-      // Update both show and visible for backward compatibility
-      setFeedback((prev) => prev.map((f) =>
-        (f.id === id || f._id === id) ? { ...f, show: visible, visible } : f
-      ));
-    } catch (error) {
-      console.error("Error toggling feedback:", error);
-      alert("An error occurred while updating feedback");
-    }
-  }
-
-  async function handleSuspend(id) {
-    const user = users.find(u => u.id === id);
-    if (!user) {
-      showToast("User not found", "error");
-      return;
-    }
-
-    const reason = prompt("Reason for suspension?");
-    if (reason === null) return;
-
-    try {
-      const res = await api.suspendUser(id, user.role);
-      if (!res.ok) {
-        showToast(res.error || "Failed to suspend user", "error");
-        return;
-      }
-      setUsers((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, status: "suspended", online: false } : u))
-      );
-      showToast("User suspended successfully", "success");
-    } catch (error) {
-      console.error("Error suspending user:", error);
-      showToast("An error occurred while suspending the user", "error");
-    }
-  }
-
-  async function handleReinstate(id) {
-    const user = users.find(u => u.id === id);
-    if (!user) {
-      showToast("User not found", "error");
-      return;
-    }
-
-    try {
-      const res = await api.reinstateUser(id, user.role);
-      if (!res.ok) {
-        showToast(res.error || "Failed to reinstate user", "error");
-        return;
-      }
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
-      showToast("User reinstated successfully", "success");
-    } catch (error) {
-      console.error("Error reinstating user:", error);
-      showToast("An error occurred while reinstating the user", "error");
-    }
-  }
-
-  // Show toast notification helper
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 4000);
-  };
-
-  async function handleDelete(id) {
-    const user = users.find(u => u.id === id);
-    if (!user) {
-      showToast("User not found", "error");
-      return;
-    }
-
-    // Show confirmation modal
-    setDeleteConfirmModal({
-      show: true,
-      userId: id,
-      userName: user.name || 'Unknown',
-      userRole: user.role
-    });
-  }
-
-  async function confirmDelete() {
-    const { userId, userRole } = deleteConfirmModal;
-
-    // Close modal
-    setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' });
-
-    try {
-      const res = await api.deleteUser(userId, userRole);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete user", "error");
-        return;
-      }
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-      showToast(res.message || "User deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      showToast("An error occurred while deleting the user", "error");
-    }
-  }
-
-  async function handleRenameCourse(pathId, courseId, name) {
-    try {
-      const res = await api.renameCourse(pathId, courseId, name);
-      if (!res.ok) {
-        alert(res.error || "Failed to rename course");
-        return;
-      }
-      setLearningPaths((prev) =>
-        prev.map((p) =>
-          p.id === pathId
-            ? {
-              ...p,
-              courses: p.courses.map((c) => (c.id === courseId ? { ...c, name } : c)),
-            }
-            : p
-        )
-      );
-      showToast("Course renamed successfully", "success");
-    } catch (error) {
-      console.error("Error renaming course:", error);
-      showToast("An error occurred while renaming the course", "error");
-    }
-  }
-
-  async function handleRenameTopic(pathId, courseId, topicId, name) {
-    try {
-      const res = await api.renameTopic(pathId, courseId, topicId, name);
-      if (!res.ok) {
-        alert(res.error || "Failed to rename topic");
-        return;
-      }
-      setLearningPaths((prev) =>
-        prev.map((p) =>
-          p.id === pathId
-            ? {
-              ...p,
-              courses: p.courses.map((c) =>
-                c.id === courseId
-                  ? {
-                    ...c,
-                    topics: c.topics.map((t) => (t.id === topicId ? { ...t, name } : t)),
-                  }
-                  : c
-              ),
-            }
-            : p
-        )
-      );
-      showToast("Topic renamed successfully", "success");
-    } catch (error) {
-      console.error("Error renaming topic:", error);
-      showToast("An error occurred while renaming the topic", "error");
-    }
-  }
-
-  async function handleRenameLesson(pathId, courseId, topicId, lessonId, name) {
-    try {
-      const res = await api.renameLesson(pathId, courseId, topicId, lessonId, name);
-      if (!res.ok) {
-        alert(res.error || "Failed to rename lesson");
-        return;
-      }
-      setLearningPaths((prev) =>
-        prev.map((p) =>
-          p.id === pathId
-            ? {
-              ...p,
-              courses: p.courses.map((c) =>
-                c.id === courseId
-                  ? {
-                    ...c,
-                    topics: c.topics.map((t) =>
-                      t.id === topicId
-                        ? {
-                          ...t,
-                          lessons: t.lessons.map((l) =>
-                            l.id === lessonId ? { ...l, name } : l
-                          ),
-                        }
-                        : t
-                    ),
-                  }
-                  : c
-              ),
-            }
-            : p
-        )
-      );
-      showToast("Lesson renamed successfully", "success");
-    } catch (error) {
-      console.error("Error renaming lesson:", error);
-      showToast("An error occurred while renaming the lesson", "error");
-    }
-  }
-
-  async function handleCreatePath(name, type) {
-    try {
-      const res = await api.createPath(name, type);
-      if (!res.ok) {
-        showToast(res.error || "Failed to create path", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Path created successfully", "success");
-    } catch (error) {
-      console.error("Error creating path:", error);
-      showToast("An error occurred while creating the path", "error");
-    }
-  }
-
-  async function handleCreateCourse(pathId, name) {
-    try {
-      const res = await api.createCourse(pathId, name);
-      if (!res.ok) {
-        showToast(res.error || "Failed to create course", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Course created successfully", "success");
-    } catch (error) {
-      console.error("Error creating course:", error);
-      showToast("An error occurred while creating the course", "error");
-    }
-  }
-
-  async function handleCreateTopic(pathId, courseId, name) {
-    try {
-      const res = await api.createTopic(pathId, courseId, name);
-      if (!res.ok) {
-        showToast(res.error || "Failed to create topic", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Topic created successfully", "success");
-    } catch (error) {
-      console.error("Error creating topic:", error);
-      showToast("An error occurred while creating the topic", "error");
-    }
-  }
-
-  async function handleCreateLesson(pathId, courseId, topicId, name) {
-    try {
-      const res = await api.createLesson(pathId, courseId, topicId, name);
-      if (!res.ok) {
-        showToast(res.error || "Failed to create lesson", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Lesson created successfully", "success");
-    } catch (error) {
-      console.error("Error creating lesson:", error);
-      showToast("An error occurred while creating the lesson", "error");
-    }
-  }
-
-  async function handleBulkImport(data) {
-    try {
-      const res = await api.bulkImportLearningPaths(data);
-      if (!res.ok) {
-        showToast(res.error || "Failed to import data", "error");
-        return { success: false, error: res.error };
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Bulk import completed successfully", "success");
-      return { success: true, data: res.data };
-    } catch (error) {
-      console.error("Error bulk importing:", error);
-      showToast("An error occurred during bulk import", "error");
-      return { success: false, error: error.message };
-    }
-  }
-
-  async function handleDeletePath(pathId) {
-    try {
-      const res = await api.deletePath(pathId);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete path", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Path deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting path:", error);
-      showToast("An error occurred while deleting the path", "error");
-    }
-  }
-
-  async function handleDeleteCourse(pathId, courseId) {
-    try {
-      const res = await api.deleteCourse(pathId, courseId);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete course", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Course deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting course:", error);
-      showToast("An error occurred while deleting the course", "error");
-    }
-  }
-
-  async function handleDeleteTopic(pathId, courseId, topicId) {
-    try {
-      const res = await api.deleteTopic(pathId, courseId, topicId);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete topic", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Topic deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting topic:", error);
-      showToast("An error occurred while deleting the topic", "error");
-    }
-  }
-
-  async function handleDeleteLesson(pathId, courseId, topicId, lessonId) {
-    try {
-      const res = await api.deleteLesson(pathId, courseId, topicId, lessonId);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete lesson", "error");
-        return;
-      }
-      // Refresh learning paths
-      const fetchRes = await api.getLearningPaths();
-      if (fetchRes.ok) {
-        setLearningPaths(fetchRes.data || []);
-      }
-      showToast("Lesson deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting lesson:", error);
-      showToast("An error occurred while deleting the lesson", "error");
-    }
-  }
-
-  async function handleCreateAchievement(achievementData) {
-    try {
-      const res = await api.createAchievement(achievementData);
-      if (!res.ok) {
-        showToast(res.error || "Failed to create achievement", "error");
-        return;
-      }
-      // Refresh achievements
-      const fetchRes = await api.getAchievements();
-      if (fetchRes.ok) {
-        setAchievements(fetchRes.data || []);
-      }
-      showToast("Achievement created successfully", "success");
-    } catch (error) {
-      console.error("Error creating achievement:", error);
-      showToast("An error occurred while creating the achievement", "error");
-    }
-  }
-
-  async function handleUpdateAchievement(id, achievementData) {
-    try {
-      const res = await api.updateAchievement(id, achievementData);
-      if (!res.ok) {
-        showToast(res.error || "Failed to update achievement", "error");
-        return;
-      }
-      // Refresh achievements
-      const fetchRes = await api.getAchievements();
-      if (fetchRes.ok) {
-        setAchievements(fetchRes.data || []);
-      }
-      showToast("Achievement updated successfully", "success");
-    } catch (error) {
-      console.error("Error updating achievement:", error);
-      showToast("An error occurred while updating the achievement", "error");
-    }
-  }
-
-  async function handleDeleteAchievement(id) {
-    try {
-      const res = await api.deleteAchievement(id);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete achievement", "error");
-        return;
-      }
-      setAchievements((prev) => prev.filter((a) => (a._id || a.id) !== id));
-      showToast("Achievement deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting achievement:", error);
-      showToast("An error occurred while deleting the achievement", "error");
-    }
-  }
-
-  // Removed handleToggleAchievementStatus - achievements no longer have isActive status
-
-
-  // Diagnostic Questions Handlers
-  async function handleCreateDiagnosticQuestion(questionData) {
-    try {
-      const res = await api.createDiagnosticQuestion(questionData);
-      if (!res.ok) {
-        showToast(res.error || "Failed to create question", "error");
-        return;
-      }
-      // Refresh questions
-      const fetchRes = await api.getDiagnosticQuestions();
-      if (fetchRes.ok) {
-        setDiagnosticQuestions(fetchRes.data || []);
-      }
-      showToast("Question created successfully", "success");
-    } catch (error) {
-      console.error("Error creating question:", error);
-      showToast("An error occurred while creating the question", "error");
-    }
-  }
-
-  async function handleUpdateDiagnosticQuestion(id, questionData) {
-    try {
-      const res = await api.updateDiagnosticQuestion(id, questionData);
-      if (!res.ok) {
-        showToast(res.error || "Failed to update question", "error");
-        return;
-      }
-      // Refresh questions
-      const fetchRes = await api.getDiagnosticQuestions();
-      if (fetchRes.ok) {
-        setDiagnosticQuestions(fetchRes.data || []);
-      }
-      showToast("Question updated successfully", "success");
-    } catch (error) {
-      console.error("Error updating question:", error);
-      showToast("An error occurred while updating the question", "error");
-    }
-  }
-
-  async function handleDeleteDiagnosticQuestion(id) {
-    try {
-      const res = await api.deleteDiagnosticQuestion(id);
-      if (!res.ok) {
-        showToast(res.error || "Failed to delete question", "error");
-        return;
-      }
-      setDiagnosticQuestions((prev) => prev.filter((q) => (q._id || q.id) !== id));
-      showToast("Question deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting question:", error);
-      showToast("An error occurred while deleting the question", "error");
-    }
-  }
-
-  async function handleToggleDiagnosticQuestionStatus(id, isActive) {
-    try {
-      const res = await api.toggleDiagnosticQuestionStatus(id, isActive);
-      if (!res.ok) {
-        showToast(res.error || "Failed to toggle question status", "error");
-        return;
-      }
-      setDiagnosticQuestions((prev) =>
-        prev.map((q) => ((q._id || q.id) === id ? { ...q, isActive } : q))
-      );
-      showToast(`Question ${isActive ? 'enabled' : 'disabled'} successfully`, "success");
-    } catch (error) {
-      console.error("Error toggling question status:", error);
-      showToast("An error occurred while toggling question status", "error");
-    }
-  }
-
-
-  function openInstructor(id) {
-    setSelectedInstructorId(id);
-    setSection("instructorProfile");
-  }
-
-  const handleSidebarEnter = () => {
-    if (sidebarCollapsed) setSidebarCollapsed(false);
-  };
-
-  const handleSidebarLeave = () => {
-    if (!sidebarCollapsed) setSidebarCollapsed(true);
-  };
-
-  const handleLogout = () => {
-    // Clear all admin-related data
-    localStorage.removeItem("le_admin_token");
-    localStorage.removeItem("le_admin_name");
-    setIsAuthed(false);
-    setAdminName("Admin");
-    setSection("dashboard");
-    // Force navigation to ensure login page is shown
-    navigate("/admin", { replace: true });
-  };
+  const { state, actions } = useAdminPanel();
 
   // Sidebar items
   const sidebarItems = [
@@ -1087,7 +38,7 @@ export default function AdminPanel2() {
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
       ),
-      onClick: () => setSection("dashboard")
+      onClick: () => actions.setSection("dashboard")
     },
     {
       key: "applications",
@@ -1101,7 +52,7 @@ export default function AdminPanel2() {
           <polyline points="10 9 9 9 8 9"></polyline>
         </svg>
       ),
-      onClick: () => setSection("applications")
+      onClick: () => actions.setSection("applications")
     },
     {
       key: "reports",
@@ -1112,7 +63,7 @@ export default function AdminPanel2() {
           <line x1="4" y1="22" x2="4" y2="15"></line>
         </svg>
       ),
-      onClick: () => setSection("reports")
+      onClick: () => actions.setSection("reports")
     },
     {
       key: "feedback",
@@ -1122,7 +73,7 @@ export default function AdminPanel2() {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
       ),
-      onClick: () => setSection("feedback")
+      onClick: () => actions.setSection("feedback")
     },
     {
       key: "users",
@@ -1135,7 +86,7 @@ export default function AdminPanel2() {
           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
       ),
-      onClick: () => setSection("users")
+      onClick: () => actions.setSection("users")
     },
     {
       key: "learning",
@@ -1146,7 +97,7 @@ export default function AdminPanel2() {
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
         </svg>
       ),
-      onClick: () => setSection("learning")
+      onClick: () => actions.setSection("learning")
     },
     {
       key: "achievements-tests",
@@ -1157,7 +108,7 @@ export default function AdminPanel2() {
           <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
         </svg>
       ),
-      onClick: () => setSection("achievements-tests")
+      onClick: () => actions.setSection("achievements-tests")
     },
     {
       key: "profiles",
@@ -1168,7 +119,7 @@ export default function AdminPanel2() {
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
       ),
-      onClick: () => setSection("profiles")
+      onClick: () => actions.setSection("profiles")
     },
     {
       key: "settings",
@@ -1179,18 +130,18 @@ export default function AdminPanel2() {
           <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
         </svg>
       ),
-      onClick: () => setSection("settings")
+      onClick: () => actions.setSection("settings")
     },
   ];
 
-  if (!isAuthed) {
+  if (!state.isAuthed) {
     return (
       <AdminLogin2
-        loginForm={loginForm}
-        setLoginForm={setLoginForm}
-        loginBusy={loginBusy}
-        loginError={loginError}
-        onLogin={doLogin}
+        loginForm={state.loginForm}
+        setLoginForm={actions.setLoginForm}
+        loginBusy={state.loginBusy}
+        loginError={state.loginError}
+        onLogin={actions.doLogin}
       />
     );
   }
@@ -1199,16 +150,16 @@ export default function AdminPanel2() {
     <div className="ld-page">
       {/* Left Sidebar with Hover Animation */}
       <aside
-        className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}
-        onMouseEnter={handleSidebarEnter}
-        onMouseLeave={handleSidebarLeave}
+        className={`ld-sidebar-expandable ${state.sidebarCollapsed ? "collapsed" : ""}`}
+        onMouseEnter={actions.handleSidebarEnter}
+        onMouseLeave={actions.handleSidebarLeave}
       >
         <div className="ld-sidebar-inner">
           {/* Logo */}
           <div className="ld-sidebar-brand">
             <img
               className="ld-sidebar-logo"
-              src={sidebarCollapsed ? smallLogo : fullLogo}
+              src={state.sidebarCollapsed ? smallLogo : fullLogo}
               alt="LearnEase Admin"
             />
           </div>
@@ -1216,7 +167,7 @@ export default function AdminPanel2() {
           {/* Navigation Items */}
           <ul className="ld-sidebar-nav">
             {sidebarItems.map((item) => (
-              <li key={item.key} className={section === item.key ? "active" : ""}>
+              <li key={item.key} className={state.section === item.key ? "active" : ""}>
                 <button onClick={item.onClick} className="ld-sidebar-link">
                   <span className="ld-sidebar-icon-wrapper">
                     {item.icon}
@@ -1231,7 +182,7 @@ export default function AdminPanel2() {
           <div className="ld-sidebar-footer">
             <button
               className="ld-sidebar-link ld-sidebar-logout"
-              onClick={handleLogout}
+              onClick={actions.handleLogout}
             >
               <span className="ld-sidebar-icon-wrapper">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1247,7 +198,7 @@ export default function AdminPanel2() {
       </aside>
 
       {/* Main Content */}
-      <div className={`ld-main ${sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
+      <div className={`ld-main ${state.sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded"}`}>
         {/* Top Header */}
         <header className="ld-header">
           <div className="ld-header-left">
@@ -1261,21 +212,21 @@ export default function AdminPanel2() {
                 className="ld-search-input"
                 type="text"
                 placeholder={
-                  section === "users"
+                  state.section === "users"
                     ? "Users have their own search below"
-                    : section === "settings" || section === "learning" || section === "achievements-tests"
+                    : state.section === "settings" || state.section === "learning" || state.section === "achievements-tests"
                       ? "Search not available in this section"
                       : "Search anything..."
                 }
-                value={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests" ? "" : search}
+                value={state.section === "users" || state.section === "settings" || state.section === "learning" || state.section === "achievements-tests" ? "" : state.search}
                 onChange={(e) => {
-                  if (section !== "users" && section !== "settings" && section !== "learning" && section !== "achievements-tests") {
-                    setSearch(e.target.value);
+                  if (state.section !== "users" && state.section !== "settings" && state.section !== "learning" && state.section !== "achievements-tests") {
+                    actions.setSearch(e.target.value);
                   }
                 }}
-                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"}
+                disabled={state.section === "users" || state.section === "settings" || state.section === "learning" || state.section === "achievements-tests"}
                 style={
-                  section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"
+                  state.section === "users" || state.section === "settings" || state.section === "learning" || state.section === "achievements-tests"
                     ? { opacity: 0.5, cursor: "not-allowed" }
                     : {}
                 }
@@ -1283,9 +234,9 @@ export default function AdminPanel2() {
               <button
                 className="ld-search-btn"
                 type="button"
-                disabled={section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"}
+                disabled={state.section === "users" || state.section === "settings" || state.section === "learning" || state.section === "achievements-tests"}
                 style={
-                  section === "users" || section === "settings" || section === "learning" || section === "achievements-tests"
+                  state.section === "users" || state.section === "settings" || state.section === "learning" || state.section === "achievements-tests"
                     ? { opacity: 0.5, cursor: "not-allowed" }
                     : {}
                 }
@@ -1301,11 +252,11 @@ export default function AdminPanel2() {
             <div className="ld-profile-container">
               <button className="ld-profile-trigger">
                 <div className="ld-profile-avatar-wrapper">
-                  <div className="ld-profile-avatar">{adminName.slice(0, 2).toUpperCase()}</div>
+                  <div className="ld-profile-avatar">{state.adminName.slice(0, 2).toUpperCase()}</div>
                   <div className="ld-profile-status-indicator"></div>
                 </div>
                 <div className="ld-profile-info">
-                  <div className="ld-profile-name">{adminName}</div>
+                  <div className="ld-profile-name">{state.adminName}</div>
                   <div className="ld-profile-email">Administrator</div>
                 </div>
               </button>
@@ -1315,106 +266,106 @@ export default function AdminPanel2() {
 
         {/* Content Area */}
         <div className="ld-content">
-          {section === "dashboard" && (
+          {state.section === "dashboard" && (
             <Dashboard
-              users={users}
-              profiles={profiles}
-              onReinstate={handleReinstate}
-              search={search}
-              onOpenInstructor={openInstructor}
-              applications={applications}
-              reports={reports}
-              feedbacks={feedback}
-              onNavigate={setSection}
+              users={state.users}
+              profiles={state.profiles}
+              onReinstate={actions.handleReinstate}
+              search={state.search}
+              onOpenInstructor={actions.openInstructor}
+              applications={state.applications}
+              reports={state.reports}
+              feedbacks={state.feedback}
+              onNavigate={actions.setSection}
             />
           )}
-          {section === "applications" && (
+          {state.section === "applications" && (
             <InstructorApplications
-              applications={applications}
-              users={users}
-              search={search}
-              onDecideApplication={decideApplication}
-              onReopenApplication={onReopenApplication}
-              onOpenInstructor={openInstructor}
+              applications={state.applications}
+              users={state.users}
+              search={state.search}
+              onDecideApplication={actions.decideApplication}
+              onReopenApplication={actions.onReopenApplication}
+              onOpenInstructor={actions.openInstructor}
             />
           )}
-          {section === "reports" && <Reports reports={reports} users={users} search={search} onOpenInstructor={openInstructor} />}
-          {section === "feedback" && (
+          {state.section === "reports" && <Reports reports={state.reports} users={state.users} search={state.search} onOpenInstructor={actions.openInstructor} />}
+          {state.section === "feedback" && (
             <Feedback
-              feedback={feedback}
-              users={users}
-              search={search}
-              onToggleVisibility={toggleFeedback}
-              onOpenInstructor={openInstructor}
+              feedback={state.feedback}
+              users={state.users}
+              search={state.search}
+              onToggleVisibility={actions.toggleFeedback}
+              onOpenInstructor={actions.openInstructor}
             />
           )}
-          {section === "users" && (
+          {state.section === "users" && (
             <Users
-              users={users}
-              search={userSearch}
-              userFilters={userFilters}
-              onSearchChange={setUserSearch}
-              onFilterChange={setUserFilters}
-              onSuspend={handleSuspend}
-              onReinstate={handleReinstate}
-              onDelete={handleDelete}
+              users={state.users}
+              search={state.userSearch}
+              userFilters={state.userFilters}
+              onSearchChange={actions.setUserSearch}
+              onFilterChange={actions.setUserFilters}
+              onSuspend={actions.handleSuspend}
+              onReinstate={actions.handleReinstate}
+              onDelete={actions.handleDelete}
             />
           )}
-          {section === "learning" && (
+          {state.section === "learning" && (
             <LearningPaths
-              learningPaths={learningPaths}
-              onRenameCourse={handleRenameCourse}
-              onRenameTopic={handleRenameTopic}
-              onRenameLesson={handleRenameLesson}
-              onCreatePath={handleCreatePath}
-              onCreateCourse={handleCreateCourse}
-              onCreateTopic={handleCreateTopic}
-              onCreateLesson={handleCreateLesson}
-              onBulkImport={handleBulkImport}
-              onDeletePath={handleDeletePath}
-              onDeleteCourse={handleDeleteCourse}
-              onDeleteTopic={handleDeleteTopic}
-              onDeleteLesson={handleDeleteLesson}
+              learningPaths={state.learningPaths}
+              onRenameCourse={actions.handleRenameCourse}
+              onRenameTopic={actions.handleRenameTopic}
+              onRenameLesson={actions.handleRenameLesson}
+              onCreatePath={actions.handleCreatePath}
+              onCreateCourse={actions.handleCreateCourse}
+              onCreateTopic={actions.handleCreateTopic}
+              onCreateLesson={actions.handleCreateLesson}
+              onBulkImport={actions.handleBulkImport}
+              onDeletePath={actions.handleDeletePath}
+              onDeleteCourse={actions.handleDeleteCourse}
+              onDeleteTopic={actions.handleDeleteTopic}
+              onDeleteLesson={actions.handleDeleteLesson}
             />
           )}
-          {section === "achievements-tests" && (
+          {state.section === "achievements-tests" && (
             <AchievementsAndTests
-              achievements={achievements}
-              onCreateAchievement={handleCreateAchievement}
-              onUpdateAchievement={handleUpdateAchievement}
-              onDeleteAchievement={handleDeleteAchievement}
-              diagnosticQuestions={diagnosticQuestions}
-              onCreateQuestion={handleCreateDiagnosticQuestion}
-              onUpdateQuestion={handleUpdateDiagnosticQuestion}
-              onDeleteQuestion={handleDeleteDiagnosticQuestion}
-              onToggleQuestionStatus={handleToggleDiagnosticQuestionStatus}
+              achievements={state.achievements}
+              onCreateAchievement={actions.handleCreateAchievement}
+              onUpdateAchievement={actions.handleUpdateAchievement}
+              onDeleteAchievement={actions.handleDeleteAchievement}
+              diagnosticQuestions={state.diagnosticQuestions}
+              onCreateQuestion={actions.handleCreateDiagnosticQuestion}
+              onUpdateQuestion={actions.handleUpdateDiagnosticQuestion}
+              onDeleteQuestion={actions.handleDeleteDiagnosticQuestion}
+              onToggleQuestionStatus={actions.handleToggleDiagnosticQuestionStatus}
             />
           )}
-          {section === "profiles" && (
+          {state.section === "profiles" && (
             <Profiles
-              profiles={profiles}
-              users={users}
-              search={search}
-              onOpenInstructor={openInstructor}
-              latestUploadFor={latestUploadFor}
+              profiles={state.profiles}
+              users={state.users}
+              search={state.search}
+              onOpenInstructor={actions.openInstructor}
+              latestUploadFor={actions.latestUploadFor}
             />
           )}
-          {section === "settings" && <Settings />}
-          {section === "instructorProfile" && selectedInstructorId && (
+          {state.section === "settings" && <Settings />}
+          {state.section === "instructorProfile" && state.selectedInstructorId && (
             <InstructorProfile
-              id={selectedInstructorId}
-              users={users}
-              modLog={modLog}
-              onBack={() => setSection("profiles")}
-              onDeleteUpload={deleteInstructorUpload}
+              id={state.selectedInstructorId}
+              users={state.users}
+              modLog={state.modLog}
+              onBack={() => actions.setSection("profiles")}
+              onDeleteUpload={actions.deleteInstructorUpload}
             />
           )}
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirmModal.show && (
-        <div className="admin-modal-overlay" onClick={() => setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}>
+      {state.deleteConfirmModal.show && (
+        <div className="admin-modal-overlay" onClick={() => actions.setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}>
           <div className="admin-modal-content admin-confirmation-modal" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-icon-warning">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1425,19 +376,19 @@ export default function AdminPanel2() {
             </div>
             <h3 className="admin-modal-title">Delete User Account?</h3>
             <p className="admin-modal-message">
-              Are you sure you want to permanently delete <strong>{deleteConfirmModal.userName}</strong>'s {deleteConfirmModal.userRole === 'instructor' ? 'teacher' : 'student'} account? This action cannot be undone and all data will be lost.
+              Are you sure you want to permanently delete <strong>{state.deleteConfirmModal.userName}</strong>'s {state.deleteConfirmModal.userRole === 'instructor' ? 'teacher' : 'student'} account? This action cannot be undone and all data will be lost.
             </p>
 
             <div className="admin-modal-actions">
               <button
                 className="admin-modal-btn admin-modal-btn-secondary"
-                onClick={() => setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}
+                onClick={() => actions.setDeleteConfirmModal({ show: false, userId: null, userName: '', userRole: '' })}
               >
                 Cancel
               </button>
               <button
                 className="admin-modal-btn admin-modal-btn-danger"
-                onClick={confirmDelete}
+                onClick={actions.confirmDelete}
               >
                 Delete Account
               </button>
@@ -1447,10 +398,10 @@ export default function AdminPanel2() {
       )}
 
       {/* Toast Notification */}
-      {toast.show && (
-        <div className={`admin-toast admin-toast-${toast.type}`}>
+      {state.toast.show && (
+        <div className={`admin-toast admin-toast-${state.toast.type}`}>
           <div className="admin-toast-content">
-            {toast.type === "success" ? (
+            {state.toast.type === "success" ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
@@ -1461,11 +412,10 @@ export default function AdminPanel2() {
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
             )}
-            <span className="admin-toast-message">{toast.message}</span>
+            <span className="admin-toast-message">{state.toast.message}</span>
           </div>
         </div>
       )}
     </div>
   );
 }
-

@@ -425,9 +425,8 @@ const api = {
       return { ok: false, error: 'Network error' };
     }
   },
-  getSettings: async () => ({ ok: true, data: {} }),
+
   saveSettings: async (settings) => ({ ok: true, settings }),
-  addUser: async (payload) => ({ ok: true, payload }),
   createUser: async (userData) => ({ ok: true, userData }),
 
   // Achievements API
@@ -495,26 +494,7 @@ const api = {
       return { ok: false, error: 'Network error' };
     }
   },
-  // Removed toggleAchievementStatus - achievements no longer have isActive field
-  bulkImportAchievements: async (achievements) => {
-    try {
-      const response = await fetch(`${API_URL}/api/admin/achievements/bulk-import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ achievements })
-      });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        return { success: false, error: result.error || 'Failed to import achievements' };
-      }
-      return { success: true, data: result, count: result.count };
-    } catch (error) {
-      console.error('❌ Error bulk importing achievements:', error);
-      return { success: false, error: 'Network error: ' + error.message };
-    }
-  },
 
   // Diagnostic Test Questions API
   getDiagnosticQuestions: async () => {
@@ -599,24 +579,7 @@ const api = {
       return { ok: false, error: 'Network error' };
     }
   },
-  bulkImportDiagnosticQuestions: async (questions) => {
-    try {
-      const response = await fetch(`${API_URL}/api/admin/diagnostic-questions/bulk-import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questions })
-      });
-      const result = await response.json();
 
-      if (!response.ok) {
-        return { success: false, error: result.error || 'Failed to import questions' };
-      }
-      return { success: true, data: result, count: result.count };
-    } catch (error) {
-      console.error('Error bulk importing questions:', error);
-      return { success: false, error: 'Network error: ' + error.message };
-    }
-  },
 };
 
 export default api;
