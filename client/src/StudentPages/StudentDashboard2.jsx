@@ -1079,81 +1079,36 @@ export default function StudentDashboard2() {
             </div>
           </section>
 
-          {/* Two Column Section: My Next Lessons & New Course Recommendation */}
-          <div className="ld-two-column-section">
-            {/* My Next Lessons Section */}
-            <section className="ld-lessons-section">
-              <div className="ld-section-header">
-                <h2 className="ld-section-title">My next lessons</h2>
-                <Link to="/courses" className="ld-view-all">View all lessons</Link>
-              </div>
-              {nextLessons.length > 0 ? (
-                <div className="ld-lessons-table">
-                  <div className="ld-lessons-header">
-                    <div className="ld-lesson-col">Lesson</div>
-                    <div className="ld-duration-col">Duration</div>
+          {/* My Next Lessons Section */}
+          <section className="ld-lessons-section">
+            <div className="ld-section-header">
+              <h2 className="ld-section-title">My next lessons</h2>
+              <Link to="/courses" className="ld-view-all">View all lessons</Link>
+            </div>
+            {nextLessons.length > 0 ? (
+              <div className="ld-lessons-table">
+                <div className="ld-lessons-header">
+                  <div className="ld-lesson-col">Lesson</div>
+                  <div className="ld-duration-col">Duration</div>
+                </div>
+                {nextLessons.map((lesson) => (
+                  <div key={lesson.id} className="ld-lesson-row">
+                    <div className="ld-lesson-col">
+                      <div className="ld-lesson-title">{lesson.lesson}</div>
+                      <div className="ld-lesson-course">{lesson.course}</div>
+                    </div>
+                    <div className="ld-duration-col">
+                      <span className="ld-duration-text">{lesson.duration || "15 mins"}</span>
+                    </div>
                   </div>
-                  {nextLessons.map((lesson) => (
-                    <div key={lesson.id} className="ld-lesson-row">
-                      <div className="ld-lesson-col">
-                        <div className="ld-lesson-title">{lesson.lesson}</div>
-                        <div className="ld-lesson-course">{lesson.course}</div>
-                      </div>
-                      <div className="ld-duration-col">
-                        <span className="ld-duration-text">{lesson.duration || "15 mins"}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="ld-no-lessons">
-                  <p>No lessons available yet.</p>
-                </div>
-              )}
-            </section>
-
-            {/* New Course Recommendation Section */}
-            <section className="ld-recommendation-section">
-              <div className="ld-recommendation-card">
-                <h2 className="ld-recommendation-section-title">New course matching your interests</h2>
-                {courses.length > 0 && courses[studentProgress.currentCourseIndex + 1] ? (
-                  <>
-                    <div className="ld-recommendation-category">Computer Science</div>
-                    <h3 className="ld-recommendation-title">
-                      {courses[studentProgress.currentCourseIndex + 1].title}
-                    </h3>
-                    <div className="ld-recommendation-social">
-                      <span className="ld-recommendation-social-text">They are already studying</span>
-                      <div className="ld-recommendation-avatars">
-                        <div className="ld-recommendation-avatar">A</div>
-                        <div className="ld-recommendation-avatar">B</div>
-                        <div className="ld-recommendation-avatar">C</div>
-                        <div className="ld-recommendation-badge">+100</div>
-                      </div>
-                    </div>
-                    <button className="ld-details-btn">More details</button>
-                  </>
-                ) : (
-                  <>
-                    <div className="ld-recommendation-category">Computer Science</div>
-                    <h3 className="ld-recommendation-title">
-                      Microsoft Future Ready: Fundamentals of Big Data
-                    </h3>
-                    <div className="ld-recommendation-social">
-                      <span className="ld-recommendation-social-text">They are already studying</span>
-                      <div className="ld-recommendation-avatars">
-                        <div className="ld-recommendation-avatar">A</div>
-                        <div className="ld-recommendation-avatar">B</div>
-                        <div className="ld-recommendation-avatar">C</div>
-                        <div className="ld-recommendation-badge">+100</div>
-                      </div>
-                    </div>
-                    <button className="ld-details-btn">More details</button>
-                  </>
-                )}
+                ))}
               </div>
-            </section>
-          </div>
+            ) : (
+              <div className="ld-no-lessons">
+                <p>No lessons available yet.</p>
+              </div>
+            )}
+          </section>
 
           {/* Quizzes Section */}
           <section className="ld-quizzes-section">
