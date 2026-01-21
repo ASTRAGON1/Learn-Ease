@@ -172,6 +172,180 @@ exports.submitQuiz = async (req, res) => {
       type: 'quiz_completed'
     });
 
+    // === AI-POWERED ADAPTIVE DIFFICULTY ADJUSTMENT ===
+    // Analyze recent quiz performance and adjust content difficulty
+    setImmediate(async () => {
+      try {
+        console.log(`🎯 Starting adaptive difficulty analysis for student ${studentId}...`);
+
+        // Get last 5 quiz results to analyze performance trend
+        const recentResults = await QuizResult.find({ 
+          student: studentId, 
+          status: 'completed' 
+        })
+          .sort({ updatedAt: -1 })
+          .limit(5)
+          .select('grade');
+
+        if (recentResults.length >= 3) { // Need at least 3 quizzes for meaningful analysis
+          const averageScore = recentResults.reduce((sum, r) => sum + (r.grade || 0), 0) / recentResults.length;
+          console.log(`📊 Student's average score over last ${recentResults.length} quizzes: ${averageScore.toFixed(1)}%`);
+
+          // Get student's current path and info
+          const Student = require('../models/Student');
+          const StudentPath = require('../models/StudentPath');
+          const Content = require('../models/Content');
+          const PathModel = require('../models/Path');
+
+          const student = await Student.findById(studentId).select('type');
+          if (!student || !student.type) {
+            console.log('⚠️ Student type not found, skipping difficulty adjustment');
+            return;
+          }
+
+          const studentPath = await StudentPath.findOne({ student: studentId });
+          if (!studentPath) {
+            console.log('⚠️ Student path not found, skipping difficulty adjustment');
+            return;
+          }
+
+          // Determine new difficulty level based on performance
+          let newDifficulty = null;
+          let adjustmentMessage = '';
+
+          if (averageScore >= 85) {
+            newDifficulty = 'Hard';
+            adjustmentMessage = `🚀 Excellent performance! We're challenging you with harder content.`;
+            console.log(`✨ High performance (${averageScore.toFixed(1)}%) - Recommending Hard content`);
+          } else if (averageScore >= 70) {
+            newDifficulty = 'Medium';
+            adjustmentMessage = `📈 Great progress! We're adjusting content to match your level.`;
+            console.log(`📚 Good performance (${averageScore.toFixed(1)}%) - Recommending Medium content`);
+          } else if (averageScore < 60) {
+            newDifficulty = 'Easy';
+            adjustmentMessage = `💪 We're here to help! Let's build confidence with simpler content.`;
+            console.log(`🎯 Struggling (${averageScore.toFixed(1)}%) - Recommending Easy content`);
+          } else {
+            console.log(`✓ Performance stable (${averageScore.toFixed(1)}%) - No adjustment needed`);
+            return; // No adjustment needed for 60-70% range
+          }
+
+          // Find curriculum path
+          const curriculumPath = await PathModel.findOne({ type: student.type });
+          if (!curriculumPath) {
+            console.log('⚠️ Curriculum path not found');
+            return;
+          }
+
+          // Query content at the new difficulty level
+          const newContent = await Content.find({
+            path: curriculumPath._id,
+            status: 'published',
+            difficulty: newDifficulty
+          }).select('_id title difficulty contentType description').limit(50).lean();
+
+          console.log(`📦 Found ${newContent.length} ${newDifficulty} content items`);
+
+          if (newContent.length > 0 && process.env.OPENAI_API_KEY) {
+            // Use AI to select best content for adjustment
+            const OpenAI = require('openai');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+            const prompt = `Student Performance Analysis:
+- Student Type: ${student.type}
+- Recent Quiz Average: ${averageScore.toFixed(1)}%
+- Performance Trend: ${averageScore >= 85 ? 'Excelling' : averageScore >= 70 ? 'Progressing well' : 'Needs support'}
+- New Recommended Difficulty: ${newDifficulty}
+
+Available ${newDifficulty} Content (${newContent.length} items):
+${newContent.slice(0, 30).map((c, i) => `${i + 1}. "${c.title}" [${c.contentType}] - ${c.difficulty}`).join('\n')}
+
+Task: Select 3-5 content items that will:
+1. Match the student's new difficulty level (${newDifficulty})
+2. Build on their current knowledge
+3. ${averageScore >= 85 ? 'Challenge them appropriately' : averageScore >= 70 ? 'Maintain their progress' : 'Rebuild their confidence'}
+4. Provide variety in content types
+
+Return ONLY a JSON array of indices (1-based). Example: [3, 7, 12, 5]`;
+
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4o-mini",
+              messages: [
+                { 
+                  role: "system", 
+                  content: "You are an adaptive learning AI that adjusts content difficulty based on student performance. Analyze performance trends and select optimal content." 
+                },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.3
+            });
+
+            const responseText = completion.choices[0].message.content.trim();
+            const indices = JSON.parse(responseText.match(/\[.*\]/s)?.[0] || "[]");
+
+            if (indices.length > 0) {
+              const recommendedIds = indices
+                .map(idx => newContent[idx - 1]?._id)
+                .filter(Boolean);
+
+              // Add recommended content to student's path
+              const newAssignedContent = recommendedIds.map(contentId => ({
+                content: contentId,
+                status: 'pending',
+                addedDate: new Date(),
+                priority: 'high',
+                aiRecommended: true
+              }));
+
+              // Remove duplicates and add to beginning of path
+              const existingIds = new Set(studentPath.assignedContent.map(c => c.content.toString()));
+              const uniqueRecs = newAssignedContent.filter(rec => !existingIds.has(rec.content.toString()));
+
+              if (uniqueRecs.length > 0) {
+                studentPath.assignedContent = [...uniqueRecs, ...studentPath.assignedContent];
+                await studentPath.save();
+
+                console.log(`✅ Added ${uniqueRecs.length} AI-selected ${newDifficulty} content items to student's path`);
+
+                // Send notification about difficulty adjustment
+                await createNotification({
+                  recipient: studentId,
+                  recipientModel: 'Student',
+                  message: adjustmentMessage,
+                  type: 'achievement'
+                });
+              }
+            }
+          } else if (newContent.length > 0) {
+            // Fallback: Add random content if AI not available
+            const randomContent = newContent
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 3)
+              .map(c => ({
+                content: c._id,
+                status: 'pending',
+                addedDate: new Date(),
+                priority: 'high'
+              }));
+
+            const existingIds = new Set(studentPath.assignedContent.map(c => c.content.toString()));
+            const uniqueRecs = randomContent.filter(rec => !existingIds.has(rec.content.toString()));
+
+            if (uniqueRecs.length > 0) {
+              studentPath.assignedContent = [...uniqueRecs, ...studentPath.assignedContent];
+              await studentPath.save();
+              console.log(`✅ Added ${uniqueRecs.length} ${newDifficulty} content items (no AI)`);
+            }
+          }
+        } else {
+          console.log(`⏳ Only ${recentResults.length} quizzes completed - need at least 3 for adaptive adjustment`);
+        }
+      } catch (adaptError) {
+        console.error('❌ Error in adaptive difficulty adjustment:', adaptError);
+        // Non-blocking error - quiz submission still succeeds
+      }
+    });
+
     return res.status(200).json({ success: true, message: 'Quiz submitted and notification sent' });
   } catch (e) {
     console.error('submitQuiz error', e);

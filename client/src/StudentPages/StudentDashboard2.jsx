@@ -48,6 +48,41 @@ export default function StudentDashboard2() {
   // Student info states
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
+  const [isRegenerating, setIsRegenerating] = useState(false);
+
+  // Function to regenerate personalized path
+  const handleRegeneratePath = async () => {
+    if (!window.confirm('🔄 This will update your learning path based on your diagnostic test results. Continue?')) {
+      return;
+    }
+
+    setIsRegenerating(true);
+    try {
+      const token = window.sessionStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/diagnostic-quiz/regenerate-path`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(`✅ ${data.message}\n\n📊 Details:\n- Total Items: ${data.data.totalItems}\n- Difficulty Levels: ${data.data.difficultyLevels.join(', ')}\n- Accuracy Score: ${data.data.accuracyScore}%`);
+        // Reload the page to show updated content
+        window.location.reload();
+      } else {
+        alert(`❌ Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Regeneration error:', error);
+      alert('❌ Failed to regenerate path. Please try again.');
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
   const [profilePic, setProfilePic] = useState("");
   const [studentPathType, setStudentPathType] = useState(null); // Fetched from diagnostic test results
   const [studentPath, setStudentPath] = useState(null);
@@ -1011,6 +1046,27 @@ export default function StudentDashboard2() {
           <section className="ld-courses-section">
             <div className="ld-courses-header">
               <h2 className="ld-section-title">My Learning Path</h2>
+              <button 
+                onClick={handleRegeneratePath}
+                disabled={isRegenerating}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#4C0FAD',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isRegenerating ? 'not-allowed' : 'pointer',
+                  fontWeight: '500',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  opacity: isRegenerating ? 0.6 : 1
+                }}
+                title="Update your learning path based on your diagnostic test results"
+              >
+                {isRegenerating ? '🔄 Updating...' : '🔄 Refresh My Path'}
+              </button>
             </div>
 
             {/* Two Box Layout */}

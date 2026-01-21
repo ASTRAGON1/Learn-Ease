@@ -28,6 +28,15 @@ const studentPathSchema = new mongoose.Schema({
             enum: ['pending', 'in-progress', 'completed'],
             default: 'pending'
         },
+        priority: {
+            type: String,
+            enum: ['high', 'normal', 'low'],
+            default: 'normal'
+        },
+        aiRecommended: {
+            type: Boolean,
+            default: false
+        },
         addedDate: {
             type: Date,
             default: Date.now

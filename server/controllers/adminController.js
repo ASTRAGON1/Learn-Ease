@@ -307,10 +307,28 @@ exports.getTeacherContent = async (req, res) => {
         if (!teacher) return res.status(404).json({ success: false, error: 'Teacher not found' });
 
         const content = await Content.find({ teacher: teacher._id, status: { $ne: 'deleted' } })
-            .select('title pathType contentType topic lesson course description difficulty status createdAt views likes')
+            .populate('path', 'type') // Populate path to get category
+            .select('title path contentType topic lesson course description difficulty status createdAt views likes')
             .sort({ createdAt: -1 });
 
-        res.json({ success: true, data: content });
+        // Transform data to include category from path.type
+        const transformedContent = content.map(item => ({
+            _id: item._id,
+            title: item.title,
+            category: item.path?.type || null, // Extract category from path
+            contentType: item.contentType,
+            topic: item.topic,
+            lesson: item.lesson,
+            course: item.course,
+            description: item.description,
+            difficulty: item.difficulty,
+            status: item.status,
+            createdAt: item.createdAt,
+            views: item.views,
+            likes: item.likes
+        }));
+
+        res.json({ success: true, data: transformedContent });
     } catch (error) {
         console.error('Error fetching teacher content:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -324,10 +342,27 @@ exports.getTeacherQuizzes = async (req, res) => {
         if (!teacher) return res.status(404).json({ success: false, error: 'Teacher not found' });
 
         const quizzes = await Quiz.find({ teacher: teacher._id })
-            .select('title pathType topic lesson course difficulty status createdAt questionsAndAnswers views likes')
+            .populate('path', 'type') // Populate path to get category
+            .select('title path topic lesson course difficulty status createdAt questionsAndAnswers views likes')
             .sort({ createdAt: -1 });
 
-        res.json({ success: true, data: quizzes });
+        // Transform data to include category from path.type
+        const transformedQuizzes = quizzes.map(item => ({
+            _id: item._id,
+            title: item.title,
+            category: item.path?.type || null, // Extract category from path
+            topic: item.topic,
+            lesson: item.lesson,
+            course: item.course,
+            difficulty: item.difficulty,
+            status: item.status,
+            createdAt: item.createdAt,
+            questionsAndAnswers: item.questionsAndAnswers,
+            views: item.views,
+            likes: item.likes
+        }));
+
+        res.json({ success: true, data: transformedQuizzes });
     } catch (error) {
         console.error('Error fetching teacher quizzes:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -427,10 +462,28 @@ exports.getDeletedContent = async (req, res) => {
         if (!teacher) return res.status(404).json({ success: false, error: 'Teacher not found' });
 
         const deletedContent = await Content.find({ teacher: teacher._id, status: 'deleted' })
-            .select('title pathType contentType topic lesson course description difficulty status previousStatus deletedAt createdAt')
+            .populate('path', 'type') // Populate path to get category
+            .select('title path contentType topic lesson course description difficulty status previousStatus deletedAt createdAt')
             .sort({ deletedAt: -1 });
 
-        res.json({ success: true, data: deletedContent });
+        // Transform data to include category from path.type
+        const transformedContent = deletedContent.map(item => ({
+            _id: item._id,
+            title: item.title,
+            category: item.path?.type || null, // Extract category from path
+            contentType: item.contentType,
+            topic: item.topic,
+            lesson: item.lesson,
+            course: item.course,
+            description: item.description,
+            difficulty: item.difficulty,
+            status: item.status,
+            previousStatus: item.previousStatus,
+            deletedAt: item.deletedAt,
+            createdAt: item.createdAt
+        }));
+
+        res.json({ success: true, data: transformedContent });
     } catch (error) {
         console.error('Error fetching deleted teacher content:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -444,10 +497,26 @@ exports.getDeletedQuizzes = async (req, res) => {
         if (!teacher) return res.status(404).json({ success: false, error: 'Teacher not found' });
 
         const deletedQuizzes = await Quiz.find({ teacher: teacher._id, status: 'archived' })
-            .select('title pathType topic lesson course difficulty status previousStatus createdAt updatedAt')
+            .populate('path', 'type') // Populate path to get category
+            .select('title path topic lesson course difficulty status previousStatus createdAt updatedAt')
             .sort({ updatedAt: -1 });
 
-        res.json({ success: true, data: deletedQuizzes });
+        // Transform data to include category from path.type
+        const transformedQuizzes = deletedQuizzes.map(item => ({
+            _id: item._id,
+            title: item.title,
+            category: item.path?.type || null, // Extract category from path
+            topic: item.topic,
+            lesson: item.lesson,
+            course: item.course,
+            difficulty: item.difficulty,
+            status: item.status,
+            previousStatus: item.previousStatus,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt
+        }));
+
+        res.json({ success: true, data: transformedQuizzes });
     } catch (error) {
         console.error('Error fetching deleted teacher quizzes:', error);
         res.status(500).json({ success: false, error: error.message });

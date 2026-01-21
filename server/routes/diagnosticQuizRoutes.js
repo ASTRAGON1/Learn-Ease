@@ -12,4 +12,7 @@ router.post('/submit', auth(['student']), diagnosticTestController.submitQuiz);
 // GET /api/diagnostic-quiz/status - Check if student has completed diagnostic quiz
 router.get('/status', auth(['student']), diagnosticTestController.checkQuizStatus);
 
+// POST /api/diagnostic-quiz/regenerate-path - Regenerate personalized path for existing students
+router.post('/regenerate-path', auth(['student']), diagnosticTestController.regeneratePath);
+
 module.exports = router;

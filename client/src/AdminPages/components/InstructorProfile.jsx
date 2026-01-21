@@ -149,14 +149,19 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
   // Combine content and quizzes from database
   const allContent = useMemo(() => {
     const combined = [
-      ...contentFromDB.map((c) => ({
-        name: c.title,
-        type: c.type || "file",
-        status: c.status,
-        id: c._id,
-        category: c.category,
-        difficulty: c.difficulty
-      })),
+      ...contentFromDB.map((c) => {
+        // Fallback: check if type is video or name contains video
+        const isVideo = c.contentType === "video" ||
+          (c.title && c.title.toLowerCase().includes("video"));
+        return {
+          name: c.title,
+          type: isVideo ? "video" : (c.contentType || "file"),
+          status: c.status,
+          id: c._id,
+          category: c.category,
+          difficulty: c.difficulty
+        };
+      }),
       ...quizzesFromDB.map((q) => ({
         name: q.title,
         type: "quiz",
@@ -172,17 +177,21 @@ function InstructorProfile({ id, users, modLog, onBack, onDeleteUpload }) {
   // Combine deleted content and quizzes from database
   const allDeletedContent = useMemo(() => {
     const combined = [
-      ...deletedContentFromDB.map((c) => ({
-        name: c.title,
-        type: c.type || "file",
-        status: c.status,
-        previousStatus: c.previousStatus,
-        id: c._id,
-        category: c.category,
-        difficulty: c.difficulty,
-        deletedAt: c.deletedAt,
-        createdAt: c.createdAt
-      })),
+      ...deletedContentFromDB.map((c) => {
+        const isVideo = c.contentType === "video" ||
+          (c.title && c.title.toLowerCase().includes("video"));
+        return {
+          name: c.title,
+          type: isVideo ? "video" : (c.contentType || "file"),
+          status: c.status,
+          previousStatus: c.previousStatus,
+          id: c._id,
+          category: c.category,
+          difficulty: c.difficulty,
+          deletedAt: c.deletedAt,
+          createdAt: c.createdAt
+        };
+      }),
       ...deletedQuizzesFromDB.map((q) => ({
         name: q.title,
         type: "quiz",
