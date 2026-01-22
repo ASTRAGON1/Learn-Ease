@@ -196,8 +196,21 @@ exports.getPublishedContent = async (req, res) => {
     if (lessonId) query.lesson = lessonId;
     if (contentType) query.contentType = contentType;
 
+    // **DIFFICULTY FILTERING** - If user is a student, filter by their current difficulty level
+    if (req.user && req.user.role === 'student') {
+      const Student = require('../models/Student');
+      const student = await Student.findById(req.user.sub).select('currentDifficulty');
+      
+      if (student && student.currentDifficulty) {
+        query.difficulty = student.currentDifficulty;
+        console.log(`🎯 Filtering content for student ${req.user.sub}: ${student.currentDifficulty} difficulty only`);
+      } else {
+        console.log(`⚠️ Student ${req.user.sub} has no difficulty set - showing all content`);
+      }
+    }
+
     const content = await Content.find(query)
-      .select('title contentType fileURL lesson topic course status description')
+      .select('title contentType fileURL lesson topic course status description difficulty')
       .sort({ createdAt: -1 });
 
     const transformed = content.map(c => ({
@@ -206,11 +219,13 @@ exports.getPublishedContent = async (req, res) => {
       contentType: c.contentType,
       fileURL: c.fileURL,
       description: c.description,
+      difficulty: c.difficulty,
       lesson: c.lesson,
       topic: c.topic,
       course: c.course
     }));
 
+    console.log(`✅ Returning ${transformed.length} published content items${query.difficulty ? ` (${query.difficulty} difficulty)` : ''}`);
     return res.status(200).json({ data: transformed });
   } catch (e) {
     console.error('getPublishedContent error', e);

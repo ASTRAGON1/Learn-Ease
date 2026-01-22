@@ -188,6 +188,7 @@ exports.getMe = async (req, res) => {
                 email: student.email,
                 profilePic: student.profilePic,
                 type: student.type,
+                currentDifficulty: student.currentDifficulty,
                 userStatus: student.userStatus,
                 assignedPath: student.assignedPath,
                 lastActivity: student.lastActivity
@@ -917,5 +918,113 @@ exports.viewContent = async (req, res) => {
     } catch (error) {
         console.error('Error updating content views:', error);
         res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Get student's personalized learning path
+exports.getPersonalizedPath = async (req, res) => {
+    try {
+        const studentId = req.user.sub;
+        
+        // Get student info with current difficulty level
+        const student = await Student.findById(studentId).select('type currentDifficulty');
+        if (!student) {
+            return res.status(404).json({ success: false, error: 'Student not found' });
+        }
+
+        // Get student's path
+        const StudentPath = require('../models/StudentPath');
+        const studentPath = await StudentPath.findOne({ student: studentId })
+            .populate({
+                path: 'path',
+                select: 'title type'
+            })
+            .populate({
+                path: 'assignedContent.content',
+                populate: [
+                    { path: 'course', select: 'title order' },
+                    { path: 'topic', select: 'title' },
+                    { path: 'lesson', select: 'title' }
+                ]
+            })
+            .lean();
+
+        if (!studentPath) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'No personalized path found. Please complete the diagnostic quiz first.' 
+            });
+        }
+
+        // Filter content by current difficulty level if it's set
+        let filteredContent = studentPath.assignedContent;
+        if (student.currentDifficulty) {
+            filteredContent = studentPath.assignedContent.filter(item => {
+                return item.content && item.content.difficulty === student.currentDifficulty;
+            });
+            console.log(`📊 Filtered ${filteredContent.length}/${studentPath.assignedContent.length} items for ${student.currentDifficulty} difficulty`);
+        }
+
+        // Group content by course
+        const courseMap = new Map();
+        filteredContent.forEach(item => {
+            if (!item.content || !item.content.course) return;
+            
+            const courseId = item.content.course._id.toString();
+            if (!courseMap.has(courseId)) {
+                courseMap.set(courseId, {
+                    _id: courseId,
+                    title: item.content.course.title,
+                    order: item.content.course.order,
+                    topics: new Map()
+                });
+            }
+            
+            const course = courseMap.get(courseId);
+            const topicId = item.content.topic?._id?.toString();
+            if (topicId && !course.topics.has(topicId)) {
+                course.topics.set(topicId, {
+                    _id: topicId,
+                    title: item.content.topic.title,
+                    lessons: []
+                });
+            }
+            
+            if (topicId && item.content.lesson) {
+                const topic = course.topics.get(topicId);
+                if (!topic.lessons.some(l => l._id === item.content.lesson._id.toString())) {
+                    topic.lessons.push({
+                        _id: item.content.lesson._id,
+                        title: item.content.lesson.title
+                    });
+                }
+            }
+        });
+
+        // Convert maps to arrays and sort
+        const courses = Array.from(courseMap.values())
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(course => ({
+                ...course,
+                topics: Array.from(course.topics.values())
+            }));
+
+        res.json({
+            success: true,
+            data: {
+                pathId: studentPath.path._id,
+                pathTitle: studentPath.path.title,
+                pathType: studentPath.path.type,
+                currentDifficulty: student.currentDifficulty,
+                totalContent: studentPath.assignedContent.length,
+                filteredContent: filteredContent.length,
+                courses: courses,
+                status: studentPath.status
+            }
+        });
+
+    } catch (error) {
+        console.error('Error getting personalized path:', error);
+        res.status(500).json({ success: false, error: 'Server error', details: error.message });
     }
 };

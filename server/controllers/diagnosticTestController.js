@@ -297,11 +297,26 @@ exports.submitQuiz = async (req, res) => {
       completedAt: new Date()
     });
 
-    // Update student record - only set the type, test data is stored in Test model
+    // Determine initial difficulty level based on accuracy
+    const accuracyPercent = accuracy * 100;
+    let initialDifficulty;
+    
+    if (accuracyPercent < 50) {
+      initialDifficulty = 'Easy';
+    } else if (accuracyPercent <= 80) {
+      initialDifficulty = 'Medium';
+    } else {
+      initialDifficulty = 'Hard';
+    }
+
+    // Update student record - set type AND currentDifficulty
     const student = await Student.findByIdAndUpdate(
       studentId,
       {
-        $set: { type: studentType }
+        $set: { 
+          type: studentType,
+          currentDifficulty: initialDifficulty
+        }
       },
       { new: true, runValidators: true }
     );
@@ -310,14 +325,14 @@ exports.submitQuiz = async (req, res) => {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Verify the type was saved correctly
-    if (student.type !== studentType) {
-      console.error(`⚠️ Type mismatch: Expected ${studentType}, but got ${student.type}`);
+    // Verify the type and difficulty were saved correctly
+    if (student.type !== studentType || student.currentDifficulty !== initialDifficulty) {
+      console.error(`⚠️ Mismatch: Expected ${studentType}/${initialDifficulty}, but got ${student.type}/${student.currentDifficulty}`);
       // Force update again to ensure consistency
-      await Student.findByIdAndUpdate(studentId, { $set: { type: studentType } });
+      await Student.findByIdAndUpdate(studentId, { $set: { type: studentType, currentDifficulty: initialDifficulty } });
     }
 
-    console.log(`✅ Student ${studentId} type set to: ${studentType} (autismScore: ${autismScore}, downSyndromeScore: ${downSyndromeScore})`);
+    console.log(`✅ Student ${studentId} type set to: ${studentType}, difficulty: ${initialDifficulty} (accuracy: ${accuracyPercent.toFixed(0)}%)`);
 
     // --- Generate TRULY Personalized Path ---
     try {
@@ -609,7 +624,10 @@ exports.regeneratePath = async (req, res) => {
     const { section1, section2, section3, accuracy, autismScore, downSyndromeScore, determinedType } = testResults;
     const studentType = determinedType;
 
-    console.log(`🔄 Regenerating path for student ${studentId} - Type: ${studentType}, Accuracy: ${(accuracy * 100).toFixed(0)}%`);
+    // Use student's CURRENT difficulty level (updated by quiz performance) rather than recalculating from diagnostic
+    const currentDifficulty = student.currentDifficulty || 'Medium'; // Default to Medium if not set
+    
+    console.log(`🔄 Regenerating path for student ${studentId} - Type: ${studentType}, Current Difficulty: ${currentDifficulty}`);
 
     // 2. Find the curriculum Path
     const curriculumPath = await PathModel.findOne({ type: studentType });
@@ -618,20 +636,9 @@ exports.regeneratePath = async (req, res) => {
       return res.status(404).json({ error: `No curriculum path found for type: ${studentType}` });
     }
 
-    // 3. Determine difficulty filter based on accuracy score - MATCH skill level
-    let difficultyFilter;
-    const accuracyPercent = accuracy * 100;
-    
-    if (accuracyPercent < 50) {
-      difficultyFilter = ['Easy'];
-      console.log(`🎯 Low accuracy (${accuracyPercent.toFixed(0)}% < 50%) - Assigning ONLY Easy content`);
-    } else if (accuracyPercent <= 80) {
-      difficultyFilter = ['Medium'];
-      console.log(`🎯 Medium accuracy (${accuracyPercent.toFixed(0)}% = 50-80%) - Assigning ONLY Medium content`);
-    } else {
-      difficultyFilter = ['Hard'];
-      console.log(`🎯 High accuracy (${accuracyPercent.toFixed(0)}% > 80%) - Assigning ONLY Hard content`);
-    }
+    // 3. Use student's current difficulty level (reflects their actual performance over time)
+    const difficultyFilter = [currentDifficulty];
+    console.log(`🎯 Using current difficulty level: ${currentDifficulty} (adapts based on quiz performance)`);
 
     // 4. Analyze student preferences
     let preferredContentType = null;
@@ -695,13 +702,13 @@ exports.regeneratePath = async (req, res) => {
         if (availableContent.length > 0) {
           const prompt = `Student Profile:
 - Condition: ${studentType} (Autism: ${autismScore}, Down Syndrome: ${downSyndromeScore})
-- Accuracy: ${accuracyPercent.toFixed(0)}%
+- Current Difficulty Level: ${currentDifficulty} (based on ongoing performance)
 - Preferences: ${JSON.stringify(section1)}
 
-Available Content (${availableContent.length}):
+Available ${currentDifficulty} Content (${availableContent.length}):
 ${availableContent.map((c, i) => `${i + 1}. "${c.title}" [${c.contentType}] - ${c.difficulty}`).join('\n')}
 
-Select 5-8 most suitable items. Return JSON array of indices: [1, 5, 3, ...]`;
+Select 5-8 most suitable ${currentDifficulty} items. Return JSON array of indices: [1, 5, 3, ...]`;
 
           const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
@@ -777,13 +784,13 @@ Select 5-8 most suitable items. Return JSON array of indices: [1, 5, 3, ...]`;
 
     res.json({
       success: true,
-      message: `Successfully regenerated your personalized learning path with ${assignedContent.length} items tailored to your ${accuracyPercent.toFixed(0)}% accuracy score!`,
+      message: `Successfully regenerated your personalized learning path with ${assignedContent.length} items at ${currentDifficulty} difficulty level!`,
       data: {
         totalItems: assignedContent.length + aiRecommendedIds.length,
         baseItems: assignedContent.length,
         aiRecommended: aiRecommendedIds.length,
         difficultyLevels: difficultyFilter,
-        accuracyScore: accuracyPercent.toFixed(0)
+        currentDifficulty: currentDifficulty
       }
     });
 

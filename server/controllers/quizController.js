@@ -230,6 +230,15 @@ exports.submitQuiz = async (req, res) => {
             return; // No adjustment needed for 60-70% range
           }
 
+          // Update student's current difficulty level
+          const currentDifficultyBefore = student.currentDifficulty;
+          if (currentDifficultyBefore !== newDifficulty) {
+            await Student.findByIdAndUpdate(studentId, { 
+              $set: { currentDifficulty: newDifficulty } 
+            });
+            console.log(`🔄 Updated student difficulty: ${currentDifficultyBefore || 'Not Set'} → ${newDifficulty}`);
+          }
+
           // Find curriculum path
           const curriculumPath = await PathModel.findOne({ type: student.type });
           if (!curriculumPath) {
@@ -361,6 +370,19 @@ exports.getPublishedQuizzes = async (req, res) => {
     if (courseId) query.course = courseId;
     if (lessonId) query.lesson = lessonId;
 
+    // **DIFFICULTY FILTERING** - If user is a student, filter by their current difficulty level
+    if (req.user && req.user.role === 'student') {
+      const Student = require('../models/Student');
+      const student = await Student.findById(req.user.sub).select('currentDifficulty');
+      
+      if (student && student.currentDifficulty) {
+        query.difficulty = student.currentDifficulty;
+        console.log(`🎯 Filtering quizzes for student ${req.user.sub}: ${student.currentDifficulty} difficulty only`);
+      } else {
+        console.log(`⚠️ Student ${req.user.sub} has no difficulty set - showing all quizzes`);
+      }
+    }
+
     const quizzes = await Quiz.find(query)
       .select('title difficulty questionsAndAnswers lesson topic course status releaseDate')
       .sort({ createdAt: -1 });
@@ -376,6 +398,7 @@ exports.getPublishedQuizzes = async (req, res) => {
       time: `${(q.questionsAndAnswers?.length || 0) * 2} min` // Estimated time
     }));
 
+    console.log(`✅ Returning ${transformed.length} published quizzes${query.difficulty ? ` (${query.difficulty} difficulty)` : ''}`);
     return res.status(200).json({ data: transformed });
   } catch (e) {
     console.error('getPublishedQuizzes error', e);

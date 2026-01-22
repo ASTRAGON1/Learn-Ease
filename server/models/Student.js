@@ -43,6 +43,12 @@ const studentSchema = new mongoose.Schema({
     enum: ['autism', 'downSyndrome'],
     default: null
   },
+  currentDifficulty: {
+    type: String,
+    enum: ['Easy', 'Medium', 'Hard'],
+    default: null,
+    description: 'Current difficulty level based on diagnostic test and quiz performance'
+  },
   profilePic: {
     type: String,
     default: 'default-avatar.png'

@@ -370,33 +370,65 @@ function PersonalizedPath() {
     fetchAchievements();
   }, []);
 
-  // Fetch learning path from API based on student type
+  // Fetch personalized learning path from student-specific endpoint
   useEffect(() => {
     const fetchPath = async () => {
       if (!studentPathType) return;
 
       setLoading(true);
+      const token = window.sessionStorage.getItem('token');
+      
       try {
-        const response = await fetch(`${API_URL}/api/admin/learning-paths`);
+        // Fetch student's personalized path (filtered by difficulty)
+        const response = await fetch(`${API_URL}/api/students/personalized-path`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
-            const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(normalizedType)));
-            if (path) {
-              // Transform to expected format
-              setStudentPath({
-                GeneralPath: normalizedType,
-                pathTitle: path.name,
-                Courses: path.courses.map(course => ({
-                  id: course._id || course.id, // Capture ID for mapping
-                  CoursesTitle: course.name,
-                  Topics: course.topics.map(topic => ({
-                    TopicsTitle: topic.name,
-                    lessons: topic.lessons.map(lesson => lesson.name)
-                  }))
+            console.log(`✅ Loaded personalized path - Difficulty: ${result.data.currentDifficulty}, Content: ${result.data.filteredContent}/${result.data.totalContent} items`);
+            
+            // Transform to expected format
+            setStudentPath({
+              GeneralPath: result.data.pathType,
+              pathTitle: result.data.pathTitle,
+              currentDifficulty: result.data.currentDifficulty,
+              Courses: result.data.courses.map(course => ({
+                id: course._id,
+                CoursesTitle: course.title,
+                Topics: course.topics.map(topic => ({
+                  TopicsTitle: topic.title,
+                  lessons: topic.lessons.map(lesson => lesson.title)
                 }))
-              });
+              }))
+            });
+          }
+        } else {
+          console.error('Failed to fetch personalized path:', response.status);
+          // Fallback to general paths if personalized path not available
+          const fallbackResponse = await fetch(`${API_URL}/api/admin/learning-paths`);
+          if (fallbackResponse.ok) {
+            const result = await fallbackResponse.json();
+            if (result.success && result.data) {
+              const normalizedType = studentPathType.toLowerCase() === 'down syndrome' ? 'downSyndrome' : studentPathType.toLowerCase();
+              const path = result.data.find(p => p.id && (p.id.includes(normalizedType) || p.name.toLowerCase().includes(normalizedType)));
+              if (path) {
+                setStudentPath({
+                  GeneralPath: normalizedType,
+                  pathTitle: path.name,
+                  Courses: path.courses.map(course => ({
+                    id: course._id || course.id,
+                    CoursesTitle: course.name,
+                    Topics: course.topics.map(topic => ({
+                      TopicsTitle: topic.name,
+                      lessons: topic.lessons.map(lesson => lesson.name)
+                    }))
+                  }))
+                });
+              }
             }
           }
         }
@@ -630,7 +662,23 @@ function PersonalizedPath() {
             <div className="pp-header-content-new">
               <div className="pp-header-text">
                 <h1 className="pp-page-title-new">My Learning Journey</h1>
-                <p className="pp-page-subtitle-new">{studentPath?.pathTitle || "Personalized Learning Path"}</p>
+                <p className="pp-page-subtitle-new">
+                  {studentPath?.pathTitle || "Personalized Learning Path"}
+                  {studentPath?.currentDifficulty && (
+                    <span style={{ 
+                      marginLeft: "12px", 
+                      padding: "4px 12px", 
+                      borderRadius: "12px", 
+                      fontSize: "0.85em",
+                      fontWeight: "600",
+                      backgroundColor: studentPath.currentDifficulty === 'Easy' ? '#4ade80' : 
+                                      studentPath.currentDifficulty === 'Medium' ? '#fbbf24' : '#f87171',
+                      color: '#fff'
+                    }}>
+                      {studentPath.currentDifficulty} Level
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
           </div>

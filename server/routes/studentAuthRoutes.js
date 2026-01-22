@@ -52,4 +52,7 @@ router.post('/content/:id/like', studentAuthController.likeContent);
 // POST /api/students/content/:id/view
 router.post('/content/:id/view', studentAuthController.viewContent);
 
+// GET /api/students/personalized-path - Get student's personalized learning path
+router.get('/personalized-path', auth(['student']), requireDiagnosticQuiz, studentAuthController.getPersonalizedPath);
+
 module.exports = router;
