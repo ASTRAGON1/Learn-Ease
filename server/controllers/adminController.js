@@ -398,55 +398,67 @@ exports.getTeacherQuizResults = async (req, res) => {
     }
 };
 
-// Get weekly metrics
+// Get weekly metrics (current week only - Monday to Sunday)
 exports.getWeeklyMetrics = async (req, res) => {
     try {
         const teacher = await Teacher.findOne({ email: req.params.email });
         if (!teacher) return res.status(404).json({ success: false, error: 'Teacher not found' });
 
+        // Calculate current week range (Monday to Sunday)
+        const now = new Date();
+        const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        
+        // Calculate days to subtract to get to Monday
+        const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+        
+        // Start of week (Monday at 00:00:00)
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - daysToMonday);
+        weekStart.setHours(0, 0, 0, 0);
+        
+        // End of week (Sunday at 23:59:59)
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        console.log(`📊 Fetching weekly metrics for ${req.params.email}`);
+        console.log(`📅 Current week: ${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()}`);
+
         const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const weeklyData = daysOfWeek.map(day => ({ day, views: 0, likes: 0 }));
 
+        // Fetch content and quizzes
         const content = await Content.find({ teacher: teacher._id, status: { $ne: 'deleted' } })
             .select('views likes lastViewedAt lastLikedAt');
         const quizzes = await Quiz.find({ teacher: teacher._id })
             .select('views likes lastViewedAt lastLikedAt');
 
         const allItems = [...content, ...quizzes];
-        let totalViews = 0, totalLikes = 0, viewsDistributed = 0, likesDistributed = 0;
 
+        // Only count views/likes that happened THIS WEEK
         allItems.forEach(item => {
-            totalViews += item.views || 0;
-            totalLikes += item.likes || 0;
-
+            // Check if lastViewedAt is within current week
             if (item.lastViewedAt && item.views > 0) {
-                const idx = new Date(item.lastViewedAt).getDay();
-                const dIdx = idx === 0 ? 6 : idx - 1;
-                weeklyData[dIdx].views += item.views;
-                viewsDistributed += item.views;
+                const viewedDate = new Date(item.lastViewedAt);
+                if (viewedDate >= weekStart && viewedDate <= weekEnd) {
+                    const dayIndex = viewedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                    const dIdx = dayIndex === 0 ? 6 : dayIndex - 1; // Convert to 0=Monday, 6=Sunday
+                    weeklyData[dIdx].views += item.views;
+                }
             }
+            
+            // Check if lastLikedAt is within current week
             if (item.lastLikedAt && item.likes > 0) {
-                const idx = new Date(item.lastLikedAt).getDay();
-                const dIdx = idx === 0 ? 6 : idx - 1;
-                weeklyData[dIdx].likes += item.likes;
-                likesDistributed += item.likes;
+                const likedDate = new Date(item.lastLikedAt);
+                if (likedDate >= weekStart && likedDate <= weekEnd) {
+                    const dayIndex = likedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                    const dIdx = dayIndex === 0 ? 6 : dayIndex - 1; // Convert to 0=Monday, 6=Sunday
+                    weeklyData[dIdx].likes += item.likes;
+                }
             }
         });
 
-        // Distribute remaining evenly
-        const remViews = totalViews - viewsDistributed;
-        const remLikes = totalLikes - likesDistributed;
-
-        if (remViews > 0) {
-            const perDay = Math.floor(remViews / 7);
-            const extra = remViews % 7;
-            weeklyData.forEach((d, i) => { d.views += perDay; if (i < extra) d.views += 1; });
-        }
-        if (remLikes > 0) {
-            const perDay = Math.floor(remLikes / 7);
-            const extra = remLikes % 7;
-            weeklyData.forEach((d, i) => { d.likes += perDay; if (i < extra) d.likes += 1; });
-        }
+        console.log(`✅ Weekly data:`, weeklyData);
 
         res.json({ success: true, data: weeklyData });
     } catch (error) {
