@@ -7,6 +7,7 @@ import smallLogo from "../assets/OrangeIconLogo.png";
 import icCourse from "../assets/course.png";
 import icPersonalizedPath from "../assets/Path.svg";
 import ChatAssistant from "./components/ChatAssistant"; // Import Chat Assistant
+import ParentNotification from "../components/ParentNotification"; // Parent supervision reminder
 
 
 const ProfileAvatar = ({ src, name, className, style, fallbackClassName }) => {
@@ -650,6 +651,9 @@ export default function StudentDashboard2() {
 
   return (
     <div className="ld-page">
+      {/* Parent Supervision Reminder */}
+      <ParentNotification />
+      
       {/* Left Sidebar with Hover Animation */}
       <aside
         className={`ld-sidebar-expandable ${sidebarCollapsed ? "collapsed" : ""}`}

@@ -1,0 +1,134 @@
+/* Parent Notification Overlay */
+.parent-notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Notification Card */
+.parent-notification-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  max-width: 500px;
+  width: 90%;
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Icon */
+.parent-notification-icon {
+  font-size: 60px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Content */
+.parent-notification-content {
+  text-align: center;
+}
+
+.parent-notification-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.parent-notification-message {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 24px;
+}
+
+.parent-notification-message strong {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+/* Close Button */
+.parent-notification-close {
+  width: 100%;
+  padding: 14px 24px;
+  background-color: white;
+  color: #667eea;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.parent-notification-close:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.parent-notification-close:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .parent-notification-card {
+    padding: 24px;
+    max-width: 95%;
+  }
+
+  .parent-notification-icon {
+    font-size: 48px;
+  }
+
+  .parent-notification-title {
+    font-size: 20px;
+  }
+
+  .parent-notification-message {
+    font-size: 14px;
+  }
+}

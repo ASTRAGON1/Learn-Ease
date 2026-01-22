@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useDiagnosticQuizCheck } from "../hooks/useDiagnosticQuizCheck";
+import ParentNotification from "../components/ParentNotification";
 import achievementsData from "../data/achievements.json";
 import "./CoursePlayer.css";
 
@@ -651,6 +652,9 @@ export default function CoursePlayer() {
 
   return (
     <div className="cp-page-new">
+      {/* Parent Supervision Reminder */}
+      <ParentNotification />
+      
       {/* Main Content */}
       <div className="cp-main-new">
         {/* Top Header */}
